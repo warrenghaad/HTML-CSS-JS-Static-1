@@ -1,15 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>replit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive E-Textbook - Learning Platform</title>
   <link href="style.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
-  Hello world
+  <header>
+    <h1>Interactive E-Textbook</h1>
+    <p class="subtitle">A Learning Platform for Teachers and Students</p>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#home" class="nav-link active">Home</a></li>
+      <li><a href="#chapter1" class="nav-link">Chapter 1</a></li>
+      <li><a href="#chapter2" class="nav-link">Chapter 2</a></li>
+      <li><a href="#resources" class="nav-link">Resources</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section id="home" class="content-section active">
+      <h2>Welcome to Your E-Textbook</h2>
+      <p>This is a simple interactive textbook designed to help you learn web design basics. Here's what you'll find:</p>
+      
+      <div class="info-box">
+        <h3>Features You'll Learn:</h3>
+        <ul>
+          <li>Basic HTML structure</li>
+          <li>CSS styling and layout</li>
+          <li>JavaScript interactivity</li>
+          <li>Navigation between sections</li>
+          <li>Collapsible content</li>
+        </ul>
+      </div>
+
+      <button class="toggle-btn" onclick="toggleContent('demo-content')">Click to See Interactive Demo</button>
+      <div id="demo-content" class="collapsible-content">
+        <p>This is an example of interactive content! You can hide and show this section by clicking the button above.</p>
+        <p>This is perfect for creating study notes, extra information, or quiz answers.</p>
+      </div>
+    </section>
+
+    <section id="chapter1" class="content-section">
+      <h2>Chapter 1: Introduction to Web Design</h2>
+      
+      <div class="lesson">
+        <h3>Lesson 1.1: What is HTML?</h3>
+        <p>HTML (HyperText Markup Language) is the standard language for creating web pages. It describes the structure of a webpage using elements and tags.</p>
+        
+        <div class="example-box">
+          <h4>Example:</h4>
+          <code>&lt;h1&gt;This is a heading&lt;/h1&gt;</code>
+          <code>&lt;p&gt;This is a paragraph&lt;/p&gt;</code>
+        </div>
+      </div>
+
+      <div class="lesson">
+        <h3>Lesson 1.2: Understanding CSS</h3>
+        <p>CSS (Cascading Style Sheets) is used to style and layout web pages. It controls colors, fonts, spacing, and positioning.</p>
+        
+        <div class="example-box">
+          <h4>Example:</h4>
+          <code>h1 { color: blue; font-size: 24px; }</code>
+        </div>
+      </div>
+    </section>
+
+    <section id="chapter2" class="content-section">
+      <h2>Chapter 2: Making Pages Interactive</h2>
+      
+      <div class="lesson">
+        <h3>Lesson 2.1: JavaScript Basics</h3>
+        <p>JavaScript adds interactivity to your web pages. You can respond to user actions like clicks, create animations, and update content dynamically.</p>
+        
+        <button class="toggle-btn" onclick="toggleContent('js-example')">Show JavaScript Example</button>
+        <div id="js-example" class="collapsible-content">
+          <div class="example-box">
+            <h4>Example Code:</h4>
+            <code>function greet() {</code>
+            <code>  alert('Hello, Student!');</code>
+            <code>}</code>
+          </div>
+          <button class="demo-btn" onclick="alert('Hello from JavaScript!')">Try It!</button>
+        </div>
+      </div>
+
+      <div class="lesson">
+        <h3>Lesson 2.2: Interactive Quiz</h3>
+        <p>Test your knowledge:</p>
+        
+        <div class="quiz">
+          <p><strong>Question:</strong> What does HTML stand for?</p>
+          <button class="quiz-btn" onclick="checkAnswer('correct')">HyperText Markup Language</button>
+          <button class="quiz-btn" onclick="checkAnswer('wrong')">High Tech Modern Language</button>
+          <button class="quiz-btn" onclick="checkAnswer('wrong')">Home Tool Markup Language</button>
+          <p id="quiz-result"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="resources" class="content-section">
+      <h2>Resources</h2>
+      
+      <div class="info-box">
+        <h3>For Teachers:</h3>
+        <ul>
+          <li>Download lesson plans</li>
+          <li>Access answer keys</li>
+          <li>View student progress</li>
+        </ul>
+      </div>
+
+      <div class="info-box">
+        <h3>For Students:</h3>
+        <ul>
+          <li>Practice exercises</li>
+          <li>Additional reading materials</li>
+          <li>Video tutorials</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Interactive E-Textbook | Learning Made Easy</p>
+  </footer>
+
   <script src="script.js"></script>
 </body>
 
