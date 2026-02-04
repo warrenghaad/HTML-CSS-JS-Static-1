@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diff Engine - Geo-Arts Console</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <h1>Diff Engine</h1>
+      <p class="subtitle">Compares current vs desired state</p>
+    </div>
+    <div class="header-actions">
+      <a href="../index.html" class="btn">← Back to Dashboard</a>
+      <div class="system-health">
+        <span class="health-dot healthy"></span>
+        <span>Engine: Healthy</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-content">
+    <div class="section-card">
+      <h3><span class="health-indicator healthy"></span> Engine Overview</h3>
+      <p>The Diff Engine compares snapshots against the desired system state. It identifies gaps and chunks them into context-window-sized pieces for function agents.</p>
+      
+      <div style="margin-top: 1rem;">
+        <strong>Inputs:</strong> Snapshot JSON, Desired State Spec<br>
+        <strong>Outputs:</strong> Chunked task list for Ag_Func agents
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>Tool List</h3>
+      <table class="func-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Status</th>
+            <th>Function</th>
+            <th>Input</th>
+            <th>Output</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Schema Comparator</td>
+            <td><span class="badge healthy">Healthy</span></td>
+            <td>Compares current vs desired schemas</td>
+            <td>Two schema definitions</td>
+            <td>Schema diff object</td>
+          </tr>
+          <tr>
+            <td>Task Chunker</td>
+            <td><span class="badge healthy">Healthy</span></td>
+            <td>Breaks diff into agent-sized tasks</td>
+            <td>Full diff object</td>
+            <td>Task queue</td>
+          </tr>
+          <tr>
+            <td>Context Splitter</td>
+            <td><span class="badge error">Error</span></td>
+            <td>Ensures tasks fit context window</td>
+            <td>Task + context limit</td>
+            <td>Sized task chunks</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-card">
+      <h3>Workflow Connections</h3>
+      <div class="legend-items" style="margin-top: 1rem;">
+        <div class="legend-item">
+          <span class="legend-color blue"></span>
+          <span>← Receives from: <strong>Snapshot Engine</strong></span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color green"></span>
+          <span>→ Outputs to: <strong>Ag_Func Engine</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>Task Chunking Rules</h3>
+      <ul style="margin-top: 1rem; padding-left: 1.5rem; color: var(--text-muted);">
+        <li>Each chunk must be ≤ context window size minus memory reserve</li>
+        <li>Each chunk must have defined input and output for independent testing</li>
+        <li>Chunks must be self-contained (no external dependencies within chunk)</li>
+        <li>Chunk boundaries should align with logical function boundaries</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Geo-Arts System Console v1.0 | Diff Engine</p>
+  </footer>
+
+  <script src="../scripts/main.js"></script>
+</body>
+</html>

@@ -1,1963 +1,244 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Geo-Arts System Console (Static)</title>
-  <style>
-    :root {
-      --bg: #0f1420;
-      --panel: rgba(255,255,255,0.06);
-      --panel2: rgba(255,255,255,0.09);
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.65);
-      --border: rgba(255,255,255,0.12);
-      --accent: #7dd3fc;
-      --accent2: #a78bfa;
-      --good: #86efac;
-      --warn: #fde68a;
-      --bad: #fca5a5;
-      --shadow: 0 10px 30px rgba(0,0,0,0.35);
-      --r: 18px;
-      --r2: 26px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-    }
-    body.light {
-      --bg: #f7f7fb;
-      --panel: rgba(0,0,0,0.04);
-      --panel2: rgba(0,0,0,0.06);
-      --text: rgba(0,0,0,0.88);
-      --muted: rgba(0,0,0,0.55);
-      --border: rgba(0,0,0,0.10);
-      --shadow: 0 12px 32px rgba(0,0,0,0.10);
-    }
-    body.builder {
-      --bg: #0b1220;
-      --accent: #60a5fa;
-      --accent2: #22d3ee;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: var(--sans);
-      background: radial-gradient(1200px 800px at 20% 10%, rgba(125,211,252,0.12), transparent 60%),
-                  radial-gradient(1100px 700px at 90% 20%, rgba(167,139,250,0.12), transparent 55%),
-                  radial-gradient(900px 600px at 50% 95%, rgba(34,211,238,0.08), transparent 60%),
-                  var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      backdrop-filter: blur(10px);
-      background: linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.05));
-      border-bottom: 1px solid var(--border);
-    }
-    .wrap {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 18px 18px 90px;
-    }
-    .top {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 18px;
-    }
-    .brand {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .brand h1 {
-      margin: 0;
-      font-size: 18px;
-      letter-spacing: 0.2px;
-    }
-    .brand .sub {
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .chips {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: flex-end;
-    }
-    .chip {
-      padding: 8px 10px;
-      border-radius: 999px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      font-size: 12px;
-      color: var(--muted);
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-    }
-    .btn {
-      border: 1px solid var(--border);
-      background: var(--panel2);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 999px;
-      cursor: pointer;
-      transition: transform 0.08s ease, background 0.15s ease;
-      font-size: 12px;
-    }
-    .btn:hover { transform: translateY(-1px); }
-    .btn:active { transform: translateY(0px); }
-    .btn.primary { border-color: rgba(125,211,252,0.4); }
-    .grid {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 14px;
-      margin-top: 16px;
-    }
-    @media (max-width: 980px) {
-      .grid { grid-template-columns: 1fr; }
-    }
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--r2);
-      padding: 16px;
-      box-shadow: var(--shadow);
-    }
-    .card h2 {
-      margin: 0 0 10px 0;
-      font-size: 16px;
-      letter-spacing: 0.2px;
-    }
-    .card p {
-      margin: 6px 0;
-      color: var(--muted);
-      line-height: 1.5;
-      font-size: 13px;
-    }
-    .tabs {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-    .tab {
-      padding: 9px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 12px;
-    }
-    .tab.active {
-      background: var(--panel2);
-      color: var(--text);
-      border-color: rgba(125,211,252,0.35);
-    }
-    .panel {
-      display: none;
-      margin-top: 14px;
-    }
-    .panel.active {
-      display: block;
-    }
-    textarea {
-      width: 100%;
-      min-height: 200px;
-      border-radius: var(--r);
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,0.18);
-      color: var(--text);
-      padding: 12px;
-      font-family: var(--mono);
-      font-size: 12px;
-      outline: none;
-    }
-    body.light textarea {
-      background: rgba(255,255,255,0.65);
-    }
-    .row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-top: 10px;
-    }
-    .pill {
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.03);
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .pill.good { color: var(--good); border-color: rgba(134,239,172,0.35); }
-    .pill.warn { color: var(--warn); border-color: rgba(253,230,138,0.35); }
-    .pill.bad { color: var(--bad); border-color: rgba(252,165,165,0.35); }
-    .doc {
-      margin: 10px 0;
-      border: 1px solid var(--border);
-      border-radius: var(--r2);
-      background: rgba(255,255,255,0.03);
-      overflow: hidden;
-    }
-    .doc summary {
-      list-style: none;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-      padding: 12px 14px;
-      user-select: none;
-    }
-    .doc summary::-webkit-details-marker { display:none; }
-    .doc-name {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--text);
-      opacity: 0.9;
-    }
-    .doc-actions {
-      display: inline-flex;
-      gap: 8px;
-    }
-    .mini {
-      padding: 7px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: var(--panel2);
-      color: var(--text);
-      cursor: pointer;
-      font-size: 12px;
-    }
-    pre {
-      margin: 0;
-      padding: 14px;
-      border-top: 1px solid var(--border);
-      font-family: var(--mono);
-      font-size: 12px;
-      white-space: pre-wrap;
-      word-break: break-word;
-      background: rgba(0,0,0,0.16);
-      color: rgba(255,255,255,0.92);
-    }
-    body.light pre {
-      background: rgba(255,255,255,0.55);
-      color: rgba(0,0,0,0.85);
-    }
-    .dock {
-      position: fixed;
-      left: 16px;
-      bottom: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      z-index: 70;
-    }
-    .dock .dock-item {
-      width: 48px;
-      height: 48px;
-      border-radius: 18px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.08);
-      box-shadow: var(--shadow);
-      display: grid;
-      place-items: center;
-      cursor: pointer;
-      transition: width 0.18s ease, background 0.18s ease, transform 0.12s ease;
-      overflow: hidden;
-    }
-    .dock:hover .dock-item {
-      width: 200px;
-      justify-content: start;
-      padding-left: 14px;
-      background: rgba(255,255,255,0.10);
-    }
-    .dock-item span {
-      margin-left: 12px;
-      white-space: nowrap;
-      color: var(--muted);
-      font-size: 12px;
-    }
-    .dock-item .ico {
-      font-size: 18px;
-      width: 20px;
-      text-align: center;
-    }
-    .dock-item:hover { transform: translateY(-1px); }
-    .split {
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    @media (max-width: 980px) {
-      .split { grid-template-columns: 1fr; }
-    }
-    .todo ul {
-      list-style: none;
-      padding: 0;
-      margin: 10px 0 0;
-      display: grid;
-      gap: 8px;
-    }
-    .todo li {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      padding: 10px 12px;
-      border-radius: var(--r);
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.03);
-    }
-    .todo input[type="text"] {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: var(--r);
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.03);
-      color: var(--text);
-      outline: none;
-    }
-    .todo button { white-space: nowrap; }
-    .kbd {
-      font-family: var(--mono);
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.05);
-      color: var(--muted);
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Geo-Arts System Console</title>
+  <link rel="stylesheet" href="styles/main.css">
 </head>
-<body class="builder">
-  <header>
-    <div class="top">
-      <div class="brand">
-        <h1>Geo-Arts System Console <span class="kbd">static</span></h1>
-        <div class="sub">SSOT holder • system auditor • checklist • job JSON + CLI instruction generator</div>
-      </div>
-      <div class="chips">
-        <div class="chip">Mode:
-          <button class="btn" id="modeLight">Face (Light)</button>
-          <button class="btn primary" id="modeBuilder">Builder (Blue)</button>
-          <button class="btn" id="modeDark">Research (Dark)</button>
-        </div>
-        <button class="btn" id="jumpDocs">Docs</button>
-        <button class="btn" id="jumpAudit">Audit</button>
-        <button class="btn" id="jumpJobs">Jobs</button>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <h1>Geo-Arts System Console</h1>
+      <p class="subtitle">Multi-Agent Workflow Pipeline</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="themeToggle">Toggle Theme</button>
+      <div class="system-health">
+        <span class="health-dot healthy"></span>
+        <span>System: Online</span>
       </div>
     </div>
   </header>
 
-  <div class="wrap">
-    <div class="grid">
-      <section class="card">
-        <h2>What this is</h2>
-        <p>This page is your human-facing “Nash Room” overview: a stable way to see what’s true (SSOT), what’s missing (audit), and what to do next (jobs).</p>
-        <p><b>Important:</b> It’s static—so it doesn’t talk to Supabase yet. Instead, you paste a “status JSON” snapshot and it generates a checklist and job payloads.</p>
-        <div class="tabs" role="tablist">
-          <button class="tab active" data-tab="overview">Overview</button>
-          <button class="tab" data-tab="docs">SSOT Library</button>
-          <button class="tab" data-tab="audit">Auditor + Checklist</button>
-          <button class="tab" data-tab="jobs">Job JSON + CLI</button>
-          <button class="tab" data-tab="todo">Flight Crew To‑Do</button>
-        </div>
-
-        <div class="panel active" id="panel-overview">
-          <div class="split">
-            <div class="card" style="box-shadow:none;background:transparent;border-color:var(--border);">
-              <h2>Canonical truth rules</h2>
-              <p>✅ No overwrites. Everything is immutable. “Current/Published/Approved” are refs.</p>
-              <p>✅ CAR minima per section: at least <b>1 claim</b> + <b>1 artifact</b>.</p>
-              <p>✅ Grade differentiation uses overlays (patches), not forks.</p>
-              <div class="row">
-                <span class="pill good">Immutable + Refs</span>
-                <span class="pill warn">Targets 3–5 artifacts in heavy sections</span>
-                <span class="pill bad">Single-letter tags forbidden</span>
-              </div>
+  <main class="dashboard">
+    <section class="pipeline-view">
+      <h2>Engine Pipeline</h2>
+      <p class="description">5 engines connected by workflow systems. Each card links to its detailed page.</p>
+      
+      <div class="engines-container">
+        <div class="engine-card" data-engine="snapshot">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>Snapshot Engine</h3>
+          </div>
+          <p class="card-desc">Captures backend state at checkpoints</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>State Capture</span>
             </div>
-            <div class="card" style="box-shadow:none;background:transparent;border-color:var(--border);">
-              <h2>How to use this page</h2>
-              <p>1) Paste a project snapshot into the <b>Status JSON</b> box.</p>
-              <p>2) Click <b>Analyze</b> to see blockers + warnings.</p>
-              <p>3) Click <b>Generate Jobs</b> to get payload JSON + CLI stubs.</p>
-              <p>4) Pin tasks in <b>Flight Crew</b> (stored in your browser via localStorage).</p>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Version Control</span>
+            </div>
+            <div class="tool" data-status="warning">
+              <span class="tool-dot"></span>
+              <span>Diff Generator</span>
             </div>
           </div>
+          <a href="pages/snapshot.html" class="card-link">Open Engine →</a>
+          <div class="flow-connector right blue"></div>
         </div>
 
-        <div class="panel" id="panel-docs">
-          <h2 id="docsAnchor">SSOT Library (embedded)</h2>
-          <p>These are the current SSOT pack files available in this workspace. Add more SSOT files and re‑generate this console to embed them.</p>
-          
-    <details class="doc">
-      <summary>
-        <span class="doc-name">SSOT-000_MASTER_TAXONOMY.md</span>
-        <span class="doc-actions">
-          <button class="mini" data-copy="SSOT-000_MASTER_TAXONOMY.md">Copy</button>
-          <button class="mini" data-download="SSOT-000_MASTER_TAXONOMY.md">Download</button>
-        </span>
-      </summary>
-      <pre id="doc-SSOT-000_MASTER_TAXONOMY.md">---
-type: ssot
-ssot_id: SSOT-000
-ssot_name: Master Taxonomy &amp; Tagging Standard
-tags:
-  - ssot/000-master
-  - ssot
-status: active
-created: 2026-01-24
----
-
-# SSOT-000: Master Taxonomy &amp; Tagging Standard (FINAL)
-
-This SSOT is the **stable truth** every tool, agent, watch-folder, UI panel, and downstream deliverable should rely on.
-
-It does **three** things:
-
-1) Defines the **canonical meanings** of your taxonomy terms (GEA/GEM/GEK/GEpHR/GEU, etc.)  
-2) Defines a **tagging grammar** (IDs, tags, alias expansion, forbidden shortcuts)  
-3) Defines a **production contract**: how sections become evidence → artifacts → deliverables
-
----
-
-## 0) Non‑negotiable guardrails (the stuff we stop arguing about)
-
-### 0.1 GEpHR is **Metaphor**
-- **GEpHR = metaphor / meaning / semiotics / cognitive scaffolding**.
-- It is **not** “philosophy,” “humanistic,” “SEL,” “phenomenology,” or any invented expansion.
-- Day A is GEpHR territory: meaning is *established, visualized, internalized, institutionalized*.
-
-### 0.2 GEK is **Conceptual (Math + Science)**
-- **GEK = mathematical/scientific conceptual elements** (your Day B conceptual spine).
-- Math-only is *too narrow*; science belongs here too.
-
-### 0.3 No forced causality between Day A and Day B
-- Day A and Day B are **parallel lenses** on the same geometric element.
-- They can **correct**, **reinforce**, and **challenge** each other, but we do **not** encode a forced causal chain.
-
-### 0.4 No single-letter tags (ever)
-- Tags like `&quot;e&quot;` are **banned**.  
-- If you want short codes, use *namespaced* short codes: `stem.e`, `get.te`, etc.
-
----
-
-## 1) The “taxonomy of taxonomy” model (how things nest without trapping you)
-
-Your system is best modeled as **orthogonal facets**, not a single strict tree.
-
-- **Form facet**: what it *is* in geometry (GEA/GEM)
-- **Meaning facet**: what it *signifies* in culture (GEpHR)
-- **Concept facet**: what it *proves/quantifies/explains* (GEK)
-- **Operator facet**: what you *do to/with* the form (transformations, dimensional mapping)
-- **Domain facet**: where it sits in knowledge practice (math, astronomy, materials, engineering…)
-- **Artifact facet**: how it becomes visual curriculum (image types, scene types, media outputs)
-- **Evidence facet**: the distillation spine (conclusion ↔ evidence graph)
-
-This gives you flexibility **without** trying to classify the entire universe.
-
----
-
-## 2) Canonical taxonomy definitions (GE*)
-
-### 2.1 GE (Geometric Element)
-A **geometric throughline** — either a platonic form or an intentionally curated spatial mapping that is central to meaning/function.
-
-### 2.2 GEA (Atomic)
-Irreducible primitives: point, line, angle, arc, circle, triangle, etc.  
-**Rule**: if you remove any component, it ceases to be itself.
-
-### 2.3 GEM (Molecular)
-Any form built from **2+ atomic elements** or atomic elements + a rule of composition (repeat, symmetry, interlace, tessellate, etc.).  
-Examples: rosette, grid, wheel+axle, truss, tessellation.
-
-### 2.4 GEK (Conceptual)
-Mathematical + scientific concepts expressed through geometry.  
-Examples: symmetry, area, torque, pressure distribution, stability, flow, periodicity, parallax.
-
-### 2.5 GEpHR (Metaphor)
-The **meaning-making scaffold**: mythic definition, symbolic rendering, semiotics on objects, ritual internalization, aesthetic institutionalization.  
-GEpHR does **not** imply “before measurement.” It is a **co-equal lens**.
-
-### 2.6 GEU (Ubiquitous)
-A **flag** meaning “this motif/composition is cross-cultural (3+ civs).”  
-GEU does not replace GEA/GEM; it annotates them.
-
-### 2.7 Operators (Transformations + Representation)
-Operators are not “elements.” They are **verbs**.
-
-- **Transformations** (movement/operation): rotate, translate, reflect, scale, shear, extrude…  
-- **Representation / dimensional mapping**: 3D→2D projection, 2D→3D extrusion, 1D-on-3D decoration, etc.
-
-Canonical namespaces:
-- `op.*` for transformations
-- `rep.*` for dimensional mapping
-
----
-
-## 3) Day A / Day B section contract (canonical meanings)
-
-### Day A (GEpHR): Metaphor track
-- **A1 Myth Definition (Myth Video)**: establish the element’s meaning in narrative form.
-- **A2 Metaphor Visualization**: show the element as an attention anchor (no SEL language).
-- **A3 Mythic Iconography**: show the element in deity/myth art conventions.
-- **A4 Material Culture + Ritual**: show the element embedded in objects, practices, and ritual life.
-- **A5 Decomposition (Style/Technique)**: teach how the culture renders the metaphor visually.
-- **A6 Art Activity**: student practice: signify the metaphor with precision.
-- **A7 Bridge Prompt**: a question anchored in a **real structure/object** that also sets up Day B.
-
-### Day B (GEK): Function track
-- **B1 Bridge Answer**: same structure/object; reveal the functional role of the element.
-- **B2 Math Concept**: the geometric property in conceptual/quantitative form.
-- **B3 Science Effect**: what the math enables in the real world (forces, motion, flow, etc.).
-- **B4 STEM Timeline (Discovery → Innovation → Invention)**: history of the concept/effect in use.
-- **B5 Case Study (The Moment)**: one focused invention/problem with evidence.
-- **B6 Deconstruction**: break the invention into geometric components + operators + materials.
-- **B7 Build/Design Challenge**: hands-on project.
-- **B8 Synthesis**: short wrap-up / explanation artifact.
-
----
-
-## 4) Evidence distillation (CAR without p&gt;qiffw)
-
-### 4.1 Rule
-- Every atomic content unit (sentence, bullet, caption) is either:
-  - a **Conclusion (C)**, or
-  - **Evidence (E)** supporting a parent conclusion.
-
-### 4.2 Graph
-- Conclusions can support higher-level conclusions.
-- Evidence can have evidence (sub-evidence).
-
-This makes your “fractal deliverables” possible:
-- **Teacher Summary**: section-level conclusions + 1–5 artifacts each
-- **Slides**: teacher-summary conclusions → captions
-- **Student worksheet**: slide conclusions → prompts/tasks
-- **Etextbook**: all evidence + all artifacts + all sources
-
----
-
-## 5) Canonical tag grammar
-
-### 5.1 IDs (stable)
-- Lesson: `lesson.&lt;civ&gt;.&lt;deity&gt;.&lt;element&gt;.&lt;week&gt;`
-- Section: `sec.A1` … `sec.B8`
-- Artifact: `art.&lt;lesson_id&gt;.&lt;sec&gt;.&lt;artifact_type&gt;.&lt;nn&gt;`
-- Claim: `clm.&lt;lesson_id&gt;.&lt;sec&gt;.&lt;nn&gt;`
-- Source: `src.&lt;provider&gt;.&lt;slug&gt;`
-
-### 5.2 Tags (faceted; dot notation)
-Minimum required tags per section pack:
-
-- `sec.*` (section code)
-- `civ.*`
-- `deity.*` (or `myth.*` where deity-less)
-- `ge.element.*` (human-readable element label)
-- **one** of: `gea.*` / `gem.*`
-- **Day A**: `gephr.*` required  
-- **Day B**: `gek.*` required  
-
-Optional but recommended:
-- `op.*` (transformations)
-- `rep.*` (representation mapping)
-- `dom.*` (knowledge domain)
-- `img.*` (image types / scene types)
-- `src.*` (sources)
-
-### 5.3 Alias expansion (compat)
-Your system should accept legacy tags and expand them:
-
-- `#GEA/circle` → `gea.circle`
-- `elem.circle` → `gea.circle` **and** `ge.element.circle`
-- `GEK-T` / `GEOK-T` → `op.*` (operator facet)
-- Single letters are rejected (see guardrail 0.4)
-
----
-
-## 6) Invention composite schema (how inventions “converge” without losing the mix)
-
-Inventions are *composites* by nature. Track them as a bundle:
-
-- **Geometry bundle**: components (GEA/GEM), their roles, and local features
-- **Operator bundle**: what’s happening (rotation, translation, etc.)
-- **Material bundle**: materials + constraints
-- **Function bundle**: what problem it solves
-- **Evidence bundle**: sources + claims that justify each part
-
-(See SSOT‑000 JSON for the exact schema.)
-
----
-
-## 7) Deliverable minimums (hard floor)
-No deliverable is valid if a section has **zero** artifacts.
-
-- Each section must have **≥ 1 artifact + 1 evidentiary statement**.
-- Target range: **3–5 artifacts/section** (section-dependent).
-
----
-
-## 8) What gets updated in existing SSOTs (summary)
-See `PATCH_SSOT_002_014.md` produced alongside this file.
-
-</pre>
-    </details>
-    
-
-    <details class="doc">
-      <summary>
-        <span class="doc-name">SSOT-000_MASTER_TAXONOMY.json</span>
-        <span class="doc-actions">
-          <button class="mini" data-copy="SSOT-000_MASTER_TAXONOMY.json">Copy</button>
-          <button class="mini" data-download="SSOT-000_MASTER_TAXONOMY.json">Download</button>
-        </span>
-      </summary>
-      <pre id="doc-SSOT-000_MASTER_TAXONOMY.json">{
-  &quot;meta&quot;: {
-    &quot;ssot_id&quot;: &quot;SSOT-000&quot;,
-    &quot;version&quot;: &quot;1.0.0&quot;,
-    &quot;created&quot;: &quot;2026-01-24&quot;,
-    &quot;canonical&quot;: true,
-    &quot;notes&quot;: [
-      &quot;Faceted taxonomy: form, meaning, concept, operators, domain, artifact, evidence.&quot;,
-      &quot;GEpHR is metaphor only. GEK is conceptual (math+science). No forced causality Day A↔Day B.&quot;
-    ]
-  },
-  &quot;glossary&quot;: {
-    &quot;GE&quot;: &quot;Geometric Element (geometric throughline).&quot;,
-    &quot;GEA&quot;: &quot;Atomic Geometric Element (irreducible primitive).&quot;,
-    &quot;GEM&quot;: &quot;Molecular Geometric Element (composition of 2+ atomic elements / composition rule).&quot;,
-    &quot;GEK&quot;: &quot;Conceptual Geometric Element (math+science concepts expressed through geometry).&quot;,
-    &quot;GEpHR&quot;: &quot;Metaphor facet: meaning-making scaffold (myth, semiotics, ritual, aesthetic institutionalization).&quot;,
-    &quot;GEU&quot;: &quot;Ubiquitous flag: motif/composition appears independently across 3+ civilizations.&quot;,
-    &quot;op&quot;: &quot;Operators (verbs): transformations like rotate/reflect; not elements.&quot;,
-    &quot;rep&quot;: &quot;Representation operators (dimensional mapping): 3D→2D, 2D→3D, decoration on surfaces.&quot;
-  },
-  &quot;naming&quot;: {
-    &quot;id_patterns&quot;: {
-      &quot;lesson&quot;: &quot;lesson.&lt;civ&gt;.&lt;deity&gt;.&lt;element&gt;.&lt;week&gt;&quot;,
-      &quot;section&quot;: &quot;sec.&lt;A1..A7|B1..B8&gt;&quot;,
-      &quot;claim&quot;: &quot;clm.&lt;lesson_id&gt;.&lt;sec&gt;.&lt;nn&gt;&quot;,
-      &quot;artifact&quot;: &quot;art.&lt;lesson_id&gt;.&lt;sec&gt;.&lt;artifact_type&gt;.&lt;nn&gt;&quot;,
-      &quot;source&quot;: &quot;src.&lt;provider&gt;.&lt;slug&gt;&quot;,
-      &quot;image_spec&quot;: &quot;imgspec.&lt;lesson_id&gt;.&lt;sec&gt;.&lt;nn&gt;&quot;,
-      &quot;invention&quot;: &quot;inv.&lt;slug&gt;&quot;
-    },
-    &quot;tag_rules&quot;: {
-      &quot;format&quot;: &quot;dot.notation&quot;,
-      &quot;ban_unscoped_single_letters&quot;: true,
-      &quot;required_per_section_pack&quot;: [
-        &quot;sec.*&quot;,
-        &quot;civ.*&quot;,
-        &quot;ge.element.*&quot;,
-        &quot;gea.*|gem.*&quot;,
-        &quot;gephr.* (DayA) | gek.* (DayB)&quot;
-      ]
-    },
-    &quot;alias_expansion&quot;: {
-      &quot;#GEA/&lt;x&gt;&quot;: &quot;gea.&lt;x&gt;&quot;,
-      &quot;#GEM/&lt;x&gt;&quot;: &quot;gem.&lt;x&gt;&quot;,
-      &quot;elem.&lt;x&gt;&quot;: [
-        &quot;ge.element.&lt;x&gt;&quot;,
-        &quot;gea.&lt;x&gt; (if atomic)&quot;
-      ],
-      &quot;GEOK-T&quot;: &quot;op.*&quot;,
-      &quot;GEK-T&quot;: &quot;op.*&quot;
-    }
-  },
-  &quot;facets&quot;: {
-    &quot;sections&quot;: {
-      &quot;dayA&quot;: {
-        &quot;facet_required&quot;: [
-          &quot;gephr.*&quot;
-        ],
-        &quot;sections&quot;: {
-          &quot;A1&quot;: {
-            &quot;name&quot;: &quot;Myth Definition (Myth Video)&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;video.short&quot;,
-              &quot;image.deity_or_myth_scene&quot;
-            ]
-          },
-          &quot;A2&quot;: {
-            &quot;name&quot;: &quot;Metaphor Visualization&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;image.diagram_or_anchor&quot;
-            ]
-          },
-          &quot;A3&quot;: {
-            &quot;name&quot;: &quot;Mythic Iconography&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;image.deity_detail&quot;,
-              &quot;image.iconography_comparison?&quot;
-            ]
-          },
-          &quot;A4&quot;: {
-            &quot;name&quot;: &quot;Material Culture + Ritual&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;image.real_artifact&quot;,
-              &quot;image.context_scene?&quot;
-            ]
-          },
-          &quot;A5&quot;: {
-            &quot;name&quot;: &quot;Decomposition (Style/Technique)&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;image.step_by_step&quot;,
-              &quot;diagram.decomposition&quot;
-            ]
-          },
-          &quot;A6&quot;: {
-            &quot;name&quot;: &quot;Art Activity&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;activity.instructions&quot;,
-              &quot;image.example_output?&quot;
-            ]
-          },
-          &quot;A7&quot;: {
-            &quot;name&quot;: &quot;Bridge Prompt&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;image.bridge_object_or_structure&quot;
-            ]
-          }
-        }
-      },
-      &quot;dayB&quot;: {
-        &quot;facet_required&quot;: [
-          &quot;gek.*&quot;
-        ],
-        &quot;sections&quot;: {
-          &quot;B1&quot;: {
-            &quot;name&quot;: &quot;Bridge Answer&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;diagram.functional_overlay&quot;
-            ]
-          },
-          &quot;B2&quot;: {
-            &quot;name&quot;: &quot;Math Concept&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;diagram.math&quot;,
-              &quot;worked_example?&quot;
-            ]
-          },
-          &quot;B3&quot;: {
-            &quot;name&quot;: &quot;Science Effect&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;diagram.science_effect&quot;
-            ]
-          },
-          &quot;B4&quot;: {
-            &quot;name&quot;: &quot;STEM Timeline (Discovery→Innovation→Invention)&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;timeline.mini&quot;,
-              &quot;image.historical?&quot;
-            ]
-          },
-          &quot;B5&quot;: {
-            &quot;name&quot;: &quot;Case Study (The Moment)&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;image.invention&quot;,
-              &quot;diagram.mechanism?&quot;
-            ]
-          },
-          &quot;B6&quot;: {
-            &quot;name&quot;: &quot;Deconstruction&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;diagram.components&quot;,
-              &quot;table.bill_of_parts?&quot;
-            ]
-          },
-          &quot;B7&quot;: {
-            &quot;name&quot;: &quot;Build/Design Challenge&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;activity.build&quot;,
-              &quot;rubric?&quot;
-            ]
-          },
-          &quot;B8&quot;: {
-            &quot;name&quot;: &quot;Synthesis&quot;,
-            &quot;must_have_artifacts&quot;: [
-              &quot;exit_ticket.prompt&quot;,
-              &quot;image.reference?&quot;
-            ]
-          }
-        }
-      }
-    },
-    &quot;geometry&quot;: {
-      &quot;GEA&quot;: {
-        &quot;description&quot;: &quot;Atomic primitives&quot;,
-        &quot;items&quot;: {
-          &quot;point&quot;: {
-            &quot;dim&quot;: &quot;0D&quot;
-          },
-          &quot;line&quot;: {
-            &quot;dim&quot;: &quot;1D&quot;
-          },
-          &quot;angle&quot;: {
-            &quot;dim&quot;: &quot;1D&quot;
-          },
-          &quot;arc&quot;: {
-            &quot;dim&quot;: &quot;1D&quot;
-          },
-          &quot;circle&quot;: {
-            &quot;dim&quot;: &quot;2D&quot;
-          },
-          &quot;triangle&quot;: {
-            &quot;dim&quot;: &quot;2D&quot;
-          },
-          &quot;square&quot;: {
-            &quot;dim&quot;: &quot;2D&quot;
-          },
-          &quot;rectangle&quot;: {
-            &quot;dim&quot;: &quot;2D&quot;
-          },
-          &quot;spiral&quot;: {
-            &quot;dim&quot;: &quot;1D→2D&quot;
-          },
-          &quot;crescent&quot;: {
-            &quot;dim&quot;: &quot;2D&quot;
-          },
-          &quot;star8&quot;: {
-            &quot;dim&quot;: &quot;2D&quot;
-          },
-          &quot;sphere&quot;: {
-            &quot;dim&quot;: &quot;3D&quot;
-          },
-          &quot;cylinder&quot;: {
-            &quot;dim&quot;: &quot;3D&quot;
-          },
-          &quot;cone&quot;: {
-            &quot;dim&quot;: &quot;3D&quot;
-          },
-          &quot;pyramid&quot;: {
-            &quot;dim&quot;: &quot;3D&quot;
-          },
-          &quot;cube&quot;: {
-            &quot;dim&quot;: &quot;3D&quot;
-          },
-          &quot;prism&quot;: {
-            &quot;dim&quot;: &quot;3D&quot;
-          }
-        }
-      },
-      &quot;GEM&quot;: {
-        &quot;description&quot;: &quot;Molecular compositions&quot;,
-        &quot;items&quot;: {
-          &quot;rosette&quot;: {
-            &quot;composed_of&quot;: [
-              &quot;circle&quot;,
-              &quot;line&quot;
-            ],
-            &quot;notes&quot;: &quot;radial petals&quot;
-          },
-          &quot;grid&quot;: {
-            &quot;composed_of&quot;: [
-              &quot;line&quot;,
-              &quot;angle&quot;
-            ]
-          },
-          &quot;tessellation&quot;: {
-            &quot;composed_of&quot;: [
-              &quot;polygon&quot;,
-              &quot;repeat_rule&quot;
-            ]
-          },
-          &quot;wheel_axle&quot;: {
-            &quot;composed_of&quot;: [
-              &quot;circle&quot;,
-              &quot;line&quot;
-            ],
-            &quot;notes&quot;: &quot;rotation around axle&quot;
-          },
-          &quot;truss&quot;: {
-            &quot;composed_of&quot;: [
-              &quot;triangle&quot;,
-              &quot;line&quot;
-            ]
-          },
-          &quot;arch&quot;: {
-            &quot;composed_of&quot;: [
-              &quot;arc&quot;,
-              &quot;keystone&quot;
-            ]
-          },
-          &quot;dome&quot;: {
-            &quot;composed_of&quot;: [
-              &quot;arc&quot;,
-              &quot;rotation_rule&quot;
-            ]
-          }
-        }
-      },
-      &quot;GEU&quot;: {
-        &quot;description&quot;: &quot;Ubiquitous flag (3+ civs). Stored as annotations on GEA/GEM items.&quot;,
-        &quot;rule&quot;: {
-          &quot;min_civilizations&quot;: 3,
-          &quot;must_be_independent&quot;: true
-        }
-      }
-    },
-    &quot;meaning&quot;: {
-      &quot;GEpHR&quot;: {
-        &quot;description&quot;: &quot;Metaphor/meaning scaffold; semiotics + ritual internalization + aesthetic institutionalization&quot;,
-        &quot;subfacets&quot;: {
-          &quot;myth_definition&quot;: {},
-          &quot;semiotic_function&quot;: {},
-          &quot;ritual_internalization&quot;: {},
-          &quot;aesthetic_institution&quot;: {},
-          &quot;symbolic_rendering&quot;: {}
-        }
-      }
-    },
-    &quot;concept&quot;: {
-      &quot;GEK&quot;: {
-        &quot;description&quot;: &quot;Conceptual (math+science) expressed via geometry&quot;,
-        &quot;examples&quot;: [
-          &quot;symmetry&quot;,
-          &quot;area&quot;,
-          &quot;ratio&quot;,
-          &quot;torque&quot;,
-          &quot;pressure_distribution&quot;,
-          &quot;flow&quot;,
-          &quot;periodicity&quot;,
-          &quot;parallax&quot;
-        ],
-        &quot;domain_tags&quot;: {
-          &quot;dom.math&quot;: {},
-          &quot;dom.sci.astronomy&quot;: {},
-          &quot;dom.sci.physics&quot;: {},
-          &quot;dom.eng.structural&quot;: {},
-          &quot;dom.eng.mechanical&quot;: {},
-          &quot;dom.tech.tools&quot;: {}
-        },
-        &quot;shortcodes&quot;: {
-          &quot;get.tt&quot;: &quot;technology (shortcode; avoid if it causes confusion)&quot;,
-          &quot;get.te&quot;: &quot;engineering (shortcode; avoid if it causes confusion)&quot;,
-          &quot;get.tm&quot;: &quot;mechanics/manufacturing (shortcode; avoid if it causes confusion)&quot;
-        }
-      }
-    },
-    &quot;operators&quot;: {
-      &quot;op&quot;: {
-        &quot;rotation&quot;: {
-          &quot;id&quot;: &quot;op.rotation&quot;
-        },
-        &quot;translation&quot;: {
-          &quot;id&quot;: &quot;op.translation&quot;
-        },
-        &quot;reflection&quot;: {
-          &quot;id&quot;: &quot;op.reflection&quot;
-        },
-        &quot;scaling&quot;: {
-          &quot;id&quot;: &quot;op.scaling&quot;
-        },
-        &quot;shear&quot;: {
-          &quot;id&quot;: &quot;op.shear&quot;
-        },
-        &quot;extrude&quot;: {
-          &quot;id&quot;: &quot;op.extrude&quot;
-        }
-      },
-      &quot;rep&quot;: {
-        &quot;oneD_on_twoD&quot;: {
-          &quot;id&quot;: &quot;rep.1D_on_2D&quot;
-        },
-        &quot;oneD_on_threeD&quot;: {
-          &quot;id&quot;: &quot;rep.1D_on_3D&quot;
-        },
-        &quot;twoD_on_twoD&quot;: {
-          &quot;id&quot;: &quot;rep.2D_on_2D&quot;
-        },
-        &quot;twoD_on_threeD&quot;: {
-          &quot;id&quot;: &quot;rep.2D_on_3D&quot;
-        },
-        &quot;threeD_to_twoD&quot;: {
-          &quot;id&quot;: &quot;rep.3D_to_2D&quot;
-        },
-        &quot;twoD_to_threeD&quot;: {
-          &quot;id&quot;: &quot;rep.2D_to_3D&quot;
-        }
-      }
-    },
-    &quot;artifact&quot;: {
-      &quot;image_type&quot;: {
-        &quot;_raw_md&quot;: &quot;---\ntype: ssot\nssot_id: SSOT-013b\nssot_name: Image Type Taxonomy\ntags:\n  - ssot/013b-image-types\n  - ssot\nstatus: draft\n---\n\n# SSOT-013: Image Type Taxonomy with Acquisition Mechanisms\n**Version:** 1.0\n**Created:** 2024-12-30\n**Purpose:** Define each image type, its specs, and how to acquire it\n\n---\n\n## IMAGE TYPE CATEGORIES\n\n| Category | Searched vs Created | Primary Use |\n|----------|---------------------|-------------|\n| MUSEUM_ARTIFACT | Searched | Day A material culture |\n| DEITY_PORTRAIT | Searched + Verified | Day A iconography |\n| STORYBOARD_SCENE | Created (AI/Artist) | Day A myth narrative |\n| MATH_DIAGRAM | Created (Generated) | Day B properties |\n| TRANSFORMATION_SEQUENCE | Created (Generated) | Day B operations |\n| PHYSICS_DIAGRAM | Created (Generated) | Day B science |\n| INVENTION_PHOTO | Searched | Day B STEM |\n| OVERLAY_ANNOTATION | Created (From artifact) | Day A/B analysis |\n| PROCESS_STEP | Searched/Photo | Day B activity |\n| MODERN_PARALLEL | Searched (Stock) | Day B connections |\n\n---\n\n# TYPE 1: MUSEUM_ARTIFACT\n\n## Purpose\nAuthentic historical object photograph from museum collection\n\n## Specifications\n```yaml\ntype: MUSEUM_ARTIFACT\nacquisition_mode: SEARCHED\n\ntechnical_specs:\n  min_resolution: 800x600\n  preferred_resolution: 1200x900\n  format: JPG, PNG\n  color: Full color preferred, B&amp;W acceptable\n  \ncontent_specs:\n  authenticity: Must be actual artifact photo\n  exclude: Modern reconstructions, artist interpretations, replicas\n  context: Museum setting or isolated object view\n  \nmetadata_required:\n  - museum_name\n  - accession_number (if available)\n  - artifact_date_range\n  - material\n  - dimensions\n  - license_type\n```\n\n## Acquisition Mechanism\n```\nSEARCH PIPELINE:\n1. Generate query from content need\n   - Primary: [artifact_type] [culture] [element] [museum]\n   - Example: \&quot;cylinder seal mesopotamian shamash british museum\&quot;\n\n2. Query sources (priority order):\n   a. British Museum Collection Online\n   b. Metropolitan Museum Open Access\n   c. Penn Museum Archives\n   d. Yale Babylonian Collection\n   e. Louvre Collections\n   f. Wikimedia Commons (verified)\n\n3. Filter results:\n   - Has image URL\n   - License allows educational use\n   - Resolution meets minimum\n   - Shows required content\n\n4. Human verification:\n   - Does image show what content describes?\n   - Is quality sufficient for classroom?\n   - Is this the BEST option available?\n```\n\n## Curation Rules\n- One artifact can serve multiple sections if genuinely relevant\n- Same artifact, different detail crops = different images\n- Always prefer museum&#x27;s own photo over third-party\n\n## Creation Fallback\nIf no suitable artifact exists:\n- Flag as `needs_alternative`\n- Options: AI generation, artist commission, or educational fair use temporary\n\n## Cultivation (Long-term)\n- Track which artifacts most frequently satisfy needs\n- Build \&quot;exemplar\&quot; library per deity/element combination\n- Note quality issues for future searches\n\n---\n\n# TYPE 2: DEITY_PORTRAIT\n\n## Purpose\nClear image identifying a specific deity with iconographic features\n\n## Specifications\n```yaml\ntype: DEITY_PORTRAIT\nacquisition_mode: SEARCHED + VERIFIED\n\ntechnical_specs:\n  min_resolution: 800x600\n  focus: Deity figure must be primary subject\n  clarity: Iconographic features must be distinguishable\n  \ncontent_specs:\n  required_features: 2+ from deity&#x27;s iconographic checklist\n  pose: Identification-friendly (frontal, 3/4, or canonical)\n  context: Can include scene, but deity must be clear focus\n  \nverification_checklist:\n  - [ ] Deity identifiable without label\n  - [ ] Primary symbol visible\n  - [ ] At least 2 secondary features visible\n  - [ ] Not modern illustration unless marked\n```\n\n## Acquisition Mechanism\n```\nSEARCH PIPELINE:\n1. Query: \&quot;[deity_name] [artifact_type]\&quot;\n   - Shamash: \&quot;shamash cylinder seal\&quot;, \&quot;shamash stele\&quot;, \&quot;shamash tablet\&quot;\n   - Prioritize well-documented exemplars\n\n2. Verification against SSOT-012 checklist:\n   - Check each iconographic feature\n   - Score: 0-5 features visible\n   - Threshold: Minimum 2 features\n\n3. Human verification:\n   - Could a student identify this deity?\n   - Is it clear enough to annotate?\n```\n\n## Curation Rules\n- Build \&quot;gold standard\&quot; set of 3-5 images per deity\n- Include variety: cylinder seals, reliefs, tablets\n- Avoid repetition of same exemplar across grades\n\n## Creation Fallback\nIf clear portrait unavailable:\n- Use symbol only (with explanation)\n- Commission artist composite\n- AI generation to spec\n\n## Cultivation\n- Track which images students respond to best\n- Note which features are easiest to identify\n- Build teaching sequence: easy → complex\n\n---\n\n# TYPE 3: STORYBOARD_SCENE\n\n## Purpose\nVisual narrative moment from myth, showing deity in action\n\n## Specifications\n```yaml\ntype: STORYBOARD_SCENE\nacquisition_mode: CREATED\n\ntechnical_specs:\n  resolution: 1200x800 minimum (landscape preferred)\n  format: PNG with transparency option\n  style: To be determined (see below)\n  \ncontent_specs:\n  narrative_moment: Specific scene from myth\n  deity_presence: Deity must be recognizable\n  setting: Appropriate environment for scene\n  action: Clear sense of what&#x27;s happening\n  element_integration: Geometric element visible in scene\n```\n\n## Style Options\n\n### Option A: \&quot;Archaeological Sketch\&quot; Style\n- Line drawing aesthetic\n- Sepia/earth tones\n- Evokes archaeological documentation\n- Pros: Authentic feel, less copyright concern\n- Cons: May lack engagement for young students\n\n### Option B: \&quot;Illustrated Myth\&quot; Style\n- Full color illustration\n- Age-appropriate character design\n- Dynamic composition\n- Pros: Engaging, clear narrative\n- Cons: Requires artist or careful AI prompting\n\n### Option C: \&quot;Museum Exhibit\&quot; Style\n- Combines artifact photos with context\n- Composite/collage approach\n- Text integration\n- Pros: Educational, artifact-centered\n- Cons: Less narrative flow\n\n## Creation Mechanism\n```\nCREATION PIPELINE:\n\nIF AI_GENERATION:\n  1. Scene brief from SSOT-012 scene requirements\n  2. Style prompt: \&quot;[STYLE] illustration of [DEITY] [ACTION] in [SETTING], \n     showing [ICONOGRAPHIC_FEATURES], [GEOMETRIC_ELEMENT] prominent\&quot;\n  3. Generate 4 variations\n  4. Human selects best or requests revision\n  5. Mark as AI_GENERATED for tracking\n\nIF ARTIST_COMMISSION:\n  1. Create detailed brief:\n     - Scene description\n     - Iconographic requirements\n     - Style reference (existing curriculum art)\n     - Dimensions and format\n  2. Artist provides sketches\n  3. Revision cycle (2-3 rounds)\n  4. Final delivery with usage rights\n  \nIF COMPOSITE_CREATION:\n  1. Identify source artifacts for elements\n  2. Extract/isolate needed components\n  3. Assemble in design software\n  4. Add context/background\n  5. Mark sources for attribution\n```\n\n## Curation Rules\n- Maintain style consistency across all storyboards\n- Each deity gets same visual treatment\n- Scene sequence should flow narratively\n\n## Cultivation\n- Test with student focus groups\n- Iterate based on comprehension data\n- Build style guide from successful examples\n\n---\n\n# TYPE 4: MATH_DIAGRAM\n\n## Purpose\nVisual explanation of geometric properties, parts, formulas\n\n## Specifications\n```yaml\ntype: MATH_DIAGRAM\nacquisition_mode: CREATED (Generated to spec)\n\ntechnical_specs:\n  resolution: Vector preferred (SVG), or 1200x1200 PNG\n  color: Curriculum color palette\n  labels: Clear, grade-appropriate font\n  \ncontent_specs:\n  accuracy: Mathematically correct\n  labels: All parts named\n  measurements: Shown where relevant\n  progression: Simple to complex available\n```\n\n## Diagram Subtypes\n\n### 4A: Parts Diagram\n- Element with all parts labeled\n- Example: Circle with center, radius, diameter, circumference labeled\n\n### 4B: Property Demonstration\n- Visual proof or demonstration\n- Example: All radii equal length shown\n\n### 4C: Formula Visualization\n- Formula connected to visual elements\n- Example: C = 2πr with circumference highlighted\n\n### 4D: Construction Steps\n- How to draw/create element\n- Step-by-step visual guide\n\n### 4E: Measurement Guide\n- How to measure properties\n- Tool usage (compass, ruler)\n\n## Creation Mechanism\n```\nCREATION PIPELINE:\n\nTOOL: STEM Lab HTML / GeoGebra / Code Generation\n\n1. Spec document:\n   - Diagram type (4A-4E)\n   - Element\n   - Grade level (determines complexity)\n   - Labels required\n   - Measurements to show\n\n2. Generation:\n   - For interactive: GeoGebra applet\n   - For static: SVG generation code\n   - For 3D: CAD-style rendering\n\n3. Review:\n   - Mathematical accuracy check\n   - Label readability\n   - Grade appropriateness\n\n4. Export:\n   - Interactive version (embed code)\n   - Static version (SVG, PNG)\n   - Print version (PDF)\n```\n\n## Integration with STEM Lab HTML\n- Diagrams should be embeddable in existing HTML system\n- Interactive versions for student exploration\n- Static versions for print materials\n\n## Curation Rules\n- One master diagram per element per property\n- Grade adaptations through labeling complexity\n- Consistent visual language across elements\n\n## Cultivation\n- Track which visualizations aid comprehension\n- A/B test diagram approaches\n- Build diagram template library\n\n---\n\n# TYPE 5: TRANSFORMATION_SEQUENCE\n\n## Purpose\nShow what happens when geometric element is transformed\n\n## Specifications\n```yaml\ntype: TRANSFORMATION_SEQUENCE\nacquisition_mode: CREATED (Animated or sequential)\n\ntechnical_specs:\n  format: GIF, WebM, or panel sequence\n  frames: 4-8 for animation\n  resolution: 800x800 per frame\n  \ncontent_specs:\n  transformation_type: Rotation, reflection, scaling, translation\n  before_state: Clear starting position\n  during_state: Transformation in progress\n  after_state: Clear ending position\n  invariants_highlighted: What doesn&#x27;t change\n  variables_highlighted: What does change\n```\n\n## Sequence Types\n\n### 5A: Step-by-Step Panels\n- 4-6 static images showing progression\n- Good for print materials\n\n### 5B: Animation\n- Smooth transition showing transformation\n- Good for digital/interactive\n\n### 5C: Interactive Manipulation\n- Student controls transformation\n- Requires GeoGebra or similar\n\n## Creation Mechanism\n```\nCREATION PIPELINE:\n\nFOR STEP PANELS:\n  1. Define start state\n  2. Define end state\n  3. Calculate intermediate states\n  4. Render each frame\n  5. Assemble with annotations\n\nFOR ANIMATION:\n  1. Define keyframes (start, end)\n  2. Interpolate intermediate frames\n  3. Add highlighting for changes\n  4. Export as GIF/WebM\n\nFOR INTERACTIVE:\n  1. Build in GeoGebra/custom tool\n  2. Add controls (sliders, drag points)\n  3. Add real-time measurement display\n  4. Export as embeddable applet\n```\n\n## Integration with STEM Lab HTML\n- Interactive transformations embedded in lessons\n- Controls appropriate for grade level\n- Real-time feedback on measurements\n\n## Curation Rules\n- Each transformation type gets standard treatment\n- Element-specific examples use same template\n- Consistent color coding: blue=original, red=transformed\n\n---\n\n# TYPE 6: PHYSICS_DIAGRAM\n\n## Purpose\nShow scientific principles (forces, motion, structure) enabled by element\n\n## Specifications\n```yaml\ntype: PHYSICS_DIAGRAM\nacquisition_mode: CREATED\n\ntechnical_specs:\n  resolution: 1000x800\n  format: SVG preferred\n  \ncontent_specs:\n  principle: Named scientific concept\n  force_arrows: Standard physics notation\n  labels: Technical terms defined\n  real_world_connection: Linked to invention/application\n```\n\n## Diagram Subtypes\n\n### 6A: Force Diagram\n- Arrows showing forces on structure\n- Example: Arch distributing weight\n\n### 6B: Motion Diagram\n- Path, velocity, acceleration shown\n- Example: Wheel rolling, rotational motion\n\n### 6C: Structural Diagram\n- Cross-section or exploded view\n- Example: Ziggurat layers, dome construction\n\n### 6D: Flow Diagram\n- Movement of materials (water, air)\n- Example: Irrigation channels\n\n## Creation Mechanism\n```\nCREATION PIPELINE:\n\n1. Physics specification:\n   - What principle being demonstrated\n   - What forces/motions involved\n   - What invention it explains\n\n2. Diagramming:\n   - Standard physics notation\n   - Element highlighted within structure\n   - Labels in accessible language\n\n3. Review:\n   - Scientific accuracy (physics teacher review)\n   - Age appropriateness\n   - Connection to lesson content clear\n```\n\n## Curation Rules\n- Real invention examples when possible\n- Simplify for grade level without losing accuracy\n- Connect to student experience\n\n---\n\n# TYPE 7: INVENTION_PHOTO\n\n## Purpose\nHistorical or modern image of invention enabled by geometric element\n\n## Specifications\n```yaml\ntype: INVENTION_PHOTO\nacquisition_mode: SEARCHED\n\ntechnical_specs:\n  resolution: 800x600 minimum\n  \ncontent_specs:\n  shows_invention: Clear view of invention\n  element_visible: Geometric element can be identified\n  historical_or_modern: Either acceptable\n  authentic: Actual object, not CGI\n```\n\n## Acquisition Mechanism\n```\nSEARCH PIPELINE:\n\n1. Query: \&quot;[invention] ancient [culture]\&quot; OR \&quot;[invention] historical\&quot;\n   - Example: \&quot;wheel mesopotamian\&quot;, \&quot;arch roman\&quot;\n\n2. Sources:\n   - Museum collections (ancient examples)\n   - Stock photo sites (modern parallels)\n   - Educational image databases\n   - Wikimedia Commons\n\n3. Selection criteria:\n   - Element clearly visible\n   - Good quality\n   - Appropriate license\n```\n\n## Curation Rules\n- Pair ancient and modern versions when possible\n- Show element highlighted or annotatable\n- Include context for scale\n\n---\n\n# TYPE 8: OVERLAY_ANNOTATION\n\n## Purpose\nArtifact image with analysis overlays showing element, features, semiotics\n\n## Specifications\n```yaml\ntype: OVERLAY_ANNOTATION\nacquisition_mode: CREATED (from artifact base)\n\ntechnical_specs:\n  base_image: High-res artifact photo\n  overlay_layers: Separate, toggleable\n  annotation_style: Consistent with curriculum design\n  \ncontent_specs:\n  callout_boxes: Connected to specific features\n  color_coding: Consistent per element type\n  labels: Clear, grade-appropriate\n```\n\n## Overlay Types\n\n### 8A: Element Highlighting\n- Trace geometric element on artifact\n- Show where element appears\n\n### 8B: Iconographic Callouts\n- Point to specific deity features\n- Explain meaning\n\n### 8C: Semiotic Analysis\n- Sign → Signifier → Signified mapping\n- Layered reveal\n\n### 8D: Measurement Overlay\n- Show dimensions, proportions\n- Connect to math properties\n\n## Creation Mechanism\n```\nCREATION PIPELINE:\n\n1. Select base artifact image\n   - Must be high resolution\n   - Clear view of features to annotate\n\n2. Create overlay layers in design tool:\n   - Layer 1: Element trace (colored outline)\n   - Layer 2: Feature callouts (boxes + lines)\n   - Layer 3: Labels (text positioned)\n   - Layer 4: Measurement indicators\n\n3. Export options:\n   - Combined static image\n   - Layered file (for interactive)\n   - Animation (reveals layers sequentially)\n```\n\n## Integration\n- Embeddable in STEM Lab HTML\n- Interactive toggle for layers\n- Print version with all layers visible\n\n---\n\n# TYPE 9: PROCESS_STEP\n\n## Purpose\nShow activity steps, materials, procedures for student work\n\n## Specifications\n```yaml\ntype: PROCESS_STEP\nacquisition_mode: SEARCHED or PHOTOGRAPHED\n\ntechnical_specs:\n  resolution: 800x600\n  clarity: Steps clearly visible\n  \ncontent_specs:\n  shows_action: What to do is clear\n  materials_visible: Tools/supplies shown\n  appropriate_hands: Age-appropriate (child hands if possible)\n```\n\n## Acquisition Options\n\n### Stock Photo\n- Search: \&quot;[activity] classroom\&quot;, \&quot;[tool] hands craft\&quot;\n- Sites: Shutterstock Education, iStock, Pexels\n\n### Custom Photography\n- Set up materials\n- Photograph each step\n- Consistent lighting/angle\n\n### Diagram Alternative\n- If no good photo, create illustrated steps\n- Line drawing style\n\n---\n\n# TYPE 10: MODERN_PARALLEL\n\n## Purpose\nContemporary image showing same element/principle in modern context\n\n## Specifications\n```yaml\ntype: MODERN_PARALLEL\nacquisition_mode: SEARCHED\n\ntechnical_specs:\n  resolution: 800x600\n  \ncontent_specs:\n  element_visible: Same geometric element as ancient example\n  modern_context: Contemporary application\n  relatable: Students can recognize/understand\n```\n\n## Acquisition Mechanism\n```\nSEARCH PIPELINE:\n\n1. Query: \&quot;[element] modern [application]\&quot;\n   - Example: \&quot;circle modern wheel\&quot;, \&quot;arch bridge contemporary\&quot;\n\n2. Sources:\n   - Stock photo sites\n   - Wikimedia Commons\n   - Educational databases\n\n3. Pairing rule:\n   - Must clearly show same element\n   - Different enough to show evolution\n   - Similar enough to show continuity\n```\n\n---\n\n# ACQUISITION WORKFLOW SUMMARY\n\n## Searched Images\n```\nContent Need → Query Generation → Museum/Stock Search → Human Selection → Verification → Database\n```\n\n## Created Images (Diagrams)\n```\nContent Need → Specification Doc → Generation (Tool/Code) → Review → Revision → Database\n```\n\n## Created Images (Storyboards)\n```\nContent Need → Scene Brief → AI Generation OR Artist Brief → Selection/Revision → Database\n```\n\n## Created Images (Overlays)\n```\nBase Artifact → Layer Specification → Design Tool → Export Variants → Database\n```\n\n---\n\n# DATABASE SCHEMA FOR IMAGE TYPES\n\n```sql\nCREATE TABLE image_types (\n    type_id TEXT PRIMARY KEY,\n    type_name TEXT NOT NULL,\n    acquisition_mode TEXT CHECK(acquisition_mode IN \n        (&#x27;searched&#x27;, &#x27;created_generated&#x27;, &#x27;created_ai&#x27;, &#x27;created_artist&#x27;, &#x27;created_composite&#x27;)),\n    spec_yaml TEXT,\n    creation_tool TEXT,\n    review_checklist TEXT\n);\n\nCREATE TABLE image_records (\n    image_id TEXT PRIMARY KEY,\n    image_type TEXT REFERENCES image_types(type_id),\n    content_need_id TEXT,\n    status TEXT CHECK(status IN (&#x27;needed&#x27;, &#x27;searching&#x27;, &#x27;candidate&#x27;, &#x27;verified&#x27;, &#x27;rejected&#x27;)),\n    source_type TEXT,\n    source_url TEXT,\n    local_path TEXT,\n    license TEXT,\n    created_by TEXT,\n    created_at TEXT,\n    verified_by TEXT,\n    verified_at TEXT,\n    spec_compliance TEXT,\n    notes TEXT\n);\n```\n\n---\n\n**END SSOT-013**\n&quot;
-      },
-      &quot;scene_type&quot;: {
-        &quot;_raw_md&quot;: &quot;---\ntype: ssot\nssot_id: SSOT-013\nssot_name: Scene Type Taxonomy\ntags:\n  - ssot/013-scene-types\n  - ssot\nstatus: draft\n---\n\n# SSOT-013: Scene Type Taxonomy\n**Version:** 1.0\n**Status:** DRAFT\n**Purpose:** Classify image needs by pedagogical function and scene composition\n\n---\n\n## Overview\n\nEvery image serves a pedagogical purpose. This taxonomy ensures:\n1. Correct image type selected for each context\n2. Search terms optimized for image type\n3. Storyboard requirements clear per type\n4. Consistent visual language across curriculum\n\n---\n\n## Part A: Myth/Art Section Scene Types (Day A)\n\n### TABLEAU\n**Definition:** Static, iconic presentation of deity or symbol\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Composition** | Central figure, symmetrical or near-symmetrical |\n| **Action Level** | None - figure is posed, not acting |\n| **Narrative** | No story moment - timeless representation |\n| **Use Case** | Introduction of deity, reference image, vocabulary building |\n| **Image Sources** | Statues, reliefs, formal seal impressions |\n\n**Search Terms Pattern:**\n- \&quot;[Deity] statue\&quot;\n- \&quot;[Deity] relief\&quot;\n- \&quot;[Deity] enthroned\&quot;\n- \&quot;[Deity] formal\&quot;\n\n**Storyboard Specs:**\n- Single frame\n- No motion indicators\n- Full figure or bust\n- Identifying symbols prominent\n\n---\n\n### NARRATIVE\n**Definition:** Deity in action, specific story moment depicted\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Composition** | Dynamic, may be asymmetrical |\n| **Action Level** | High - figure is doing something |\n| **Narrative** | Specific myth moment identifiable |\n| **Use Case** | Story retelling, sequence illustration, myth teaching |\n| **Image Sources** | Cylinder seal impressions, narrative reliefs, reconstructions |\n\n**Search Terms Pattern:**\n- \&quot;[Deity] [action verb]\&quot;\n- \&quot;[Myth name] scene\&quot;\n- \&quot;[Deity] and [other figure]\&quot;\n- \&quot;[Deity] [specific artifact]\&quot;\n\n**Storyboard Specs:**\n- Multiple frames for sequence\n- Motion indicators (action lines, direction)\n- Context/setting important\n- Supporting characters may appear\n\n**Narrative Subtypes:**\n| Subtype | Description | Example |\n|---------|-------------|---------|\n| Origin | Creation/emergence scene | Shamash rising at dawn |\n| Action | Deity performing key act | Marduk slaying Tiamat |\n| Journey | Movement from place to place | Inanna&#x27;s descent |\n| Resolution | Conclusion of story arc | Ea saving humanity |\n\n---\n\n### INTERACTION\n**Definition:** Deity engaging with humans, other deities, or creatures\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Composition** | Two or more figures in relationship |\n| **Action Level** | Medium - engagement visible |\n| **Narrative** | Relationship or transaction shown |\n| **Use Case** | Divine-human connection, worship scenes, teaching hierarchy |\n| **Image Sources** | Presentation scenes, worship reliefs, divine council seals |\n\n**Search Terms Pattern:**\n- \&quot;[Deity] receiving worship\&quot;\n- \&quot;[Deity] presentation scene\&quot;\n- \&quot;[Deity] and king\&quot;\n- \&quot;[Deity] council\&quot;\n- \&quot;worshipper before [deity]\&quot;\n\n**Storyboard Specs:**\n- Size hierarchy important (deity larger)\n- Eye contact or gesture direction\n- Space between figures meaningful\n- Offering/receiving objects may appear\n\n---\n\n### SYMBOL\n**Definition:** Divine symbol without anthropomorphic deity figure\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Composition** | Symbol alone or symbol with minimal context |\n| **Action Level** | None |\n| **Narrative** | None - represents deity abstractly |\n| **Use Case** | Geometric focus, symbol recognition, design elements |\n| **Image Sources** | Boundary stones (kudurru), symbol registers, architectural elements |\n\n**Search Terms Pattern:**\n- \&quot;[Symbol name]\&quot; (sun disk, crescent, 8-pointed star)\n- \&quot;kudurru symbols\&quot;\n- \&quot;divine symbols Mesopotamia\&quot;\n- \&quot;[Deity] symbol\&quot;\n\n**Storyboard Specs:**\n- Clean isolation of symbol\n- May show context placement\n- Geometric properties visible\n- Can be overlaid with geometric analysis\n\n---\n\n### ARTIFACT FOCUS\n**Definition:** Real museum object as primary subject\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Composition** | Photograph or high-quality documentation |\n| **Action Level** | N/A - object is subject |\n| **Narrative** | Object&#x27;s existence is the story |\n| **Use Case** | Material culture study, \&quot;evidence\&quot; for Time Detectives, authenticity |\n| **Image Sources** | Museum photography, catalog images, archaeological documentation |\n\n**Search Terms Pattern:**\n- \&quot;[Specific artifact name]\&quot;\n- \&quot;[Museum name] [object type]\&quot;\n- \&quot;[Site name] [object type]\&quot;\n- Object accession numbers when known\n\n**Storyboard Specs:**\n- N/A - not illustrated, photographed\n- May include scale reference\n- Multiple angles valuable\n- Detail shots for specific features\n\n---\n\n## Part B: Math/STEM Section Visualization Types (Day B)\n\n### CONCEPT INTRODUCTION\n**Definition:** Visual that explains what a concept IS\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Purpose** | First exposure to mathematical idea |\n| **Complexity** | Simple, minimal distractors |\n| **Labels** | Key terms labeled |\n| **Example** | \&quot;What is a circle?\&quot; - labeled diagram of circle with center, radius, diameter |\n\n**Image Requirements:**\n- Clean, clear lines\n- Essential elements only\n- Labels in student-appropriate language\n- Color used meaningfully (not decoratively)\n\n**Search Terms Pattern:**\n- \&quot;diagram [concept]\&quot;\n- \&quot;[concept] labeled\&quot;\n- \&quot;[concept] definition\&quot;\n- Often needs CREATION not search\n\n---\n\n### PROCEDURE DEMONSTRATION\n**Definition:** Step-by-step visual showing HOW to do something\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Purpose** | Teach a process |\n| **Complexity** | Progressive (simple → complex) |\n| **Labels** | Step numbers, tool names, action words |\n| **Example** | \&quot;How to draw a circle with a compass\&quot; - numbered steps |\n\n**Image Requirements:**\n- Sequential frames or annotated single image\n- Tools shown being used\n- Hands may appear (showing action)\n- Clear step numbering\n\n**Search Terms Pattern:**\n- \&quot;how to [action] [concept]\&quot;\n- \&quot;[tool] demonstration\&quot;\n- \&quot;[action] steps\&quot;\n- Often needs CREATION not search\n\n---\n\n### ARTIFACT ANALYSIS\n**Definition:** Mathematical concept identified ON/IN an artifact\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Purpose** | Connect abstract math to concrete cultural object |\n| **Complexity** | Artifact + overlay/annotation |\n| **Labels** | Geometric elements identified, measurements |\n| **Example** | Tablet of Shamash with circle overlay highlighting sun disk |\n\n**Image Requirements:**\n- Real artifact photograph (base layer)\n- Geometric overlay (annotation layer)\n- Toggle-able: with/without overlay\n- Labels pointing to specific features\n\n**Search Terms Pattern:**\n- Use artifact name (same as Artifact Focus)\n- Then ADD annotations post-processing\n- Two-stage: find artifact → annotate artifact\n\n---\n\n### TRANSFORMATION SEQUENCE\n**Definition:** Before → Process → After visualization\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Purpose** | Show change over time/action |\n| **Complexity** | Three+ stages |\n| **Labels** | Stage labels, transformation name, scientific principle |\n| **Example** | Circle → fold → half-circle (symmetry transformation) |\n\n**Image Requirements:**\n- Minimum 3 frames (before, during, after)\n- Arrows or flow indicators between frames\n- Consistent scale across frames\n- Transformation clearly visible\n\n**Search Terms Pattern:**\n- Rarely searchable - requires CREATION\n- May composite from multiple sources\n- Animation stills work well\n\n**Transformation Subtypes:**\n| Subtype | Description | Example |\n|---------|-------------|---------|\n| Geometric | Shape manipulation | Rotation, reflection, scaling |\n| Material | Physical change | Clay → fired pottery |\n| Functional | Use transformation | Cylinder seal → impression |\n| Temporal | Time-based change | Ziggurat construction stages |\n\n---\n\n### COMPARISON\n**Definition:** Two or more items shown side-by-side for analysis\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Purpose** | Identify similarities/differences |\n| **Complexity** | Matched presentation |\n| **Labels** | Comparison criteria, difference markers |\n| **Example** | Circle on Sumerian seal vs. circle on Babylonian seal |\n\n**Image Requirements:**\n- Same scale for compared items\n- Same angle/presentation\n- Comparison criteria visible\n- Difference/similarity indicators\n\n**Search Terms Pattern:**\n- Search for each comparison item separately\n- Then composite into comparison format\n- May need scaling/cropping for match\n\n---\n\n### REAL-WORLD APPLICATION\n**Definition:** Concept shown in modern context\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Purpose** | Relevance, transfer |\n| **Complexity** | Familiar context + identified concept |\n| **Labels** | Concept identification in modern context |\n| **Example** | Circles in modern manhole covers, clocks, wheels |\n\n**Image Requirements:**\n- Modern, recognizable context\n- Clear concept visibility\n- Student&#x27;s world connection\n- May include ancient-modern comparison\n\n**Search Terms Pattern:**\n- \&quot;[concept] everyday\&quot;\n- \&quot;[concept] modern\&quot;\n- \&quot;[concept] real world\&quot;\n- \&quot;[concept] examples\&quot;\n\n---\n\n## Part C: Shared/Cross-Section Types\n\n### MAP/LOCATION\n**Definition:** Geographic or spatial orientation\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Purpose** | Place content in space |\n| **Types** | Ancient region map, city plan, temple layout, trade routes |\n\n**Search Terms Pattern:**\n- \&quot;ancient Mesopotamia map\&quot;\n- \&quot;[city name] plan\&quot;\n- \&quot;fertile crescent\&quot;\n- \&quot;[site name] excavation\&quot;\n\n---\n\n### RECONSTRUCTION\n**Definition:** Scholarly imagining of original appearance\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Purpose** | Show what no longer exists |\n| **Types** | Architectural reconstruction, color restoration, city visualization |\n| **Caution** | Label as reconstruction, not photo |\n\n**Search Terms Pattern:**\n- \&quot;[building/city] reconstruction\&quot;\n- \&quot;[artifact] restored\&quot;\n- \&quot;[site] visualization\&quot;\n\n---\n\n### TIMELINE/CHRONOLOGY\n**Definition:** Temporal relationship visualization\n\n| Attribute | Specification |\n|-----------|---------------|\n| **Purpose** | Place content in time |\n| **Types** | Period timeline, dynasty chart, comparative chronology |\n\n**Search Terms Pattern:**\n- Rarely searchable - requires CREATION\n- May adapt existing timelines\n\n---\n\n## Usage in Section SSOTs\n\nWhen specifying image needs, include:\n```markdown\n### Image Need N\n- **Scene Type:** [from taxonomy above]\n- **Subtype:** [if applicable]\n- **Reference:** SSOT-013, [Scene Type] section\n```\n\n---\n\n## Scene Type by Section Type Matrix\n\n| Section Type | Primary Scene Types | Secondary |\n|--------------|---------------------|-----------|\n| myth_retelling | Narrative, Interaction | Tableau |\n| artifact_analysis | Artifact Focus | Symbol |\n| geometric_decomposition | Artifact Analysis | Symbol, Comparison |\n| math_procedure | Procedure Demo | Concept Intro |\n| stem_connection | Transformation Sequence | Real-World Application |\n| art_activity | Procedure Demo | Artifact Focus |\n| assessment | Comparison | Any |\n| opener | Tableau, Narrative | Map/Location |\n| closer | Real-World Application | Comparison |\n&quot;
-      },
-      &quot;deity_visual_specs&quot;: {},
-      &quot;cultural_aesthetic_vocab&quot;: {
-        &quot;_raw_md&quot;: &quot;---\ntype: ssot\nssot_id: SSOT-014\nssot_name: Cultural Aesthetic Vocabulary\ntags:\n  - ssot/014-aesthetic-vocab\n  - ssot\nstatus: draft\n---\n\n# SSOT-014: Cultural Aesthetic Vocabulary\n**Version:** 1.0\n**Status:** DRAFT\n**Purpose:** Define visual elements that constitute \&quot;Mesopotamian style\&quot; for consistent tagging and image selection\n\n---\n\n## Overview\n\n\&quot;Cultural Aesthetic\&quot; = the internalized visual template that defines how a civilization sees and creates. Students absorb this through repeated exposure before formal instruction.\n\nThis SSOT defines:\n1. What makes something \&quot;look Mesopotamian\&quot;\n2. Tagging vocabulary for images\n3. Design elements for created materials\n4. Authentication criteria for artifact selection\n\n---\n\n## COMPOSITIONAL ELEMENTS\n\n### REGISTER COMPOSITION\n**Definition:** Horizontal bands dividing image into narrative layers\n\n| Attribute | Description |\n|-----------|-------------|\n| **Visual** | Stacked horizontal strips, each self-contained |\n| **Function** | Multiple scenes in one object; hierarchy; sequence |\n| **Frequency** | Very common (cylinder seals, stelae, vessels) |\n| **Tag** | `composition:register` |\n\n**Variants:**\n- Single register (simple narrative)\n- Double register (contrast/sequence)\n- Triple+ register (complex narrative, hierarchy)\n- Frieze (continuous horizontal band)\n\n---\n\n### HERALDIC/ANTITHETICAL\n**Definition:** Symmetrical arrangement around central axis\n\n| Attribute | Description |\n|-----------|-------------|\n| **Visual** | Two matching figures flanking central element |\n| **Function** | Power, protection, divine presence |\n| **Frequency** | Common (gates, seals, boundary stones) |\n| **Tag** | `composition:heraldic` |\n\n**Examples:**\n- Two lions flanking Ishtar\n- Two humans flanking sacred tree\n- Two guardian figures at gate\n\n---\n\n### PRESENTATION SCENE\n**Definition:** Hierarchical arrangement showing worship/audience\n\n| Attribute | Description |\n|-----------|-------------|\n| **Visual** | Larger figure (deity/king) receiving smaller figures |\n| **Function** | Religious devotion, royal legitimacy |\n| **Frequency** | Very common (seals, reliefs) |\n| **Tag** | `composition:presentation` |\n\n**Required Elements:**\n- Size differential (important = larger)\n- Direction (worshipper approaches deity)\n- Gesture (raised hand, offering)\n\n---\n\n### PROCESSIONAL\n**Definition:** Figures moving in same direction in sequence\n\n| Attribute | Description |\n|-----------|-------------|\n| **Visual** | Multiple figures walking/carrying toward destination |\n| **Function** | Ritual, tribute, narrative flow |\n| **Frequency** | Common (palace reliefs, ritual scenes) |\n| **Tag** | `composition:processional` |\n\n---\n\n## FIGURAL CONVENTIONS\n\n### HUMAN/DIVINE FIGURE REPRESENTATION\n| Feature | Convention | Tag |\n|---------|------------|-----|\n| **Face** | Profile view | `figure:profile_face` |\n| **Eye** | Frontal in profile face | `figure:frontal_eye` |\n| **Shoulders** | Frontal (twisted) | `figure:frontal_torso` |\n| **Legs** | Profile, walking pose | `figure:profile_legs` |\n| **Hands** | Often both visible | `figure:visible_hands` |\n| **Scale** | Size = importance | `figure:hierarchical_scale` |\n\n### DIVINE MARKERS\n| Feature | Description | Tag |\n|---------|-------------|-----|\n| **Horned Crown** | Multiple tiers of horns | `divine:horned_crown` |\n| **Tiered Robe** | Fringed, layered garment | `divine:tiered_robe` |\n| **Scale** | Larger than humans | `divine:larger_scale` |\n| **Elevation** | Seated on throne/mountain | `divine:elevated` |\n| **Symbols** | Personal attribute visible | `divine:identifying_symbol` |\n\n### ROYAL MARKERS\n| Feature | Description | Tag |\n|---------|-------------|-----|\n| **Crown** | Various styles by period | `royal:crown` |\n| **Beard** | Elaborate, curled | `royal:beard` |\n| **Staff/Weapon** | Symbol of authority | `royal:authority_symbol` |\n| **Inscription** | Name/titles nearby | `royal:inscription` |\n\n---\n\n## DECORATIVE ELEMENTS\n\n### BORDER PATTERNS\n| Pattern | Description | Tag | Common Location |\n|---------|-------------|-----|-----------------|\n| **Guilloche** | Interlocking circles/loops | `border:guilloche` | Frames, architectural |\n| **Rosette Band** | Repeated rosette flowers | `border:rosette_band` | Frames, textiles |\n| **Chevron** | Zigzag pattern | `border:chevron` | Pottery, textiles |\n| **Cable** | Twisted rope pattern | `border:cable` | Frames |\n| **Meander** | Stepped/geometric maze | `border:meander` | Frames, floors |\n| **Lotus/Palmette** | Stylized plant alternation | `border:lotus_palmette` | Later period |\n\n### FILL PATTERNS\n| Pattern | Description | Tag | Use |\n|---------|-------------|-----|-----|\n| **Cross-hatching** | Intersecting diagonal lines | `fill:crosshatch` | Shadow, texture |\n| **Scale Pattern** | Overlapping semicircles | `fill:scale` | Mountains, water |\n| **Herringbone** | V-shaped rows | `fill:herringbone` | Texture |\n| **Dot Pattern** | Regular dots | `fill:dot` | Stars, texture |\n\n---\n\n## SYMBOLIC ELEMENTS\n\n### CELESTIAL SYMBOLS\n| Symbol | Deity | Description | Tag |\n|--------|-------|-------------|-----|\n| **Sun Disk** | Shamash | Circle with rays | `celestial:sun_disk` |\n| **Crescent** | Sin | Horizontal crescent | `celestial:crescent` |\n| **8-Pointed Star** | Ishtar | Venus star | `celestial:eight_star` |\n| **7 Dots** | Pleiades | Star cluster | `celestial:pleiades` |\n| **Lightning** | Adad | Forked bolt | `celestial:lightning` |\n\n### NATURAL ELEMENTS\n| Element | Description | Tag |\n|---------|-------------|-----|\n| **Sacred Tree** | Stylized date palm/cypress | `natural:sacred_tree` |\n| **Mountain** | Scale pattern or twin peaks | `natural:mountain` |\n| **Water** | Wavy parallel lines | `natural:water` |\n| **Vegetation** | Stylized plants | `natural:vegetation` |\n\n### CREATURE SYMBOLS\n| Creature | Associated With | Tag |\n|----------|-----------------|-----|\n| **Lion** | Ishtar, royalty | `creature:lion` |\n| **Bull** | Sin, storm gods | `creature:bull` |\n| **Serpent** | Ningishzida, underworld | `creature:serpent` |\n| **Eagle** | Various | `creature:eagle` |\n| **Goat-Fish** | Ea | `creature:goat_fish` |\n| **Mushhushshu** | Marduk | `creature:mushhushshu` |\n| **Scorpion** | Various | `creature:scorpion` |\n\n---\n\n## COLOR PALETTE\n\n### AUTHENTIC MESOPOTAMIAN COLORS\n| Color | Hex | Pigment Source | Tag |\n|-------|-----|----------------|-----|\n| **Lapis Blue** | #1E4D8C | Lapis lazuli | `color:lapis_blue` |\n| **Turquoise** | #40E0D0 | Copper compounds | `color:turquoise` |\n| **Gold** | #FFD700 | Gold leaf/ochre | `color:gold` |\n| **Terracotta** | #CC5500 | Clay/iron oxide | `color:terracotta` |\n| **Cream/Ivory** | #FFFFF0 | Limestone, bone | `color:cream` |\n| **Black** | #1A1A1A | Bitumen, carbon | `color:black` |\n| **White** | #FFFFFF | Gypsum, shell | `color:white` |\n| **Red** | #B22222 | Iron oxide, cinnabar | `color:red` |\n| **Green** | #228B22 | Copper compounds | `color:green` |\n\n### COLOR COMBINATIONS BY CONTEXT\n| Context | Primary | Secondary | Accent |\n|---------|---------|-----------|--------|\n| **Divine** | Lapis Blue, Gold | White | Red |\n| **Royal** | Gold, Lapis Blue | White, Red | Green |\n| **Temple** | Lapis Blue, Gold, White | Terracotta | Green |\n| **Domestic** | Terracotta, Cream | Black | Red |\n| **Funerary** | Black, Gold | Lapis Blue | White |\n\n---\n\n## MATERIAL CULTURE SIGNATURES\n\n### ARTIFACT MATERIALS\n| Material | Appearance | Tag | Status Indicator |\n|----------|------------|-----|------------------|\n| **Clay/Ceramic** | Buff to terracotta | `material:clay` | Common |\n| **Stone (limestone)** | Cream to gray | `material:limestone` | Moderate |\n| **Stone (diorite)** | Dark gray-black | `material:diorite` | High (imports) |\n| **Metal (bronze)** | Green patina | `material:bronze` | High |\n| **Metal (gold)** | Yellow | `material:gold` | Very high |\n| **Lapis lazuli** | Deep blue | `material:lapis` | Very high |\n| **Shell** | White/iridescent | `material:shell` | Moderate |\n| **Bitumen** | Black | `material:bitumen` | Common |\n\n### SURFACE TREATMENTS\n| Treatment | Description | Tag |\n|-----------|-------------|-----|\n| **Incised** | Lines cut into surface | `surface:incised` |\n| **Relief (high)** | Raised forms, deep cut | `surface:high_relief` |\n| **Relief (low)** | Shallow raised forms | `surface:low_relief` |\n| **Inlay** | Different materials inserted | `surface:inlay` |\n| **Glazed** | Vitreous coating | `surface:glazed` |\n| **Painted** | Pigment applied | `surface:painted` |\n| **Burnished** | Polished smooth | `surface:burnished` |\n\n---\n\n## PERIOD-SPECIFIC MARKERS\n\n### SUMERIAN (c. 3500-2000 BCE)\n- Large eyes, simple bodies\n- Votive statues with clasped hands\n- Register composition dominant\n- Tags: `period:sumerian`, `style:early_dynastic`, `style:ur_iii`\n\n### AKKADIAN (c. 2334-2154 BCE)\n- More naturalistic bodies\n- Dynamic action scenes\n- Victory narratives\n- Tags: `period:akkadian`\n\n### BABYLONIAN (c. 1894-539 BCE)\n- Elaborate divine imagery\n- Kudurru (boundary stones)\n- Law code stelae\n- Tags: `period:old_babylonian`, `period:neo_babylonian`\n\n### ASSYRIAN (c. 2500-609 BCE)\n- Palace reliefs (narrative)\n- Royal hunt scenes\n- Military campaigns\n- Tags: `period:assyrian`, `period:neo_assyrian`\n\n---\n\n## AUTHENTICATION CHECKLIST\n\nWhen selecting artifact images, verify:\n\n### Required for \&quot;Mesopotamian\&quot; Tag\n- [ ] Geographic origin: Mesopotamia region\n- [ ] Time period: within scope (c. 3500-539 BCE)\n- [ ] At least 2 compositional/figural conventions present\n- [ ] Material consistent with period\n\n### Preferred Indicators\n- [ ] Cuneiform inscription present\n- [ ] Divine/royal markers consistent\n- [ ] Color use (if preserved) matches palette\n- [ ] Provenance documented\n\n### Red Flags (May Not Be Authentic)\n- [ ] Mix of incompatible period styles\n- [ ] Non-Mesopotamian conventions (Egyptian profile, Greek naturalism)\n- [ ] Modern \&quot;inspired by\&quot; rather than authentic\n- [ ] Unknown provenance + \&quot;too good\&quot; condition\n\n---\n\n## Usage in Section SSOTs\n\n```markdown\n### Cultural Aesthetic Elements\n- **Composition:** [from vocabulary]\n- **Figural Conventions:** [applicable tags]\n- **Decorative Elements:** [applicable tags]\n- **Color Palette:** [from palette]\n- **Period Markers:** [applicable tags]\n- **Reference:** SSOT-014\n```\n\n---\n\n## Tagging Example\n\nFor Tablet of Shamash (BM 91000):\n```\ncomposition:presentation\nfigure:profile_face, figure:frontal_eye, figure:hierarchical_scale\ndivine:horned_crown, divine:tiered_robe, divine:identifying_symbol\ncelestial:sun_disk\nmaterial:limestone\nsurface:low_relief\nperiod:neo_babylonian\ncolor:cream (original)\n```\n&quot;
-      }
-    },
-    &quot;evidence&quot;: {
-      &quot;claim_types&quot;: [
-        &quot;conclusion&quot;,
-        &quot;evidence&quot;
-      ],
-      &quot;rules&quot;: [
-        &quot;Every section pack must include &gt;=1 artifact and &gt;=1 claim.&quot;,
-        &quot;Every claim must be tagged and can be linked via supports edges.&quot;
-      ],
-      &quot;deliverable_mappings&quot;: {
-        &quot;teacher_summary&quot;: &quot;section-level conclusions + 1–5 artifacts each&quot;,
-        &quot;slideshow&quot;: &quot;teacher_summary conclusions as captions&quot;,
-        &quot;student_worksheet&quot;: &quot;slideshow conclusions as prompts&quot;,
-        &quot;etextbook&quot;: &quot;all claims + all artifacts + all sources&quot;
-      }
-    }
-  },
-  &quot;schemas&quot;: {
-    &quot;section_pack&quot;: {
-      &quot;type&quot;: &quot;object&quot;,
-      &quot;required&quot;: [
-        &quot;lesson_id&quot;,
-        &quot;section_id&quot;,
-        &quot;tags&quot;,
-        &quot;claims&quot;,
-        &quot;artifacts&quot;
-      ],
-      &quot;properties&quot;: {
-        &quot;lesson_id&quot;: {
-          &quot;type&quot;: &quot;string&quot;
-        },
-        &quot;section_id&quot;: {
-          &quot;type&quot;: &quot;string&quot;
-        },
-        &quot;tags&quot;: {
-          &quot;type&quot;: &quot;array&quot;,
-          &quot;items&quot;: {
-            &quot;type&quot;: &quot;string&quot;
-          }
-        },
-        &quot;claims&quot;: {
-          &quot;type&quot;: &quot;array&quot;
-        },
-        &quot;artifacts&quot;: {
-          &quot;type&quot;: &quot;array&quot;
-        },
-        &quot;sources&quot;: {
-          &quot;type&quot;: &quot;array&quot;
-        },
-        &quot;inventions&quot;: {
-          &quot;type&quot;: &quot;array&quot;
-        }
-      }
-    },
-    &quot;invention_composite&quot;: {
-      &quot;type&quot;: &quot;object&quot;,
-      &quot;required&quot;: [
-        &quot;id&quot;,
-        &quot;name&quot;,
-        &quot;problem&quot;,
-        &quot;geometry_bundle&quot;,
-        &quot;operator_bundle&quot;,
-        &quot;material_bundle&quot;,
-        &quot;function_bundle&quot;
-      ],
-      &quot;properties&quot;: {
-        &quot;id&quot;: {
-          &quot;type&quot;: &quot;string&quot;
-        },
-        &quot;name&quot;: {
-          &quot;type&quot;: &quot;string&quot;
-        },
-        &quot;era&quot;: {
-          &quot;type&quot;: &quot;string&quot;
-        },
-        &quot;civilizations&quot;: {
-          &quot;type&quot;: &quot;array&quot;,
-          &quot;items&quot;: {
-            &quot;type&quot;: &quot;string&quot;
-          }
-        },
-        &quot;problem&quot;: {
-          &quot;type&quot;: &quot;string&quot;
-        },
-        &quot;geometry_bundle&quot;: {
-          &quot;type&quot;: &quot;array&quot;
-        },
-        &quot;operator_bundle&quot;: {
-          &quot;type&quot;: &quot;array&quot;
-        },
-        &quot;material_bundle&quot;: {
-          &quot;type&quot;: &quot;array&quot;
-        },
-        &quot;function_bundle&quot;: {
-          &quot;type&quot;: &quot;array&quot;
-        },
-        &quot;evidence_bundle&quot;: {
-          &quot;type&quot;: &quot;array&quot;
-        }
-      }
-    }
-  }
-}</pre>
-    </details>
-    
-
-    <details class="doc">
-      <summary>
-        <span class="doc-name">PATCH_SSOT_002_014.md</span>
-        <span class="doc-actions">
-          <button class="mini" data-copy="PATCH_SSOT_002_014.md">Copy</button>
-          <button class="mini" data-download="PATCH_SSOT_002_014.md">Download</button>
-        </span>
-      </summary>
-      <pre id="doc-PATCH_SSOT_002_014.md"># PATCH: Align SSOT‑002 → SSOT‑014 to SSOT‑000 (FINAL) (2026-01-24)
-
-This is a *human-readable patch* you can apply manually or use as guidance for an automated refactor.
-
----
-
-## SSOT‑002 (Section Rules)
-
-**Change A2**
-- Replace “SEL + Metaphor” with **“Metaphor Visualization”**
-- Remove emotional/SEL language entirely.
-- Keep purpose: attention anchoring + initial visualization.
-
-**Change Bridge description**
-- Keep A7/B1 pairing, but explicitly state:
-  - bridge object/structure must be **real material culture** AND the same object is used Day B.
-
----
-
-## SSOT‑003 (Tagging Ontology)
-
-**Add namespaces**
-- `gephr.*` (metaphor facet)
-- `op.*` (transformations)
-- `rep.*` (dimensional mapping)
-- `dom.*` (domain taxonomy; optional)
-
-**Deprecate**
-- `sel.*` (keep for legacy import only; mark as BLOCKED in SSOT‑008)
-
-**Ban**
-- Single-letter tags: `e`, `m`, `t`
-
----
-
-## SSOT‑004 (Element Registry)
-
-**Add fields**
-- `ge_type`: `GEA|GEM`
-- `gephr_affordances`: list of meaning-affordance strings (no SEL framing)
-- `gek_affordances`: list of conceptual affordances (math + science)
-- `canonical_deity_pairings` (don’t let deities become GE)
-
----
-
-## SSOT‑008 (Blocked/Required Frameworks)
-
-**Add**
-- “No SEL injection into Day A.”
-- “No invented acronyms for GEpHR.”
-- “No causality encoding between Day A and Day B.”
-
----
-
-## SSOT‑009 (GE Ontology + Taxonomy Notes)
-
-**Add**
-- GEpHR namespace and definition
-- Replace `GEOK-T` with `op.*` operators (keep alias support)
-
-**Move**
-- Dimensional ops from “GEK” into `rep.*` (or keep as `gek.dim.*` but label as representation facet)
-
----
-
-## SSOT‑010 (Image Acquisition &amp; Integration)
-
-**Clarify**
-- Source-first → AI-second rule
-- Artifact registry: every claim links to either (a) a source image OR (b) an AI image spec
-
----
-
-## SSOT‑011 (Section defs with images)
-
-Update section names/requirements to match SSOT‑000 (A2 rename; B4 timeline focus, etc.).
-
----
-
-## SSOT‑012 (Deity specs)
-
-No structural change required; just ensure Deity specs are referenced from A1/A3 pipelines.
-
----
-
-## SSOT‑013 (Image types / Scene types)
-
-No change required; import into SSOT‑000 JSON taxonomy under `artifact.image_type` and `artifact.scene_type`.
-
----
-
-## SSOT‑014 (Cultural aesthetic vocab)
-
-No change required; import into SSOT‑000 JSON taxonomy under `vocab.cultural_aesthetic`.
-
-</pre>
-    </details>
-    
-
-    <details class="doc">
-      <summary>
-        <span class="doc-name">SECTION_TAG_PRESETS.json</span>
-        <span class="doc-actions">
-          <button class="mini" data-copy="SECTION_TAG_PRESETS.json">Copy</button>
-          <button class="mini" data-download="SECTION_TAG_PRESETS.json">Download</button>
-        </span>
-      </summary>
-      <pre id="doc-SECTION_TAG_PRESETS.json">{
-  &quot;version&quot;: &quot;1.0.0&quot;,
-  &quot;created&quot;: &quot;2026-01-24&quot;,
-  &quot;preset_name&quot;: &quot;Section Tag + Artifact Presets&quot;,
-  &quot;sections&quot;: {
-    &quot;A1&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.A1&quot;,
-        &quot;sec.dayA&quot;,
-        &quot;gephr.myth_definition&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;video.short&quot;,
-        &quot;image.deity_or_myth_scene&quot;
-      ]
-    },
-    &quot;A2&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.A2&quot;,
-        &quot;sec.dayA&quot;,
-        &quot;gephr.visualization&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;image.diagram_or_anchor&quot;
-      ]
-    },
-    &quot;A3&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.A3&quot;,
-        &quot;sec.dayA&quot;,
-        &quot;gephr.iconography&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;image.iconography_detail&quot;,
-        &quot;image.iconography_comparison?&quot;
-      ]
-    },
-    &quot;A4&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.A4&quot;,
-        &quot;sec.dayA&quot;,
-        &quot;gephr.material_culture&quot;,
-        &quot;gephr.ritual_internalization&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;image.real_artifact&quot;,
-        &quot;image.context_scene?&quot;
-      ]
-    },
-    &quot;A5&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.A5&quot;,
-        &quot;sec.dayA&quot;,
-        &quot;gephr.decomposition&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;diagram.decomposition&quot;,
-        &quot;image.step_by_step&quot;
-      ]
-    },
-    &quot;A6&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.A6&quot;,
-        &quot;sec.dayA&quot;,
-        &quot;gephr.practice&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;activity.art&quot;,
-        &quot;image.example_output?&quot;
-      ]
-    },
-    &quot;A7&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.A7&quot;,
-        &quot;sec.dayA&quot;,
-        &quot;gephr.bridge_prompt&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;image.bridge_object_or_structure&quot;
-      ]
-    },
-    &quot;B1&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.B1&quot;,
-        &quot;sec.dayB&quot;,
-        &quot;gek.bridge_answer&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;diagram.functional_overlay&quot;
-      ]
-    },
-    &quot;B2&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.B2&quot;,
-        &quot;sec.dayB&quot;,
-        &quot;gek.math_concept&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;diagram.math&quot;,
-        &quot;worked_example?&quot;
-      ]
-    },
-    &quot;B3&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.B3&quot;,
-        &quot;sec.dayB&quot;,
-        &quot;gek.science_effect&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;diagram.science_effect&quot;
-      ]
-    },
-    &quot;B4&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.B4&quot;,
-        &quot;sec.dayB&quot;,
-        &quot;gek.timeline&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;timeline.mini&quot;,
-        &quot;image.historical?&quot;
-      ]
-    },
-    &quot;B5&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.B5&quot;,
-        &quot;sec.dayB&quot;,
-        &quot;gek.case_study&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;image.invention&quot;,
-        &quot;diagram.mechanism?&quot;
-      ]
-    },
-    &quot;B6&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.B6&quot;,
-        &quot;sec.dayB&quot;,
-        &quot;gek.deconstruction&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;diagram.components&quot;,
-        &quot;table.bill_of_parts?&quot;
-      ]
-    },
-    &quot;B7&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.B7&quot;,
-        &quot;sec.dayB&quot;,
-        &quot;gek.design_challenge&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;activity.build&quot;,
-        &quot;rubric?&quot;
-      ]
-    },
-    &quot;B8&quot;: {
-      &quot;tags&quot;: [
-        &quot;sec.B8&quot;,
-        &quot;sec.dayB&quot;,
-        &quot;gek.synthesis&quot;
-      ],
-      &quot;required_artifacts&quot;: [
-        &quot;exit_ticket.prompt&quot;,
-        &quot;image.reference?&quot;
-      ]
-    }
-  }
-}</pre>
-    </details>
-    
-
-    <details class="doc">
-      <summary>
-        <span class="doc-name">SYSTEM_PROMPT_CARWASH.md</span>
-        <span class="doc-actions">
-          <button class="mini" data-copy="SYSTEM_PROMPT_CARWASH.md">Copy</button>
-          <button class="mini" data-download="SYSTEM_PROMPT_CARWASH.md">Download</button>
-        </span>
-      </summary>
-      <pre id="doc-SYSTEM_PROMPT_CARWASH.md"># System Prompt Pack: “Carwash” Visual Curriculum Pipeline (SSOT-000 compatible)
-
-Use this prompt for *any* CLI agent that is generating section packs, artifacts, or image specs.
-
----
-
-## ROLE
-You are **Geo‑Arts Curriculum Carwash**, an orchestrator that converts messy lesson content into:
-- **Section Packs** (claims + tags + artifacts)
-- **Image Registry entries** (source-first; AI-second)
-- **Deliverables** (teacher summary, slides, student worksheet, etextbook)
-
-You must obey SSOT-000 as the single source of truth.
-
----
-
-## HARD GUARDRAILS (DO NOT VIOLATE)
-1. **GEpHR is metaphor only.** Do not expand it into “philosophy/humanistic/SEL/phenomenology.”  
-2. **GEK is conceptual (math + science).**  
-3. **No forced causality between Day A and Day B.**  
-4. **No single-letter tags.** Never output tags like `e`, `m`, `t`. Use `dom.eng.*` / `get.te` etc.  
-5. Every section must have **&gt;=1 artifact + &gt;=1 claim**.
-
----
-
-## INPUTS YOU WILL RECEIVE
-- `lesson_id`
-- `section_id` (A1..A7 or B1..B8)
-- raw text (draft section content, notes, or shape biography chunk)
-- optional known fields: civilization, deity, element, week
-
----
-
-## OUTPUTS YOU MUST PRODUCE (JSON)
-Return exactly one JSON object:
-
-### 1) `section_pack`
-- tags (required minimums)
-- claims: list of conclusions/evidence
-- artifacts: list with `status = sourced|ai_needed|draft`
-- sources: list (if any)
-- inventions: list (if any; especially B4–B6)
-
-### 2) `image_registry_delta`
-For each artifact that is an image:
-- either:
-  - `source_candidate` (museum/catalog URL, etc.), OR
-  - `ai_image_spec` (using the curriculum prompt format: SUBJECT/CONTEXT/COMPOSITION/STYLE/CONSTRAINTS/OUTPUT)
-
----
-
-## SECTION-SPECIFIC RULES
-Load section rules from `SECTION_TAG_PRESETS.json`.  
-A1 and B4/B5/B6 are “heavy” sections and should target **3–5 artifacts** when possible.
-
----
-
-## QUALITY CHECKLIST (self-check before output)
-- Did I include GEpHR tags only on Day A sections?
-- Did I include GEK tags only on Day B sections?
-- Did I avoid single-letter tags?
-- Does every claim have at least one tag?
-- Does every section have at least one artifact?
-
----
-
-## DEFAULT TAGS (add these if known)
-- `civ.&lt;civilization&gt;`
-- `deity.&lt;deity&gt;` (if applicable)
-- `ge.element.&lt;element&gt;`
-- `gea.&lt;element&gt;` or `gem.&lt;element&gt;` as appropriate
-</pre>
-    </details>
-    
-
-    <details class="doc">
-      <summary>
-        <span class="doc-name">EXAMPLE_section_pack_shamash_circle_A1.json</span>
-        <span class="doc-actions">
-          <button class="mini" data-copy="EXAMPLE_section_pack_shamash_circle_A1.json">Copy</button>
-          <button class="mini" data-download="EXAMPLE_section_pack_shamash_circle_A1.json">Download</button>
-        </span>
-      </summary>
-      <pre id="doc-EXAMPLE_section_pack_shamash_circle_A1.json">{
-  &quot;lesson_id&quot;: &quot;lesson.mesopotamia.shamash.circle.wk01&quot;,
-  &quot;section_id&quot;: &quot;sec.A1&quot;,
-  &quot;tags&quot;: [
-    &quot;sec.A1&quot;,
-    &quot;sec.dayA&quot;,
-    &quot;civ.mesopotamia&quot;,
-    &quot;deity.meso.shamash&quot;,
-    &quot;ge.element.circle&quot;,
-    &quot;gea.circle&quot;,
-    &quot;gephr.myth_definition&quot;
-  ],
-  &quot;claims&quot;: [
-    {
-      &quot;id&quot;: &quot;clm.lesson.mesopotamia.shamash.circle.wk01.sec.A1.01&quot;,
-      &quot;type&quot;: &quot;conclusion&quot;,
-      &quot;text&quot;: &quot;The circle enters Mesopotamian culture as Shamash’s sun-disk path of justice.&quot;,
-      &quot;tags&quot;: [
-        &quot;sec.A1&quot;,
-        &quot;gephr.myth_definition&quot;,
-        &quot;gea.circle&quot;
-      ],
-      &quot;supports&quot;: []
-    }
-  ],
-  &quot;artifacts&quot;: [
-    {
-      &quot;id&quot;: &quot;art.lesson.mesopotamia.shamash.circle.wk01.sec.A1.image.deity_or_myth_scene.01&quot;,
-      &quot;type&quot;: &quot;image&quot;,
-      &quot;subtype&quot;: &quot;deity_or_myth_scene&quot;,
-      &quot;status&quot;: &quot;needed&quot;,
-      &quot;tags&quot;: [
-        &quot;img.type.deity&quot;,
-        &quot;sec.A1&quot;,
-        &quot;gea.circle&quot;
-      ],
-      &quot;image_spec_ref&quot;: &quot;imgspec.lesson.mesopotamia.shamash.circle.wk01.sec.A1.01&quot;
-    }
-  ],
-  &quot;sources&quot;: [],
-  &quot;inventions&quot;: []
-}</pre>
-    </details>
-    
-
-    <details class="doc">
-      <summary>
-        <span class="doc-name">SSOT-000_TERMS_TABLE.md</span>
-        <span class="doc-actions">
-          <button class="mini" data-copy="SSOT-000_TERMS_TABLE.md">Copy</button>
-          <button class="mini" data-download="SSOT-000_TERMS_TABLE.md">Download</button>
-        </span>
-      </summary>
-      <pre id="doc-SSOT-000_TERMS_TABLE.md"># Taxonomy Terms (Quick Table)
-
-| Term | Canonical meaning | Facet | Used in |
-|---|---|---|---|
-| GE | geometric throughline | form | Day A + Day B |
-| GEA | atomic primitive | form | element registry |
-| GEM | composite form | form | inventions/patterns |
-| GEU | ubiquitous flag | annotation | cross-civ analysis |
-| GEpHR | metaphor/meaning scaffold | meaning | Day A |
-| GEK | conceptual (math+science) | concept | Day B |
-| op.* | transformations (verbs) | operator | Day B (as needed) |
-| rep.* | dimensional mapping (verbs) | operator | images/representation |
-</pre>
-    </details>
-    
-        </div>
-
-        <div class="panel" id="panel-audit">
-          <h2 id="auditAnchor">System Auditor + Checklist</h2>
-          <p>Paste a status snapshot JSON (from your UI, CLI, or manual notes). The auditor checks minima and suggests next actions.</p>
-          <textarea id="statusJson"></textarea>
-          <div class="row">
-            <button class="btn primary" id="analyzeBtn">Analyze</button>
-            <button class="btn" id="loadSampleBtn">Load Sample</button>
-            <button class="btn" id="clearBtn">Clear</button>
+        <div class="engine-card" data-engine="diff">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>Diff Engine</h3>
           </div>
-          <div class="row" id="auditPills"></div>
-          <div class="card" style="margin-top:12px;">
-            <h2>Audit Output</h2>
-            <pre id="auditOut">Paste status JSON and click Analyze.</pre>
-          </div>
-        </div>
-
-        <div class="panel" id="panel-jobs">
-          <h2 id="jobsAnchor">Job JSON + CLI Instruction Generator</h2>
-          <p>This generates a job queue (JSON) based on audit gaps. CLI commands are placeholders—swap in your actual CLI entrypoints.</p>
-          <div class="row">
-            <button class="btn primary" id="genJobsBtn">Generate Jobs</button>
-            <button class="btn" id="copyJobsBtn">Copy Job JSON</button>
-            <button class="btn" id="copyCliBtn">Copy CLI</button>
-          </div>
-          <div class="split" style="margin-top:12px;">
-            <div class="card">
-              <h2>Job JSON</h2>
-              <pre id="jobsOut">Run Analyze first, then Generate Jobs.</pre>
+          <p class="card-desc">Compares current vs desired state</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Schema Comparator</span>
             </div>
-            <div class="card">
-              <h2>CLI Stubs</h2>
-              <pre id="cliOut">CLI stubs will appear here.</pre>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Task Chunker</span>
+            </div>
+            <div class="tool" data-status="error">
+              <span class="tool-dot"></span>
+              <span>Context Splitter</span>
             </div>
           </div>
+          <a href="pages/diff.html" class="card-link">Open Engine →</a>
+          <div class="flow-connector left blue"></div>
+          <div class="flow-connector right green"></div>
         </div>
 
-        <div class="panel todo" id="panel-todo">
-          <h2>Flight Crew To‑Do (local)</h2>
-          <p>This list is stored in your browser (localStorage). It persists even if an AI session expires.</p>
-          <div class="row">
-            <input type="text" id="todoInput" placeholder="Add a task (e.g., 'Make A1 myth video storyboard pack for Shamash')" />
-            <button class="btn primary" id="addTodoBtn">Add</button>
-            <button class="btn" id="clearTodoBtn">Clear Completed</button>
+        <div class="engine-card" data-engine="ag-func">
+          <div class="card-header">
+            <span class="health-indicator warning"></span>
+            <h3>Ag_Func Engine</h3>
           </div>
-          <ul id="todoList"></ul>
+          <p class="card-desc">Function agents write files & wait</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>File Writer</span>
+            </div>
+            <div class="tool" data-status="warning">
+              <span class="tool-dot"></span>
+              <span>Status Reporter</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Wait Handler</span>
+            </div>
+          </div>
+          <a href="pages/ag-func.html" class="card-link">Open Engine →</a>
+          <div class="flow-connector left green"></div>
+          <div class="flow-connector right purple"></div>
         </div>
-      </section>
 
-      <aside class="card">
-        <h2>Quick Health</h2>
-        <p>These are “feature health” toggles driven by the status JSON you paste.</p>
-        <div class="row" id="healthPills">
-          <span class="pill warn">DB: unknown</span>
-          <span class="pill warn">Storage: unknown</span>
-          <span class="pill warn">Workers: unknown</span>
+        <div class="engine-card" data-engine="ag-mess">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>Ag_Mess Engine</h3>
+          </div>
+          <p class="card-desc">Messenger reads files, updates status</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>File Reader</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Status Writer</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Event Emitter</span>
+            </div>
+          </div>
+          <a href="pages/ag-mess.html" class="card-link">Open Engine →</a>
+          <div class="flow-connector left purple"></div>
+          <div class="flow-connector right orange"></div>
         </div>
 
-        <div style="height:10px;"></div>
+        <div class="engine-card" data-engine="ag-html">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>Ag_Html Engine</h3>
+          </div>
+          <p class="card-desc">Tests functionality, writes results</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>File Validator</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Test Runner</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Result Writer</span>
+            </div>
+          </div>
+          <a href="pages/ag-html.html" class="card-link">Open Engine →</a>
+          <div class="flow-connector left orange"></div>
+          <div class="flow-connector loop blue"></div>
+        </div>
+      </div>
 
-        <h2>Shortcuts</h2>
-        <p><span class="kbd">Docs</span> shows SSOT pack. <span class="kbd">Audit</span> checks minima. <span class="kbd">Jobs</span> creates payloads.</p>
+      <div class="workflow-legend">
+        <h4>Workflow Systems (Arrow Colors)</h4>
+        <div class="legend-items">
+          <div class="legend-item">
+            <span class="legend-color blue"></span>
+            <span>Snapshot Flow</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color green"></span>
+            <span>Diff → Function</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color purple"></span>
+            <span>Function → Messenger</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color orange"></span>
+            <span>Messenger → HTML Test</span>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <div style="height:10px;"></div>
+    <aside class="status-panel">
+      <h2>Pipeline Status</h2>
+      
+      <div class="status-section">
+        <h4>Current Snapshot</h4>
+        <div class="status-item">
+          <span class="label">ID:</span>
+          <span class="value mono">snap_2026-02-04_001</span>
+        </div>
+        <div class="status-item">
+          <span class="label">State:</span>
+          <span class="value badge healthy">Complete</span>
+        </div>
+      </div>
 
-        <h2>Notes</h2>
-        <p>✅ Single-letter tags are blocked by design (prevents “e” ambiguity). Use explicit tags like <span class="kbd">GE-Te</span> or <span class="kbd">GE-Tt</span>.</p>
-        <p>✅ Heavy sections (A1, B3, B4, B5, B6) target 3–5 artifacts as a warning goal.</p>
-      </aside>
-    </div>
-  </div>
+      <div class="status-section">
+        <h4>Active Tasks</h4>
+        <div class="task-list">
+          <div class="task-item">
+            <span class="task-status running"></span>
+            <span>Ag_Func: Writing section B4</span>
+          </div>
+          <div class="task-item">
+            <span class="task-status pending"></span>
+            <span>Ag_Mess: Awaiting files</span>
+          </div>
+          <div class="task-item">
+            <span class="task-status pending"></span>
+            <span>Ag_Html: Queue empty</span>
+          </div>
+        </div>
+      </div>
 
-  <div class="dock" aria-label="hover dock">
-    <div class="dock-item" data-jump="overview"><div class="ico">🏠</div><span>Overview</span></div>
-    <div class="dock-item" data-jump="docs"><div class="ico">📚</div><span>SSOT Library</span></div>
-    <div class="dock-item" data-jump="audit"><div class="ico">🧪</div><span>Auditor</span></div>
-    <div class="dock-item" data-jump="jobs"><div class="ico">🛠️</div><span>Jobs</span></div>
-    <div class="dock-item" data-jump="todo"><div class="ico">🧷</div><span>Flight Crew</span></div>
-  </div>
+      <div class="status-section">
+        <h4>Health Summary</h4>
+        <div class="health-grid">
+          <div class="health-item healthy">
+            <span class="count">12</span>
+            <span class="label">Healthy</span>
+          </div>
+          <div class="health-item warning">
+            <span class="count">2</span>
+            <span class="label">Warning</span>
+          </div>
+          <div class="health-item error">
+            <span class="count">1</span>
+            <span class="label">Error</span>
+          </div>
+        </div>
+      </div>
 
-  <script>
-    const SAMPLE_STATUS = {
-  "system": {
-    "version": "geoarts.console.v1",
-    "db": {
-      "configured": false,
-      "last_check": null
-    },
-    "storage": {
-      "configured": false,
-      "bucket": "supabase-storage",
-      "last_check": null
-    },
-    "workers": {
-      "job_worker": false,
-      "proxy_worker": false
-    }
-  },
-  "lesson": {
-    "lesson_id": "lesson.mesopotamia.shamash.circle.wk01",
-    "grades": [
-      3,
-      4,
-      5
-    ],
-    "sections": {
-      "A1": {
-        "claims": 1,
-        "artifacts": 1,
-        "approved_media": 0,
-        "published": false
-      },
-      "A2": {
-        "claims": 0,
-        "artifacts": 0,
-        "approved_media": 0,
-        "published": false
-      },
-      "B3": {
-        "claims": 0,
-        "artifacts": 0,
-        "approved_media": 0,
-        "published": false
-      }
-    }
-  }
-};
+      <div class="status-section">
+        <h4>Quick Actions</h4>
+        <button class="btn full-width">Take New Snapshot</button>
+        <button class="btn full-width secondary">Run Full Diff</button>
+        <button class="btn full-width secondary">View All Logs</button>
+      </div>
+    </aside>
+  </main>
 
-    // Tabs
-    const tabs = document.querySelectorAll('.tab');
-    const panels = {
-      overview: document.getElementById('panel-overview'),
-      docs: document.getElementById('panel-docs'),
-      audit: document.getElementById('panel-audit'),
-      jobs: document.getElementById('panel-jobs'),
-      todo: document.getElementById('panel-todo')
-    };
-    function setTab(name) {
-      tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-      Object.entries(panels).forEach(([k, el]) => el.classList.toggle('active', k === name));
-    }
-    tabs.forEach(t => t.addEventListener('click', () => setTab(t.dataset.tab)));
+  <footer class="footer">
+    <p>Geo-Arts System Console v1.0 | Multi-Agent Pipeline</p>
+  </footer>
 
-    // Mode toggles
-    const body = document.body;
-    document.getElementById('modeLight').onclick = () => { body.className='light'; };
-    document.getElementById('modeBuilder').onclick = () => { body.className='builder'; };
-    document.getElementById('modeDark').onclick = () => { body.className=''; };
-
-    // Jump buttons
-    document.getElementById('jumpDocs').onclick = () => { setTab('docs'); document.getElementById('docsAnchor').scrollIntoView({behavior:'smooth'}); };
-    document.getElementById('jumpAudit').onclick = () => { setTab('audit'); document.getElementById('auditAnchor').scrollIntoView({behavior:'smooth'}); };
-    document.getElementById('jumpJobs').onclick = () => { setTab('jobs'); document.getElementById('jobsAnchor').scrollIntoView({behavior:'smooth'}); };
-
-    // Dock navigation
-    document.querySelectorAll('.dock-item').forEach(el => {
-      el.addEventListener('click', () => {
-        const dest = el.dataset.jump;
-        setTab(dest);
-        const anchor = {
-          overview: document.querySelector('#panel-overview'),
-          docs: document.getElementById('docsAnchor'),
-          audit: document.getElementById('auditAnchor'),
-          jobs: document.getElementById('jobsAnchor'),
-          todo: document.getElementById('panel-todo')
-        }[dest];
-        if(anchor) anchor.scrollIntoView({behavior:'smooth'});
-      });
-    });
-
-    // Docs: copy/download
-    function getDocText(name) {
-      const pre = document.getElementById('doc-' + name);
-      return pre ? pre.textContent : '';
-    }
-    document.querySelectorAll('[data-copy]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault(); e.stopPropagation();
-        const name = btn.dataset.copy;
-        navigator.clipboard.writeText(getDocText(name));
-        btn.textContent = 'Copied';
-        setTimeout(() => btn.textContent='Copy', 800);
-      });
-    });
-    document.querySelectorAll('[data-download]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault(); e.stopPropagation();
-        const name = btn.dataset.download;
-        const blob = new Blob([getDocText(name)], {type: 'text/plain'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = name;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      });
-    });
-
-    // Auditor
-    const statusJson = document.getElementById('statusJson');
-    const auditOut = document.getElementById('auditOut');
-    const auditPills = document.getElementById('auditPills');
-    const healthPills = document.getElementById('healthPills');
-
-    function pill(text, kind='warn') {
-      const span = document.createElement('span');
-      span.className = 'pill ' + kind;
-      span.textContent = text;
-      return span;
-    }
-
-    function renderHealth(s) {
-      healthPills.innerHTML = '';
-      const db = s?.system?.db?.configured;
-      const st = s?.system?.storage?.configured;
-      const jw = s?.system?.workers?.job_worker;
-      const pw = s?.system?.workers?.proxy_worker;
-      healthPills.appendChild(pill('DB: ' + (db ? 'ok' : 'missing'), db ? 'good' : 'bad'));
-      healthPills.appendChild(pill('Storage: ' + (st ? 'ok' : 'missing'), st ? 'good' : 'bad'));
-      healthPills.appendChild(pill('Workers: ' + ((jw||pw) ? 'partial' : 'missing'), (jw && pw) ? 'good' : 'warn'));
-    }
-
-    function analyzeStatus(s) {
-      const report = {
-        blockers: [],
-        warnings: [],
-        notes: []
-      };
-      const heavy = new Set(['A1','B3','B4','B5','B6']);
-
-      const sections = s?.lesson?.sections || {};
-      for (const [code, meta] of Object.entries(sections)) {
-        const claims = meta?.claims ?? 0;
-        const artifacts = meta?.artifacts ?? 0;
-        if (claims < 1) report.blockers.push({section: code, issue: 'missing_claims', detail: 'Needs >=1 claim (CAR minima)'});
-        if (artifacts < 1) report.blockers.push({section: code, issue: 'missing_artifacts', detail: 'Needs >=1 artifact (CAR minima)'});
-        if (heavy.has(code) && artifacts > 0 && artifacts < 3) {
-          report.warnings.push({section: code, issue: 'below_target_artifacts', detail: 'Heavy section targets 3–5 artifacts'});
-        }
-        if ((meta?.approved_media ?? 0) < 1 && artifacts >= 1) {
-          report.warnings.push({section: code, issue: 'no_approved_media', detail: 'Artifacts exist but no approved media attached yet'});
-        }
-      }
-      if (Object.keys(sections).length === 0) {
-        report.blockers.push({section:'(none)', issue:'no_sections', detail:'No sections present in status JSON'});
-      }
-      return report;
-    }
-
-    function renderAudit(report) {
-      auditPills.innerHTML = '';
-      auditPills.appendChild(pill('Blockers: ' + report.blockers.length, report.blockers.length ? 'bad' : 'good'));
-      auditPills.appendChild(pill('Warnings: ' + report.warnings.length, report.warnings.length ? 'warn' : 'good'));
-      auditOut.textContent = JSON.stringify(report, null, 2);
-    }
-
-    document.getElementById('loadSampleBtn').onclick = () => {
-      statusJson.value = JSON.stringify(SAMPLE_STATUS, null, 2);
-    };
-    document.getElementById('clearBtn').onclick = () => {
-      statusJson.value = '';
-      auditOut.textContent = 'Paste status JSON and click Analyze.';
-      auditPills.innerHTML = '';
-      healthPills.innerHTML = '<span class="pill warn">DB: unknown</span><span class="pill warn">Storage: unknown</span><span class="pill warn">Workers: unknown</span>';
-      document.getElementById('jobsOut').textContent = 'Run Analyze first, then Generate Jobs.';
-      document.getElementById('cliOut').textContent = 'CLI stubs will appear here.';
-    };
-
-    let lastReport = null;
-    let lastStatus = null;
-
-    document.getElementById('analyzeBtn').onclick = () => {
-      try {
-        const s = JSON.parse(statusJson.value);
-        lastStatus = s;
-        renderHealth(s);
-        lastReport = analyzeStatus(s);
-        renderAudit(lastReport);
-      } catch(e) {
-        auditOut.textContent = 'Invalid JSON: ' + e.message;
-      }
-    };
-
-    // Job generator (simple heuristics)
-    function genJobsFromReport(status, report) {
-      const jobs = [];
-      const lessonId = status?.lesson?.lesson_id || null;
-
-      const needClaim = new Set(report.blockers.filter(b => b.issue === 'missing_claims').map(b => b.section));
-      const needArtifact = new Set(report.blockers.filter(b => b.issue === 'missing_artifacts').map(b => b.section));
-      const warnNoApproved = new Set(report.warnings.filter(w => w.issue === 'no_approved_media').map(w => w.section));
-
-      const push = (job_type, priority, payload) => jobs.push({
-        job_type, priority,
-        status: "queued",
-        payload
-      });
-
-      for (const sec of new Set([...needClaim, ...needArtifact, ...warnNoApproved])) {
-        if (needClaim.has(sec)) {
-          push("EXTRACT_CLAIMS", 45, { lesson_id: lessonId, section_code: sec, granularity: "paragraph" });
-        }
-        if (needArtifact.has(sec)) {
-          push("PROPOSE_ARTIFACTS", 50, { lesson_id: lessonId, section_code: sec, artifact_targets: {min:1,target:3,max:5} });
-        }
-        if (warnNoApproved.has(sec)) {
-          push("SOURCE_MEDIA", 70, { lesson_id: lessonId, section_code: sec, source_strategy: "manual" });
-          push("GENERATE_AI_MEDIA", 75, { lesson_id: lessonId, section_code: sec, media_type: "image", prompt_spec: {subject:"",context:"",composition:"",style:"",constraints:"",output:""} });
-          push("GENERATE_PROXIES", 80, { lesson_id: lessonId, section_code: sec });
-        }
-      }
-
-      if (jobs.length) {
-        push("PACKAGE_PUBLISH", 90, { lesson_id: lessonId, grade_targets: status?.lesson?.grades || [3,4,5], publish_profile: "teacher" });
-      }
-      return jobs;
-    }
-
-    const jobsOut = document.getElementById('jobsOut');
-    const cliOut = document.getElementById('cliOut');
-    let lastJobs = null;
-
-    document.getElementById('genJobsBtn').onclick = () => {
-      if (!lastStatus || !lastReport) {
-        jobsOut.textContent = "Run Analyze first.";
-        return;
-      }
-      lastJobs = genJobsFromReport(lastStatus, lastReport);
-      jobsOut.textContent = JSON.stringify(lastJobs, null, 2);
-
-      const cliLines = (lastJobs || []).map((job) => {
-        const payload = JSON.stringify(job.payload).replaceAll('"', '\\"');
-        return 'node geoarts-cli.js jobs enqueue --type ' + job.job_type +
-               ' --priority ' + job.priority +
-               ' --payload "' + payload + '"';
-      });
-      cliOut.textContent = cliLines.join("\n") || "No jobs suggested.";
-    };
-
-    document.getElementById('copyJobsBtn').onclick = () => {
-      if (!lastJobs) return;
-      navigator.clipboard.writeText(JSON.stringify(lastJobs, null, 2));
-    };
-    document.getElementById('copyCliBtn').onclick = () => {
-      navigator.clipboard.writeText(cliOut.textContent || "");
-    };
-
-    // To‑do list (localStorage)
-    const todoKey = "geoarts.todo.v1";
-    const todoList = document.getElementById('todoList');
-    const todoInput = document.getElementById('todoInput');
-
-    function loadTodos() {
-      try { return JSON.parse(localStorage.getItem(todoKey) || "[]"); } catch { return []; }
-    }
-    function saveTodos(items) {
-      localStorage.setItem(todoKey, JSON.stringify(items));
-    }
-    function renderTodos() {
-      const items = loadTodos();
-      todoList.innerHTML = "";
-      items.forEach((it, idx) => {
-        const li = document.createElement('li');
-        const cb = document.createElement('input');
-        cb.type = "checkbox";
-        cb.checked = !!it.done;
-        cb.onchange = () => {
-          const items2 = loadTodos();
-          items2[idx].done = cb.checked;
-          saveTodos(items2);
-        };
-        const span = document.createElement('span');
-        span.textContent = it.text;
-        span.style.color = it.done ? "var(--muted)" : "var(--text)";
-        span.style.textDecoration = it.done ? "line-through" : "none";
-        const del = document.createElement('button');
-        del.className = "btn";
-        del.textContent = "Delete";
-        del.onclick = () => {
-          const items2 = loadTodos();
-          items2.splice(idx, 1);
-          saveTodos(items2);
-          renderTodos();
-        };
-        li.appendChild(cb);
-        li.appendChild(span);
-        li.appendChild(del);
-        todoList.appendChild(li);
-      });
-    }
-    document.getElementById('addTodoBtn').onclick = () => {
-      const text = (todoInput.value || "").trim();
-      if (!text) return;
-      const items = loadTodos();
-      items.unshift({text, done:false, created_at: new Date().toISOString()});
-      saveTodos(items);
-      todoInput.value = "";
-      renderTodos();
-    };
-    document.getElementById('clearTodoBtn').onclick = () => {
-      const items = loadTodos().filter(x => !x.done);
-      saveTodos(items);
-      renderTodos();
-    };
-    renderTodos();
-  </script>
+  <script src="scripts/main.js"></script>
 </body>
 </html>

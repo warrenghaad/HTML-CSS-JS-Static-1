@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ag_Func Engine - Geo-Arts Console</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <h1>Ag_Func Engine</h1>
+      <p class="subtitle">Function agents write files & wait</p>
+    </div>
+    <div class="header-actions">
+      <a href="../index.html" class="btn">← Back to Dashboard</a>
+      <div class="system-health">
+        <span class="health-dot warning"></span>
+        <span>Engine: Warning</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-content">
+    <div class="section-card">
+      <h3><span class="health-indicator warning"></span> Engine Overview</h3>
+      <p>Function agents receive chunked tasks and write new files. They are <strong>forbidden from claiming completion immediately</strong> after writing—they must wait for validation from downstream agents.</p>
+      
+      <div style="margin-top: 1rem;">
+        <strong>Inputs:</strong> Chunked task from Diff Engine<br>
+        <strong>Outputs:</strong> New files + status report (pending validation)
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>Tool List</h3>
+      <table class="func-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Status</th>
+            <th>Function</th>
+            <th>Input</th>
+            <th>Output</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>File Writer</td>
+            <td><span class="badge healthy">Healthy</span></td>
+            <td>Writes new files based on task spec</td>
+            <td>Task chunk + file spec</td>
+            <td>Written file path</td>
+          </tr>
+          <tr>
+            <td>Status Reporter</td>
+            <td><span class="badge warning">Warning</span></td>
+            <td>Generates status report for Ag_Mess</td>
+            <td>Write result</td>
+            <td>Status JSON (pending)</td>
+          </tr>
+          <tr>
+            <td>Wait Handler</td>
+            <td><span class="badge healthy">Healthy</span></td>
+            <td>Holds completion until validated</td>
+            <td>Status + validation signal</td>
+            <td>Final completion flag</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-card">
+      <h3>Workflow Connections</h3>
+      <div class="legend-items" style="margin-top: 1rem;">
+        <div class="legend-item">
+          <span class="legend-color green"></span>
+          <span>← Receives from: <strong>Diff Engine</strong></span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color purple"></span>
+          <span>→ Outputs to: <strong>Ag_Mess Engine</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>Completion Rules</h3>
+      <div style="background: rgba(252,165,165,0.1); border-left: 4px solid var(--error); padding: 1rem; border-radius: 0 8px 8px 0; margin-top: 1rem;">
+        <strong style="color: var(--error);">FORBIDDEN:</strong> Claiming task complete immediately after file write<br><br>
+        <strong>Required sequence:</strong>
+        <ol style="margin-top: 0.5rem; padding-left: 1.5rem; color: var(--text-muted);">
+          <li>Write file(s)</li>
+          <li>Generate status report (status: "pending_validation")</li>
+          <li>Wait for Ag_Mess to read and confirm</li>
+          <li>Wait for Ag_Html to test and validate</li>
+          <li>Only then mark as "complete"</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Geo-Arts System Console v1.0 | Ag_Func Engine</p>
+  </footer>
+
+  <script src="../scripts/main.js"></script>
+</body>
+</html>

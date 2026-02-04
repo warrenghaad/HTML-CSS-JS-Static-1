@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Snapshot Engine - Geo-Arts Console</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <h1>Snapshot Engine</h1>
+      <p class="subtitle">Captures backend state at checkpoints</p>
+    </div>
+    <div class="header-actions">
+      <a href="../index.html" class="btn">← Back to Dashboard</a>
+      <div class="system-health">
+        <span class="health-dot healthy"></span>
+        <span>Engine: Healthy</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-content">
+    <div class="section-card">
+      <h3><span class="health-indicator healthy"></span> Engine Overview</h3>
+      <p>The Snapshot Engine captures the current state of your backend system. It creates immutable records that can be compared against desired states to generate task diffs.</p>
+      
+      <div style="margin-top: 1rem;">
+        <strong>Inputs:</strong> Backend API endpoints, Database schemas, File structures<br>
+        <strong>Outputs:</strong> Snapshot JSON files with version IDs
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>Tool List</h3>
+      <table class="func-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Status</th>
+            <th>Function</th>
+            <th>Input</th>
+            <th>Output</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>State Capture</td>
+            <td><span class="badge healthy">Healthy</span></td>
+            <td>Captures current backend state</td>
+            <td>API endpoints, DB connection</td>
+            <td>Raw state object</td>
+          </tr>
+          <tr>
+            <td>Version Control</td>
+            <td><span class="badge healthy">Healthy</span></td>
+            <td>Assigns version IDs, tracks history</td>
+            <td>Raw state object</td>
+            <td>Versioned snapshot</td>
+          </tr>
+          <tr>
+            <td>Diff Generator</td>
+            <td><span class="badge warning">Warning</span></td>
+            <td>Compares snapshots, finds changes</td>
+            <td>Two snapshot versions</td>
+            <td>Diff JSON</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-card">
+      <h3>Workflow Connections</h3>
+      <div class="legend-items" style="margin-top: 1rem;">
+        <div class="legend-item">
+          <span class="legend-color blue"></span>
+          <span>→ Outputs to: <strong>Diff Engine</strong></span>
+        </div>
+      </div>
+      <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.875rem;">
+        When a snapshot completes, it is automatically sent to the Diff Engine for comparison against the desired state.
+      </p>
+    </div>
+
+    <div class="section-card">
+      <h3>Recent Snapshots</h3>
+      <table class="func-table">
+        <thead>
+          <tr>
+            <th>Snapshot ID</th>
+            <th>Created</th>
+            <th>Status</th>
+            <th>Size</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">snap_2026-02-04_001</td>
+            <td>2026-02-04 10:30</td>
+            <td><span class="badge healthy">Complete</span></td>
+            <td>2.4 MB</td>
+          </tr>
+          <tr>
+            <td class="mono">snap_2026-02-03_003</td>
+            <td>2026-02-03 16:45</td>
+            <td><span class="badge healthy">Complete</span></td>
+            <td>2.3 MB</td>
+          </tr>
+          <tr>
+            <td class="mono">snap_2026-02-03_002</td>
+            <td>2026-02-03 12:00</td>
+            <td><span class="badge healthy">Complete</span></td>
+            <td>2.1 MB</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Geo-Arts System Console v1.0 | Snapshot Engine</p>
+  </footer>
+
+  <script src="../scripts/main.js"></script>
+</body>
+</html>

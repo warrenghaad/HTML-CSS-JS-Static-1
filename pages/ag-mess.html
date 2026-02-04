@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ag_Mess Engine - Geo-Arts Console</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <h1>Ag_Mess Engine</h1>
+      <p class="subtitle">Messenger reads files, updates status</p>
+    </div>
+    <div class="header-actions">
+      <a href="../index.html" class="btn">← Back to Dashboard</a>
+      <div class="system-health">
+        <span class="health-dot healthy"></span>
+        <span>Engine: Healthy</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-content">
+    <div class="section-card">
+      <h3><span class="health-indicator healthy"></span> Engine Overview</h3>
+      <p>The Messenger agent reads newly written files from Ag_Func and creates status update files. It only writes <strong>new</strong> files—never overwrites existing ones.</p>
+      
+      <div style="margin-top: 1rem;">
+        <strong>Inputs:</strong> New files from Ag_Func, status reports<br>
+        <strong>Outputs:</strong> New status update files for Ag_Html
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>Tool List</h3>
+      <table class="func-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Status</th>
+            <th>Function</th>
+            <th>Input</th>
+            <th>Output</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>File Reader</td>
+            <td><span class="badge healthy">Healthy</span></td>
+            <td>Reads new files from Ag_Func output</td>
+            <td>File path from status report</td>
+            <td>File contents</td>
+          </tr>
+          <tr>
+            <td>Status Writer</td>
+            <td><span class="badge healthy">Healthy</span></td>
+            <td>Writes NEW status files only</td>
+            <td>Validation data</td>
+            <td>New status file path</td>
+          </tr>
+          <tr>
+            <td>Event Emitter</td>
+            <td><span class="badge healthy">Healthy</span></td>
+            <td>Notifies Ag_Html of ready files</td>
+            <td>Status file path</td>
+            <td>Event notification</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-card">
+      <h3>Workflow Connections</h3>
+      <div class="legend-items" style="margin-top: 1rem;">
+        <div class="legend-item">
+          <span class="legend-color purple"></span>
+          <span>← Receives from: <strong>Ag_Func Engine</strong></span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color orange"></span>
+          <span>→ Outputs to: <strong>Ag_Html Engine</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>Write Rules</h3>
+      <div style="background: rgba(134,239,172,0.1); border-left: 4px solid var(--healthy); padding: 1rem; border-radius: 0 8px 8px 0; margin-top: 1rem;">
+        <strong style="color: var(--healthy);">RULE:</strong> Only write NEW files. Never overwrite.<br><br>
+        <strong>File naming pattern:</strong>
+        <code style="display: block; margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 4px; font-family: var(--font-mono); font-size: 0.875rem;">
+          status_{task_id}_{timestamp}.json
+        </code>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Geo-Arts System Console v1.0 | Ag_Mess Engine</p>
+  </footer>
+
+  <script src="../scripts/main.js"></script>
+</body>
+</html>

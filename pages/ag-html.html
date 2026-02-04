@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ag_Html Engine - Geo-Arts Console</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <h1>Ag_Html Engine</h1>
+      <p class="subtitle">Tests functionality, writes results</p>
+    </div>
+    <div class="header-actions">
+      <a href="../index.html" class="btn">← Back to Dashboard</a>
+      <div class="system-health">
+        <span class="health-dot healthy"></span>
+        <span>Engine: Healthy</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-content">
+    <div class="section-card">
+      <h3><span class="health-indicator healthy"></span> Engine Overview</h3>
+      <p>The HTML Test agent reads updated status files, performs validation tests, and writes results. This is the decision point for the pipeline split.</p>
+      
+      <div style="margin-top: 1rem;">
+        <strong>Inputs:</strong> Status files from Ag_Mess<br>
+        <strong>Outputs:</strong> Test results → triggers next cycle or debug loop
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>Tool List</h3>
+      <table class="func-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Status</th>
+            <th>Function</th>
+            <th>Input</th>
+            <th>Output</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>File Validator</td>
+            <td><span class="badge healthy">Healthy</span></td>
+            <td>Validates file structure and content</td>
+            <td>File from Ag_Mess status</td>
+            <td>Validation report</td>
+          </tr>
+          <tr>
+            <td>Test Runner</td>
+            <td><span class="badge healthy">Healthy</span></td>
+            <td>Runs input/output tests on chunks</td>
+            <td>Chunk + test spec</td>
+            <td>Test results</td>
+          </tr>
+          <tr>
+            <td>Result Writer</td>
+            <td><span class="badge healthy">Healthy</span></td>
+            <td>Writes test results, triggers next step</td>
+            <td>Test results</td>
+            <td>Result file + signal</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-card">
+      <h3>Workflow Connections</h3>
+      <div class="legend-items" style="margin-top: 1rem;">
+        <div class="legend-item">
+          <span class="legend-color orange"></span>
+          <span>← Receives from: <strong>Ag_Mess Engine</strong></span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color blue"></span>
+          <span>→ Loop back to: <strong>Snapshot Engine</strong> (on success)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>Pipeline Split Logic</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+        <div style="background: rgba(134,239,172,0.1); border: 1px solid rgba(134,239,172,0.3); padding: 1rem; border-radius: 8px;">
+          <strong style="color: var(--healthy);">IF PASS:</strong>
+          <ol style="margin-top: 0.5rem; padding-left: 1.25rem; color: var(--text-muted); font-size: 0.875rem;">
+            <li>2a. Create new Snapshot</li>
+            <li>2b. Assess diff against next goal</li>
+            <li>2c. Generate JSONs for Ag_Func</li>
+            <li>2ci. Write "completed" file</li>
+            <li>2cii. Start next task</li>
+          </ol>
+        </div>
+        <div style="background: rgba(252,165,165,0.1); border: 1px solid rgba(252,165,165,0.3); padding: 1rem; border-radius: 8px;">
+          <strong style="color: var(--error);">IF FAIL:</strong>
+          <ol style="margin-top: 0.5rem; padding-left: 1.25rem; color: var(--text-muted); font-size: 0.875rem;">
+            <li>Log failure details</li>
+            <li>Notify Ag_Func of required fixes</li>
+            <li>Re-enter Ag_Func → Ag_Mess → Ag_Html loop</li>
+            <li>Continue until pass or manual intervention</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Geo-Arts System Console v1.0 | Ag_Html Engine</p>
+  </footer>
+
+  <script src="../scripts/main.js"></script>
+</body>
+</html>
