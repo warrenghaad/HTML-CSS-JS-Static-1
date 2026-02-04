@@ -1,66 +1,121 @@
-# Project Management Documentation Site
+# Geo-Arts System Console
 
 ## Overview
-A static HTML documentation site for a desktop project management application. This read-only reference guide covers Kanban and Scrum project management features.
+A static HTML dashboard for the Geo-Arts educational curriculum system. This console serves as:
+- **SSOT Holder** - Single Source of Truth documentation library
+- **System Auditor** - Analyzes project status and identifies gaps
+- **Checklist Generator** - Creates actionable tasks
+- **Job JSON + CLI Generator** - Produces payloads for automation
 
 **Created:** February 4, 2026
-**Status:** Static documentation site complete
+**Status:** Static console deployed
 
 ## Project Structure
 
 ```
 .
-├── index.html    - Main HTML documentation with all sections
-├── style.css     - Professional styling for documentation
-├── script.js     - Navigation between sections
-└── replit.md     - Project documentation
+├── index.html            - Main console (single-file application)
+├── style.css             - Not used (styles embedded in HTML)
+├── script.js             - Not used (scripts embedded in HTML)
+├── replit.md             - Project documentation
+└── attached_assets/      - Original source files
 ```
 
-## Documentation Sections
+## Console Features
 
-1. **Overview** - Introduction to the app's features
-2. **Kanban Board** - Visual workflow management, columns, cards, WIP limits
-3. **Scrum Framework** - Roles, events, ceremonies
-4. **Product Backlog** - User stories, story points, prioritization
-5. **Sprint Planning** - Sprint configuration and workflow
-6. **Reports & Metrics** - Burndown charts, velocity, cycle time
+### 1. Theme Modes
+- **Face (Light)** - Clean light theme for presentations
+- **Builder (Blue)** - Dark blue theme for development work
+- **Research (Dark)** - Dark theme for extended reading
 
-## Features
+### 2. Tab Panels
+- **Overview** - Canonical truth rules and usage instructions
+- **SSOT Library** - Embedded documentation files (expandable)
+- **Auditor + Checklist** - Paste status JSON, analyze gaps
+- **Job JSON + CLI** - Generate automation payloads
+- **Flight Crew To-Do** - Local task list (localStorage)
 
-### Static Documentation
-- Clean, professional layout with sidebar navigation
-- No backend required - pure HTML/CSS/JS
-- Responsive design for desktop and mobile
-- Smooth section transitions
+### 3. Embedded SSOT Documents
+- SSOT-000_MASTER_TAXONOMY.md/.json - Core taxonomy definitions
+- PATCH_SSOT_002_014.md - Alignment patches
+- SECTION_TAG_PRESETS.json - Section tagging rules
+- SYSTEM_PROMPT_CARWASH.md - Agent system prompt
+- EXAMPLE_section_pack_shamash_circle_A1.json - Sample data
+- SSOT-000_TERMS_TABLE.md - Quick reference
 
-### Content Covered
-- Kanban board columns and card features
-- Scrum roles (Product Owner, Scrum Master, Dev Team)
-- Scrum events (Planning, Standups, Review, Retrospective)
-- User story format and story points
-- Sprint workflow steps
-- Key project metrics and reports
+## Key Concepts (Taxonomy)
 
-## Web Hosting
+| Term | Meaning | Used For |
+|------|---------|----------|
+| GE | Geometric Element | Core throughline |
+| GEA | Atomic (primitives) | Point, line, circle, etc. |
+| GEM | Molecular (composites) | Rosettes, grids, patterns |
+| GEK | Conceptual (math+science) | Day B content |
+| GEpHR | Metaphor (meaning) | Day A content |
+| GEU | Ubiquitous flag | Cross-cultural elements |
 
-Served using Python's built-in HTTP server:
-- **Command**: `python -m http.server 5000`
-- **Port**: 5000
+## Day A / Day B Structure
 
-## How to Modify
+**Day A (GEpHR - Metaphor Track):**
+- A1: Myth Definition
+- A2: Metaphor Visualization
+- A3: Mythic Iconography
+- A4: Material Culture + Ritual
+- A5: Decomposition
+- A6: Art Activity
+- A7: Bridge Prompt
 
-### Adding New Sections
-1. Add a navigation link in the sidebar `<nav>` section
-2. Create a new `<section id="your-id" class="content-section">` in main
-3. Fill in your documentation content
+**Day B (GEK - Function Track):**
+- B1: Bridge Answer
+- B2: Math Concept
+- B3: Science Effect
+- B4: STEM Timeline
+- B5: Case Study
+- B6: Deconstruction
+- B7: Build/Design Challenge
+- B8: Synthesis
 
-### Changing Styles
-- Edit `style.css` to modify colors, fonts, spacing
-- Main color scheme uses blues (#1a365d, #2b6cb0)
+## How to Use the Console
+
+1. **View Documentation**: Click "SSOT Library" tab, expand any document
+2. **Audit a Project**: Paste status JSON into Auditor, click "Analyze"
+3. **Generate Jobs**: After analysis, click "Generate Jobs" for automation
+4. **Track Tasks**: Use "Flight Crew To-Do" for persistent task tracking
+
+## Web Design Learning Points
+
+### HTML Structure
+- Single-page application pattern
+- Semantic HTML (header, main, aside, section)
+- Details/summary for collapsible content
+- Data attributes for JavaScript binding
+
+### CSS Techniques
+- CSS custom properties (variables) for theming
+- Flexbox and Grid layouts
+- Backdrop blur for glassmorphism
+- Media queries for responsiveness
+- Transitions and animations
+
+### JavaScript Patterns
+- Tab switching with classList
+- localStorage for persistent data
+- JSON parsing and display
+- Event delegation
+- Dynamic DOM manipulation
+
+## Backend Integration (Future)
+
+The console currently works offline. To connect to Supabase:
+1. Add Supabase client library
+2. Replace localStorage with database calls
+3. Add authentication
+4. Implement real-time status sync
 
 ## User Preferences
 
-- Learning web design basics
-- Building documentation for a desktop app
-- Focus on Kanban and Scrum project management features
-- Static/read-only content preferred
+- Building educational curriculum tools
+- Focus on Kanban/Scrum project management
+- Learning web development fundamentals
+- Has extensive backend (Supabase) to connect later
+- Needs documentation for Geo-Arts system
