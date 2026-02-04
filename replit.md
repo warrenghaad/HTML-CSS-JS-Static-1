@@ -1,121 +1,113 @@
-# Geo-Arts System Console
+# Geo-Arts System Console - Multi-Agent Pipeline
 
 ## Overview
-A static HTML dashboard for the Geo-Arts educational curriculum system. This console serves as:
-- **SSOT Holder** - Single Source of Truth documentation library
-- **System Auditor** - Analyzes project status and identifies gaps
-- **Checklist Generator** - Creates actionable tasks
-- **Job JSON + CLI Generator** - Produces payloads for automation
+A multi-page web application documenting a multi-agent workflow pipeline. This is NOT a single-page app—each engine has its own dedicated page.
 
 **Created:** February 4, 2026
-**Status:** Static console deployed
+**Status:** Multi-page structure complete
 
 ## Project Structure
 
 ```
 .
-├── index.html            - Main console (single-file application)
-├── style.css             - Not used (styles embedded in HTML)
-├── script.js             - Not used (scripts embedded in HTML)
-├── replit.md             - Project documentation
-└── attached_assets/      - Original source files
+├── index.html              - Home dashboard with 5 engine cards
+├── pages/
+│   ├── snapshot.html       - Snapshot Engine page
+│   ├── diff.html           - Diff Engine page
+│   ├── ag-func.html        - Ag_Func Engine page
+│   ├── ag-mess.html        - Ag_Mess Engine page
+│   └── ag-html.html        - Ag_Html Engine page
+├── styles/
+│   └── main.css            - Shared stylesheet
+├── scripts/
+│   └── main.js             - Shared JavaScript
+└── replit.md               - This documentation
 ```
 
-## Console Features
+## The 5 Engines
 
-### 1. Theme Modes
-- **Face (Light)** - Clean light theme for presentations
-- **Builder (Blue)** - Dark blue theme for development work
-- **Research (Dark)** - Dark theme for extended reading
+| Engine | Purpose | Health |
+|--------|---------|--------|
+| **Snapshot** | Captures backend state at checkpoints | Healthy |
+| **Diff** | Compares current vs desired state | Has errors |
+| **Ag_Func** | Function agents write files & wait | Warning |
+| **Ag_Mess** | Messenger reads files, updates status | Healthy |
+| **Ag_Html** | Tests functionality, writes results | Healthy |
 
-### 2. Tab Panels
-- **Overview** - Canonical truth rules and usage instructions
-- **SSOT Library** - Embedded documentation files (expandable)
-- **Auditor + Checklist** - Paste status JSON, analyze gaps
-- **Job JSON + CLI** - Generate automation payloads
-- **Flight Crew To-Do** - Local task list (localStorage)
+## Workflow Connections (Arrow Colors)
 
-### 3. Embedded SSOT Documents
-- SSOT-000_MASTER_TAXONOMY.md/.json - Core taxonomy definitions
-- PATCH_SSOT_002_014.md - Alignment patches
-- SECTION_TAG_PRESETS.json - Section tagging rules
-- SYSTEM_PROMPT_CARWASH.md - Agent system prompt
-- EXAMPLE_section_pack_shamash_circle_A1.json - Sample data
-- SSOT-000_TERMS_TABLE.md - Quick reference
+- **Blue** - Snapshot Flow (Snapshot → Diff, Ag_Html → Snapshot loop)
+- **Green** - Diff → Ag_Func
+- **Purple** - Ag_Func → Ag_Mess
+- **Orange** - Ag_Mess → Ag_Html
 
-## Key Concepts (Taxonomy)
+## Agent Pipeline Workflow
 
-| Term | Meaning | Used For |
-|------|---------|----------|
-| GE | Geometric Element | Core throughline |
-| GEA | Atomic (primitives) | Point, line, circle, etc. |
-| GEM | Molecular (composites) | Rosettes, grids, patterns |
-| GEK | Conceptual (math+science) | Day B content |
-| GEpHR | Metaphor (meaning) | Day A content |
-| GEU | Ubiquitous flag | Cross-cultural elements |
+```
+1. SNAPSHOT: Capture backend state
+       ↓ (blue)
+2. DIFF: Compare current vs desired, chunk into tasks
+       ↓ (green)
+3. AG_FUNC: Write files, generate status report, WAIT
+       ↓ (purple)
+4. AG_MESS: Read new files, write status updates (NEW files only)
+       ↓ (orange)
+5. AG_HTML: Read status, run tests, write results
+       ↓
+   SPLIT:
+   ├── PASS: New snapshot → Next task
+   └── FAIL: Debug loop → Back to Ag_Func
+```
 
-## Day A / Day B Structure
+## Key Rules
 
-**Day A (GEpHR - Metaphor Track):**
-- A1: Myth Definition
-- A2: Metaphor Visualization
-- A3: Mythic Iconography
-- A4: Material Culture + Ritual
-- A5: Decomposition
-- A6: Art Activity
-- A7: Bridge Prompt
+### Ag_Func Rules
+- FORBIDDEN: Claiming completion immediately after write
+- Must wait for validation from Ag_Mess + Ag_Html
+- Status remains "pending_validation" until test passes
 
-**Day B (GEK - Function Track):**
-- B1: Bridge Answer
-- B2: Math Concept
-- B3: Science Effect
-- B4: STEM Timeline
-- B5: Case Study
-- B6: Deconstruction
-- B7: Build/Design Challenge
-- B8: Synthesis
+### Ag_Mess Rules
+- Only writes NEW files (never overwrites)
+- File naming: `status_{task_id}_{timestamp}.json`
 
-## How to Use the Console
+### Task Chunking Rules
+- Each chunk ≤ context window size minus memory reserve
+- Each chunk has defined input/output for testing
+- Chunks are self-contained
 
-1. **View Documentation**: Click "SSOT Library" tab, expand any document
-2. **Audit a Project**: Paste status JSON into Auditor, click "Analyze"
-3. **Generate Jobs**: After analysis, click "Generate Jobs" for automation
-4. **Track Tasks**: Use "Flight Crew To-Do" for persistent task tracking
+## Web Design Concepts Demonstrated
 
-## Web Design Learning Points
-
-### HTML Structure
-- Single-page application pattern
-- Semantic HTML (header, main, aside, section)
-- Details/summary for collapsible content
-- Data attributes for JavaScript binding
+### Multi-Page vs Single-Page
+- **MPA (Multi-Page App)**: Each page is a separate HTML file
+- Links use `href="pages/engine.html"` (full page navigation)
+- Shared CSS/JS files across pages
+- Browser handles navigation (no JavaScript routing)
 
 ### CSS Techniques
-- CSS custom properties (variables) for theming
-- Flexbox and Grid layouts
-- Backdrop blur for glassmorphism
-- Media queries for responsiveness
-- Transitions and animations
+- CSS custom properties for theming
+- Grid layout for dashboard
+- Flexbox for card rows
+- Health status indicators with colored dots
+- Responsive design with media queries
 
-### JavaScript Patterns
-- Tab switching with classList
-- localStorage for persistent data
-- JSON parsing and display
-- Event delegation
-- Dynamic DOM manipulation
+### JavaScript Features
+- Theme toggle with localStorage
+- Hover effects on cards
+- Health status updates (prepared for real data)
 
-## Backend Integration (Future)
+## Next Steps
 
-The console currently works offline. To connect to Supabase:
-1. Add Supabase client library
-2. Replace localStorage with database calls
-3. Add authentication
-4. Implement real-time status sync
+1. Add detailed functionality lists to each engine page
+2. Create the snapshot/diff JSON schema
+3. Build actual agent scripts
+4. Connect to Supabase backend
 
-## User Preferences
+## User Requirements (From Conversation)
 
-- Building educational curriculum tools
-- Focus on Kanban/Scrum project management
-- Learning web development fundamentals
-- Has extensive backend (Supabase) to connect later
-- Needs documentation for Geo-Arts system
+- Multi-page app (NOT single-page)
+- 5 engine cards with health status
+- Colored workflow arrows between engines
+- Each tool has input/output for testing
+- Ag_Func cannot claim completion immediately
+- Ag_Mess only writes NEW files
+- Pipeline split at Ag_Html (pass/fail branching)
