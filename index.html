@@ -3,242 +3,55 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Geo-Arts System Console</title>
-  <link rel="stylesheet" href="styles/main.css">
+  <title>Task Completion Tracker</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="header">
-    <div class="header-content">
-      <h1>Geo-Arts System Console</h1>
-      <p class="subtitle">Multi-Agent Workflow Pipeline</p>
-    </div>
-    <div class="header-actions">
-      <button class="btn" id="themeToggle">Toggle Theme</button>
-      <div class="system-health">
-        <span class="health-dot healthy"></span>
-        <span>System: Online</span>
-      </div>
-    </div>
+  <header>
+    <h1>Task Completion Tracker</h1>
+    <p>Tasks must be verified before they can be marked complete</p>
   </header>
 
-  <main class="dashboard">
-    <section class="pipeline-view">
-      <h2>Engine Pipeline</h2>
-      <p class="description">5 engines connected by workflow systems. Each card links to its detailed page.</p>
-      
-      <div class="engines-container">
-        <div class="engine-card" data-engine="snapshot">
-          <div class="card-header">
-            <span class="health-indicator healthy"></span>
-            <h3>Snapshot Engine</h3>
-          </div>
-          <p class="card-desc">Captures backend state at checkpoints</p>
-          <div class="tool-list">
-            <div class="tool" data-status="healthy">
-              <span class="tool-dot"></span>
-              <span>State Capture</span>
-            </div>
-            <div class="tool" data-status="healthy">
-              <span class="tool-dot"></span>
-              <span>Version Control</span>
-            </div>
-            <div class="tool" data-status="warning">
-              <span class="tool-dot"></span>
-              <span>Diff Generator</span>
-            </div>
-          </div>
-          <a href="pages/snapshot.html" class="card-link">Open Engine →</a>
-          <div class="flow-connector right blue"></div>
-        </div>
-
-        <div class="engine-card" data-engine="diff">
-          <div class="card-header">
-            <span class="health-indicator healthy"></span>
-            <h3>Diff Engine</h3>
-          </div>
-          <p class="card-desc">Compares current vs desired state</p>
-          <div class="tool-list">
-            <div class="tool" data-status="healthy">
-              <span class="tool-dot"></span>
-              <span>Schema Comparator</span>
-            </div>
-            <div class="tool" data-status="healthy">
-              <span class="tool-dot"></span>
-              <span>Task Chunker</span>
-            </div>
-            <div class="tool" data-status="error">
-              <span class="tool-dot"></span>
-              <span>Context Splitter</span>
-            </div>
-          </div>
-          <a href="pages/diff.html" class="card-link">Open Engine →</a>
-          <div class="flow-connector left blue"></div>
-          <div class="flow-connector right green"></div>
-        </div>
-
-        <div class="engine-card" data-engine="ag-func">
-          <div class="card-header">
-            <span class="health-indicator warning"></span>
-            <h3>Ag_Func Engine</h3>
-          </div>
-          <p class="card-desc">Function agents write files & wait</p>
-          <div class="tool-list">
-            <div class="tool" data-status="healthy">
-              <span class="tool-dot"></span>
-              <span>File Writer</span>
-            </div>
-            <div class="tool" data-status="warning">
-              <span class="tool-dot"></span>
-              <span>Status Reporter</span>
-            </div>
-            <div class="tool" data-status="healthy">
-              <span class="tool-dot"></span>
-              <span>Wait Handler</span>
-            </div>
-          </div>
-          <a href="pages/ag-func.html" class="card-link">Open Engine →</a>
-          <div class="flow-connector left green"></div>
-          <div class="flow-connector right purple"></div>
-        </div>
-
-        <div class="engine-card" data-engine="ag-mess">
-          <div class="card-header">
-            <span class="health-indicator healthy"></span>
-            <h3>Ag_Mess Engine</h3>
-          </div>
-          <p class="card-desc">Messenger reads files, updates status</p>
-          <div class="tool-list">
-            <div class="tool" data-status="healthy">
-              <span class="tool-dot"></span>
-              <span>File Reader</span>
-            </div>
-            <div class="tool" data-status="healthy">
-              <span class="tool-dot"></span>
-              <span>Status Writer</span>
-            </div>
-            <div class="tool" data-status="healthy">
-              <span class="tool-dot"></span>
-              <span>Event Emitter</span>
-            </div>
-          </div>
-          <a href="pages/ag-mess.html" class="card-link">Open Engine →</a>
-          <div class="flow-connector left purple"></div>
-          <div class="flow-connector right orange"></div>
-        </div>
-
-        <div class="engine-card" data-engine="ag-html">
-          <div class="card-header">
-            <span class="health-indicator healthy"></span>
-            <h3>Ag_Html Engine</h3>
-          </div>
-          <p class="card-desc">Tests functionality, writes results</p>
-          <div class="tool-list">
-            <div class="tool" data-status="healthy">
-              <span class="tool-dot"></span>
-              <span>File Validator</span>
-            </div>
-            <div class="tool" data-status="healthy">
-              <span class="tool-dot"></span>
-              <span>Test Runner</span>
-            </div>
-            <div class="tool" data-status="healthy">
-              <span class="tool-dot"></span>
-              <span>Result Writer</span>
-            </div>
-          </div>
-          <a href="pages/ag-html.html" class="card-link">Open Engine →</a>
-          <div class="flow-connector left orange"></div>
-          <div class="flow-connector loop blue"></div>
-        </div>
+  <main>
+    <section class="task-board">
+      <div class="column" id="pending">
+        <h2>Pending</h2>
+        <div class="task-list"></div>
       </div>
 
-      <div class="workflow-legend">
-        <h4>Workflow Systems (Arrow Colors)</h4>
-        <div class="legend-items">
-          <div class="legend-item">
-            <span class="legend-color blue"></span>
-            <span>Snapshot Flow</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-color green"></span>
-            <span>Diff → Function</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-color purple"></span>
-            <span>Function → Messenger</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-color orange"></span>
-            <span>Messenger → HTML Test</span>
-          </div>
-        </div>
+      <div class="column" id="in-progress">
+        <h2>In Progress</h2>
+        <div class="task-list"></div>
+      </div>
+
+      <div class="column" id="awaiting-verification">
+        <h2>Awaiting Verification</h2>
+        <div class="task-list"></div>
+      </div>
+
+      <div class="column" id="complete">
+        <h2>Complete</h2>
+        <div class="task-list"></div>
       </div>
     </section>
 
-    <aside class="status-panel">
-      <h2>Pipeline Status</h2>
-      
-      <div class="status-section">
-        <h4>Current Snapshot</h4>
-        <div class="status-item">
-          <span class="label">ID:</span>
-          <span class="value mono">snap_2026-02-04_001</span>
-        </div>
-        <div class="status-item">
-          <span class="label">State:</span>
-          <span class="value badge healthy">Complete</span>
-        </div>
-      </div>
+    <section class="add-task">
+      <h2>Add New Task</h2>
+      <input type="text" id="taskInput" placeholder="Enter task description">
+      <button id="addBtn">Add Task</button>
+    </section>
 
-      <div class="status-section">
-        <h4>Active Tasks</h4>
-        <div class="task-list">
-          <div class="task-item">
-            <span class="task-status running"></span>
-            <span>Ag_Func: Writing section B4</span>
-          </div>
-          <div class="task-item">
-            <span class="task-status pending"></span>
-            <span>Ag_Mess: Awaiting files</span>
-          </div>
-          <div class="task-item">
-            <span class="task-status pending"></span>
-            <span>Ag_Html: Queue empty</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="status-section">
-        <h4>Health Summary</h4>
-        <div class="health-grid">
-          <div class="health-item healthy">
-            <span class="count">12</span>
-            <span class="label">Healthy</span>
-          </div>
-          <div class="health-item warning">
-            <span class="count">2</span>
-            <span class="label">Warning</span>
-          </div>
-          <div class="health-item error">
-            <span class="count">1</span>
-            <span class="label">Error</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="status-section">
-        <h4>Quick Actions</h4>
-        <button class="btn full-width">Take New Snapshot</button>
-        <button class="btn full-width secondary">Run Full Diff</button>
-        <button class="btn full-width secondary">View All Logs</button>
-      </div>
-    </aside>
+    <section class="rules">
+      <h2>Completion Rules</h2>
+      <ul>
+        <li>Tasks start in <strong>Pending</strong></li>
+        <li>Move to <strong>In Progress</strong> when work begins</li>
+        <li>When work is done, move to <strong>Awaiting Verification</strong></li>
+        <li>Only after verification can tasks move to <strong>Complete</strong></li>
+      </ul>
+    </section>
   </main>
 
-  <footer class="footer">
-    <p>Geo-Arts System Console v1.0 | Multi-Agent Pipeline</p>
-  </footer>
-
-  <script src="scripts/main.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
