@@ -4,131 +4,391 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interactive E-Textbook - Learning Platform</title>
+  <title>Project Management App - Documentation</title>
   <link href="style.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
   <header>
-    <h1>Interactive E-Textbook</h1>
-    <p class="subtitle">A Learning Platform for Teachers and Students</p>
+    <h1>Project Management App</h1>
+    <p class="subtitle">Documentation & Feature Guide</p>
   </header>
 
-  <nav>
-    <ul>
-      <li><a href="#home" class="nav-link active">Home</a></li>
-      <li><a href="#chapter1" class="nav-link">Chapter 1</a></li>
-      <li><a href="#chapter2" class="nav-link">Chapter 2</a></li>
-      <li><a href="#resources" class="nav-link">Resources</a></li>
-    </ul>
-  </nav>
-
-  <main>
-    <section id="home" class="content-section active">
-      <h2>Welcome to Your E-Textbook</h2>
-      <p>This is a simple interactive textbook designed to help you learn web design basics. Here's what you'll find:</p>
-      
-      <div class="info-box">
-        <h3>Features You'll Learn:</h3>
+  <div class="container">
+    <aside class="sidebar">
+      <nav>
+        <h3>Navigation</h3>
         <ul>
-          <li>Basic HTML structure</li>
-          <li>CSS styling and layout</li>
-          <li>JavaScript interactivity</li>
-          <li>Navigation between sections</li>
-          <li>Collapsible content</li>
+          <li><a href="#overview" class="nav-link active">Overview</a></li>
+          <li><a href="#kanban" class="nav-link">Kanban Board</a></li>
+          <li><a href="#scrum" class="nav-link">Scrum Framework</a></li>
+          <li><a href="#backlog" class="nav-link">Product Backlog</a></li>
+          <li><a href="#sprints" class="nav-link">Sprint Planning</a></li>
+          <li><a href="#reports" class="nav-link">Reports & Metrics</a></li>
         </ul>
-      </div>
+      </nav>
+    </aside>
 
-      <button class="toggle-btn" onclick="toggleContent('demo-content')">Click to See Interactive Demo</button>
-      <div id="demo-content" class="collapsible-content">
-        <p>This is an example of interactive content! You can hide and show this section by clicking the button above.</p>
-        <p>This is perfect for creating study notes, extra information, or quiz answers.</p>
-      </div>
-    </section>
-
-    <section id="chapter1" class="content-section">
-      <h2>Chapter 1: Introduction to Web Design</h2>
-      
-      <div class="lesson">
-        <h3>Lesson 1.1: What is HTML?</h3>
-        <p>HTML (HyperText Markup Language) is the standard language for creating web pages. It describes the structure of a webpage using elements and tags.</p>
+    <main>
+      <section id="overview" class="content-section active">
+        <h2>Overview</h2>
+        <p>Welcome to the documentation for your Project Management desktop application. This guide covers the Kanban and Scrum features available in the app.</p>
         
-        <div class="example-box">
-          <h4>Example:</h4>
-          <code>&lt;h1&gt;This is a heading&lt;/h1&gt;</code>
-          <code>&lt;p&gt;This is a paragraph&lt;/p&gt;</code>
-        </div>
-      </div>
-
-      <div class="lesson">
-        <h3>Lesson 1.2: Understanding CSS</h3>
-        <p>CSS (Cascading Style Sheets) is used to style and layout web pages. It controls colors, fonts, spacing, and positioning.</p>
-        
-        <div class="example-box">
-          <h4>Example:</h4>
-          <code>h1 { color: blue; font-size: 24px; }</code>
-        </div>
-      </div>
-    </section>
-
-    <section id="chapter2" class="content-section">
-      <h2>Chapter 2: Making Pages Interactive</h2>
-      
-      <div class="lesson">
-        <h3>Lesson 2.1: JavaScript Basics</h3>
-        <p>JavaScript adds interactivity to your web pages. You can respond to user actions like clicks, create animations, and update content dynamically.</p>
-        
-        <button class="toggle-btn" onclick="toggleContent('js-example')">Show JavaScript Example</button>
-        <div id="js-example" class="collapsible-content">
-          <div class="example-box">
-            <h4>Example Code:</h4>
-            <code>function greet() {</code>
-            <code>  alert('Hello, Student!');</code>
-            <code>}</code>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon">📋</div>
+            <h4>Kanban Boards</h4>
+            <p>Visual workflow management with customizable columns and cards.</p>
           </div>
-          <button class="demo-btn" onclick="alert('Hello from JavaScript!')">Try It!</button>
+          <div class="feature-card">
+            <div class="feature-icon">🔄</div>
+            <h4>Scrum Sprints</h4>
+            <p>Time-boxed iterations with sprint planning and retrospectives.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h4>Burndown Charts</h4>
+            <p>Track progress with visual reports and velocity metrics.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">👥</div>
+            <h4>Team Management</h4>
+            <p>Assign tasks, track workload, and collaborate with team members.</p>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div class="lesson">
-        <h3>Lesson 2.2: Interactive Quiz</h3>
-        <p>Test your knowledge:</p>
+      <section id="kanban" class="content-section">
+        <h2>Kanban Board</h2>
+        <p>The Kanban board provides a visual representation of your workflow, helping teams manage work in progress and optimize flow.</p>
         
-        <div class="quiz">
-          <p><strong>Question:</strong> What does HTML stand for?</p>
-          <button class="quiz-btn" onclick="checkAnswer('correct')">HyperText Markup Language</button>
-          <button class="quiz-btn" onclick="checkAnswer('wrong')">High Tech Modern Language</button>
-          <button class="quiz-btn" onclick="checkAnswer('wrong')">Home Tool Markup Language</button>
-          <p id="quiz-result"></p>
+        <h3>Board Columns</h3>
+        <div class="info-panel">
+          <p>Default columns in your Kanban board:</p>
+          <div class="kanban-demo">
+            <div class="kanban-column">
+              <div class="column-header backlog">Backlog</div>
+              <p>Tasks waiting to be started</p>
+            </div>
+            <div class="kanban-column">
+              <div class="column-header todo">To Do</div>
+              <p>Ready for work</p>
+            </div>
+            <div class="kanban-column">
+              <div class="column-header progress">In Progress</div>
+              <p>Currently being worked on</p>
+            </div>
+            <div class="kanban-column">
+              <div class="column-header review">Review</div>
+              <p>Awaiting approval</p>
+            </div>
+            <div class="kanban-column">
+              <div class="column-header done">Done</div>
+              <p>Completed tasks</p>
+            </div>
+          </div>
         </div>
-      </div>
-    </section>
 
-    <section id="resources" class="content-section">
-      <h2>Resources</h2>
-      
-      <div class="info-box">
-        <h3>For Teachers:</h3>
-        <ul>
-          <li>Download lesson plans</li>
-          <li>Access answer keys</li>
-          <li>View student progress</li>
-        </ul>
-      </div>
+        <h3>Card Features</h3>
+        <table class="feature-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Title & Description</td>
+              <td>Add a clear title and detailed description to each card</td>
+            </tr>
+            <tr>
+              <td>Labels</td>
+              <td>Color-coded labels for categorization (Bug, Feature, Enhancement)</td>
+            </tr>
+            <tr>
+              <td>Assignees</td>
+              <td>Assign one or more team members to a card</td>
+            </tr>
+            <tr>
+              <td>Due Dates</td>
+              <td>Set deadlines and receive reminders</td>
+            </tr>
+            <tr>
+              <td>Checklists</td>
+              <td>Break down tasks into subtasks with checkboxes</td>
+            </tr>
+            <tr>
+              <td>Attachments</td>
+              <td>Add files, images, or links to cards</td>
+            </tr>
+            <tr>
+              <td>Comments</td>
+              <td>Discuss work directly on the card</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <div class="info-box">
-        <h3>For Students:</h3>
-        <ul>
-          <li>Practice exercises</li>
-          <li>Additional reading materials</li>
-          <li>Video tutorials</li>
-        </ul>
-      </div>
-    </section>
-  </main>
+        <h3>WIP Limits</h3>
+        <div class="callout">
+          <strong>Work In Progress (WIP) Limits</strong>
+          <p>Set maximum cards per column to prevent bottlenecks and maintain flow. When a column reaches its limit, it highlights in red to signal the team.</p>
+        </div>
+      </section>
+
+      <section id="scrum" class="content-section">
+        <h2>Scrum Framework</h2>
+        <p>The Scrum framework enables iterative development through time-boxed sprints, defined roles, and regular ceremonies.</p>
+
+        <h3>Scrum Roles</h3>
+        <div class="role-cards">
+          <div class="role-card">
+            <h4>Product Owner</h4>
+            <ul>
+              <li>Manages the product backlog</li>
+              <li>Defines user stories and priorities</li>
+              <li>Represents stakeholder interests</li>
+              <li>Accepts or rejects completed work</li>
+            </ul>
+          </div>
+          <div class="role-card">
+            <h4>Scrum Master</h4>
+            <ul>
+              <li>Facilitates Scrum ceremonies</li>
+              <li>Removes team impediments</li>
+              <li>Coaches the team on Scrum practices</li>
+              <li>Shields team from distractions</li>
+            </ul>
+          </div>
+          <div class="role-card">
+            <h4>Development Team</h4>
+            <ul>
+              <li>Self-organizing and cross-functional</li>
+              <li>Delivers potentially shippable increments</li>
+              <li>Estimates work effort</li>
+              <li>Commits to sprint goals</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Scrum Events</h3>
+        <table class="feature-table">
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Duration</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Sprint Planning</td>
+              <td>2-4 hours</td>
+              <td>Define sprint goal and select backlog items</td>
+            </tr>
+            <tr>
+              <td>Daily Standup</td>
+              <td>15 minutes</td>
+              <td>Sync team progress and identify blockers</td>
+            </tr>
+            <tr>
+              <td>Sprint Review</td>
+              <td>1-2 hours</td>
+              <td>Demo completed work to stakeholders</td>
+            </tr>
+            <tr>
+              <td>Retrospective</td>
+              <td>1-2 hours</td>
+              <td>Reflect on process and identify improvements</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="backlog" class="content-section">
+        <h2>Product Backlog</h2>
+        <p>The product backlog is an ordered list of everything that might be needed in the product.</p>
+
+        <h3>User Story Format</h3>
+        <div class="code-block">
+          <p><strong>As a</strong> [type of user]</p>
+          <p><strong>I want</strong> [goal/desire]</p>
+          <p><strong>So that</strong> [benefit/value]</p>
+        </div>
+
+        <h3>Story Points</h3>
+        <div class="info-panel">
+          <p>Estimate effort using the Fibonacci sequence:</p>
+          <div class="points-scale">
+            <span class="point">1</span>
+            <span class="point">2</span>
+            <span class="point">3</span>
+            <span class="point">5</span>
+            <span class="point">8</span>
+            <span class="point">13</span>
+            <span class="point">21</span>
+          </div>
+          <p class="note">Higher numbers indicate more complexity and uncertainty.</p>
+        </div>
+
+        <h3>Backlog Prioritization</h3>
+        <table class="feature-table">
+          <thead>
+            <tr>
+              <th>Priority</th>
+              <th>Label</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="priority-critical">P0</td>
+              <td>Critical</td>
+              <td>Must be done immediately, blocking issues</td>
+            </tr>
+            <tr>
+              <td class="priority-high">P1</td>
+              <td>High</td>
+              <td>Important for next release</td>
+            </tr>
+            <tr>
+              <td class="priority-medium">P2</td>
+              <td>Medium</td>
+              <td>Should be done when time permits</td>
+            </tr>
+            <tr>
+              <td class="priority-low">P3</td>
+              <td>Low</td>
+              <td>Nice to have, future consideration</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="sprints" class="content-section">
+        <h2>Sprint Planning</h2>
+        <p>Plan and manage time-boxed iterations to deliver incremental value.</p>
+
+        <h3>Sprint Configuration</h3>
+        <div class="config-list">
+          <div class="config-item">
+            <span class="config-label">Sprint Duration</span>
+            <span class="config-value">1-4 weeks (default: 2 weeks)</span>
+          </div>
+          <div class="config-item">
+            <span class="config-label">Sprint Goal</span>
+            <span class="config-value">One clear objective for the sprint</span>
+          </div>
+          <div class="config-item">
+            <span class="config-label">Team Velocity</span>
+            <span class="config-value">Average story points completed per sprint</span>
+          </div>
+          <div class="config-item">
+            <span class="config-label">Capacity</span>
+            <span class="config-value">Available team hours minus holidays/meetings</span>
+          </div>
+        </div>
+
+        <h3>Sprint Workflow</h3>
+        <div class="workflow-steps">
+          <div class="workflow-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h4>Planning</h4>
+              <p>Select items from backlog based on priority and capacity</p>
+            </div>
+          </div>
+          <div class="workflow-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h4>Execution</h4>
+              <p>Team works on sprint items, daily standups for sync</p>
+            </div>
+          </div>
+          <div class="workflow-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h4>Review</h4>
+              <p>Demo completed work, gather feedback</p>
+            </div>
+          </div>
+          <div class="workflow-step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <h4>Retrospective</h4>
+              <p>Reflect on what went well and what to improve</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="reports" class="content-section">
+        <h2>Reports & Metrics</h2>
+        <p>Track team performance and project progress with built-in reporting tools.</p>
+
+        <h3>Available Reports</h3>
+        <div class="report-grid">
+          <div class="report-card">
+            <h4>Burndown Chart</h4>
+            <p>Shows remaining work in a sprint over time. The ideal line slopes downward to zero by sprint end.</p>
+          </div>
+          <div class="report-card">
+            <h4>Velocity Chart</h4>
+            <p>Displays story points completed across sprints to predict future capacity.</p>
+          </div>
+          <div class="report-card">
+            <h4>Cumulative Flow</h4>
+            <p>Visualizes work items in each status over time, helps identify bottlenecks.</p>
+          </div>
+          <div class="report-card">
+            <h4>Cycle Time</h4>
+            <p>Measures average time from work started to completed.</p>
+          </div>
+        </div>
+
+        <h3>Key Metrics</h3>
+        <table class="feature-table">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>What It Measures</th>
+              <th>Good Indicator</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Velocity</td>
+              <td>Story points per sprint</td>
+              <td>Consistent or improving</td>
+            </tr>
+            <tr>
+              <td>Lead Time</td>
+              <td>Request to delivery</td>
+              <td>Decreasing over time</td>
+            </tr>
+            <tr>
+              <td>Cycle Time</td>
+              <td>Start to completion</td>
+              <td>Short and predictable</td>
+            </tr>
+            <tr>
+              <td>Throughput</td>
+              <td>Items completed per week</td>
+              <td>Steady or increasing</td>
+            </tr>
+            <tr>
+              <td>Sprint Burndown</td>
+              <td>Work remaining in sprint</td>
+              <td>Tracks close to ideal line</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
 
   <footer>
-    <p>&copy; 2025 Interactive E-Textbook | Learning Made Easy</p>
+    <p>Project Management App Documentation | Version 1.0</p>
   </footer>
 
   <script src="script.js"></script>
