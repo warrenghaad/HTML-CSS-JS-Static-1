@@ -1,113 +1,124 @@
-# Geo-Arts System Console - Multi-Agent Pipeline
+# Geo-Arts Curriculum System
 
 ## Overview
-A multi-page web application documenting a multi-agent workflow pipeline. This is NOT a single-page app—each engine has its own dedicated page.
+A learning-focused project management documentation space that serves as both a tutorial for web development (HTML/CSS/JS) and a visual diagram of the Geo-Arts educational curriculum backend system.
 
-**Created:** February 4, 2026
-**Status:** Multi-page structure complete
+**Created:** February 4, 2026  
+**Updated:** February 5, 2026  
+**Status:** Complete end-goal example with lessons
+
+## Purpose
+This project has two goals:
+1. **End Goal Example**: A fully developed visual diagram showing the complete curriculum system workflow
+2. **Learning Resource**: Step-by-step lessons teaching HTML, CSS, and JavaScript concepts
 
 ## Project Structure
 
 ```
 .
-├── index.html              - Home dashboard with 5 engine cards
+├── index.html                    - System architecture diagram (home page)
 ├── pages/
-│   ├── snapshot.html       - Snapshot Engine page
-│   ├── diff.html           - Diff Engine page
-│   ├── ag-func.html        - Ag_Func Engine page
-│   ├── ag-mess.html        - Ag_Mess Engine page
-│   └── ag-html.html        - Ag_Html Engine page
+│   ├── governance.html           - Governance & Context engine
+│   ├── knowledge-graph.html      - Knowledge Graph Engine
+│   ├── rwi-system.html           - RWI (Research/Writing/Image) System
+│   ├── lesson-builder.html       - Lesson Builder engine
+│   ├── teacher-student.html      - Teacher/Student facing interface
+│   └── lessons.html              - Web development lessons
 ├── styles/
-│   └── main.css            - Shared stylesheet
+│   └── main.css                  - Shared stylesheet (1800+ lines)
 ├── scripts/
-│   └── main.js             - Shared JavaScript
-└── replit.md               - This documentation
+│   └── main.js                   - Shared JavaScript
+└── replit.md                     - This documentation
 ```
 
-## The 5 Engines
+## The 5 Engine Cards
 
-| Engine | Purpose | Health |
-|--------|---------|--------|
-| **Snapshot** | Captures backend state at checkpoints | Healthy |
-| **Diff** | Compares current vs desired state | Has errors |
-| **Ag_Func** | Function agents write files & wait | Warning |
-| **Ag_Mess** | Messenger reads files, updates status | Healthy |
-| **Ag_Html** | Tests functionality, writes results | Healthy |
+| Card | Purpose | Description |
+|------|---------|-------------|
+| **Governance & Context** | SSOTs, Presets, Standards | Provides overarching context, program info, 6+ knowledge graph presets/views |
+| **Knowledge Graph Engine** | Ingestion, Ontology, Tagging | 3D research graph, 30GB+ PDF ingestion, wiki node generation |
+| **RWI System** | Research, Writing, Images | Content drafting, image sourcing, Gemini/OpenAI API integration |
+| **Lesson Builder** | Canvas, Sections, Distillation | Drag-drop wiki canvas, lesson section assembly, eTextbook deliverables |
+| **Teacher/Student** | Deliverables, Progress | Final presentations, eTextbook viewer, performance analytics |
 
-## Workflow Connections (Arrow Colors)
-
-- **Blue** - Snapshot Flow (Snapshot → Diff, Ag_Html → Snapshot loop)
-- **Green** - Diff → Ag_Func
-- **Purple** - Ag_Func → Ag_Mess
-- **Orange** - Ag_Mess → Ag_Html
-
-## Agent Pipeline Workflow
+## Data Flow (Color-Coded)
 
 ```
-1. SNAPSHOT: Capture backend state
-       ↓ (blue)
-2. DIFF: Compare current vs desired, chunk into tasks
-       ↓ (green)
-3. AG_FUNC: Write files, generate status report, WAIT
-       ↓ (purple)
-4. AG_MESS: Read new files, write status updates (NEW files only)
-       ↓ (orange)
-5. AG_HTML: Read status, run tests, write results
-       ↓
-   SPLIT:
-   ├── PASS: New snapshot → Next task
-   └── FAIL: Debug loop → Back to Ag_Func
+Governance (Cyan - overarching context)
+        ↓
+Knowledge Graph → (Blue) → RWI System → (Green) → Lesson Builder → (Purple) → Teacher/Student
+        ↑                                                                           ↓
+        └────────────────────── (Orange - Performance Feedback Loop) ───────────────┘
 ```
 
-## Key Rules
+## Key System Features
 
-### Ag_Func Rules
-- FORBIDDEN: Claiming completion immediately after write
-- Must wait for validation from Ag_Mess + Ag_Html
-- Status remains "pending_validation" until test passes
+### Knowledge Graph Presets (6 Views)
+1. **Geometric Elements** - Original research on geometric fundamentals
+2. **Lesson Structure** - Geometric research → lesson creation
+3. **Standards & Curriculum** - Current mappings, cognitive domains
+4. **Child Development** - Cognitive domains & developmental stages
+5. **Student Performance** - Domains, standards, performance data
+6. **Standards Creation** - Building new standards from research
 
-### Ag_Mess Rules
-- Only writes NEW files (never overwrites)
-- File naming: `status_{task_id}_{timestamp}.json`
+### Visual-First Curriculum Philosophy
+- Story told with pictures, captioned by text
+- Every piece of content must have an image
+- Images sourced via search, or generated via:
+  - Gemini API (short videos, diagrams)
+  - OpenAI API (long videos, myths)
 
-### Task Chunking Rules
-- Each chunk ≤ context window size minus memory reserve
-- Each chunk has defined input/output for testing
-- Chunks are self-contained
+### RWI System API Points
+- `GET /api/images/search` - Search existing images
+- `POST /api/gemini/generate` - Generate short videos/images
+- `POST /api/openai/generate` - Generate long videos/complex content
 
-## Web Design Concepts Demonstrated
+### eTextbook Distillation
+- Complete lessons → Distillation process → Deliverables
+- Outputs: eTextbook chapters, presentation slides, worksheets, rubrics
 
-### Multi-Page vs Single-Page
-- **MPA (Multi-Page App)**: Each page is a separate HTML file
-- Links use `href="pages/engine.html"` (full page navigation)
-- Shared CSS/JS files across pages
-- Browser handles navigation (no JavaScript routing)
+## Web Development Lessons (8 Lessons)
 
-### CSS Techniques
-- CSS custom properties for theming
-- Grid layout for dashboard
-- Flexbox for card rows
-- Health status indicators with colored dots
-- Responsive design with media queries
+| Lesson | Topic | Level |
+|--------|-------|-------|
+| 1 | HTML Structure: Building Cards | Beginner |
+| 2 | CSS Flexbox: Arranging Cards in Rows | Beginner |
+| 3 | CSS Variables: Theme Colors | Intermediate |
+| 4 | JavaScript Events: Theme Toggle | Intermediate |
+| 5 | CSS Transitions: Smooth Animations | Beginner |
+| 6 | JavaScript DOM: Finding and Changing Elements | Intermediate |
+| 7 | Responsive Design: Mobile-Friendly Layouts | Intermediate |
+| 8 | Multi-Page Apps: Navigation with Links | Beginner |
+
+## Technical Implementation
+
+### CSS Techniques Used
+- CSS custom properties (`:root` variables) for theming
+- CSS Grid for 4-column engine layout
+- Flexbox for card contents
+- Health status indicators with colored dots and shadows
+- Smooth transitions on hover
+- Media queries for responsive design
+- Dark/light theme support
 
 ### JavaScript Features
-- Theme toggle with localStorage
-- Hover effects on cards
-- Health status updates (prepared for real data)
+- Theme toggle with localStorage persistence
+- Flow arrow highlighting on card hover
+- Health status update functions (ready for backend)
+- DOM manipulation examples
 
-## Next Steps
+## User Preferences
 
-1. Add detailed functionality lists to each engine page
-2. Create the snapshot/diff JSON schema
-3. Build actual agent scripts
-4. Connect to Supabase backend
+- **Visual-first curriculum**: All content must have images
+- **Multi-page app structure**: Separate HTML files, not SPA
+- **Learning-focused**: Code serves as tutorial material
+- **Future integration**: Supabase backend planned
 
-## User Requirements (From Conversation)
+## Running the Project
 
-- Multi-page app (NOT single-page)
-- 5 engine cards with health status
-- Colored workflow arrows between engines
-- Each tool has input/output for testing
-- Ag_Func cannot claim completion immediately
-- Ag_Mess only writes NEW files
-- Pipeline split at Ag_Html (pass/fail branching)
+The project uses Python's built-in HTTP server:
+```bash
+python -m http.server 5000
+```
+
+Access at `http://localhost:5000`

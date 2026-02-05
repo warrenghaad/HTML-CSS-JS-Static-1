@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Web Development Lessons - Geo-Arts</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>Web Development Lessons</h1>
+      <span class="subtitle">Learn HTML, CSS, and JavaScript by building this project</span>
+    </div>
+    <div class="header-actions">
+      <a href="../index.html" class="btn">← Back to Diagram</a>
+      <button class="btn" id="themeToggle">Toggle Theme</button>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <section class="section-card">
+      <h3>Course Overview</h3>
+      <p class="card-desc">This project management documentation space is designed to teach you web development concepts while building a real application. Each lesson focuses on a specific skill.</p>
+    </section>
+
+    <!-- Lesson 1: HTML Structure -->
+    <section class="section-card lesson-card">
+      <div class="lesson-header">
+        <span class="lesson-number">1</span>
+        <h3>HTML Structure: Building Cards</h3>
+        <span class="badge healthy">Beginner</span>
+      </div>
+      <p class="card-desc">Learn how HTML creates the structure of web pages using semantic elements.</p>
+      
+      <div class="lesson-content">
+        <h4>Concept: HTML Elements</h4>
+        <p>HTML uses tags to create elements. Each card on our diagram is made of nested elements:</p>
+        
+        <div class="code-example">
+          <pre><code>&lt;div class="engine-card"&gt;
+  &lt;div class="card-header"&gt;
+    &lt;span class="health-indicator healthy"&gt;&lt;/span&gt;
+    &lt;h3&gt;Knowledge Graph Engine&lt;/h3&gt;
+  &lt;/div&gt;
+  &lt;p class="card-desc"&gt;Description text...&lt;/p&gt;
+  &lt;div class="tool-list"&gt;
+    &lt;div class="tool"&gt;...&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+        </div>
+
+        <div class="lesson-note">
+          <strong>Key Takeaway:</strong> HTML is about structure. The <code>&lt;div&gt;</code> element groups content, <code>&lt;h3&gt;</code> creates headings, and <code>&lt;p&gt;</code> creates paragraphs.
+        </div>
+      </div>
+    </section>
+
+    <!-- Lesson 2: CSS Flexbox -->
+    <section class="section-card lesson-card">
+      <div class="lesson-header">
+        <span class="lesson-number">2</span>
+        <h3>CSS Flexbox: Arranging Cards in Rows</h3>
+        <span class="badge healthy">Beginner</span>
+      </div>
+      <p class="card-desc">Use CSS Flexbox to arrange elements in flexible rows and columns.</p>
+      
+      <div class="lesson-content">
+        <h4>Concept: Flexbox Layout</h4>
+        <p>Flexbox makes it easy to align items in a row or column:</p>
+        
+        <div class="code-example">
+          <pre><code>.pipeline-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.engine-card {
+  flex: 1;
+  min-width: 0;
+}</code></pre>
+        </div>
+
+        <div class="lesson-note">
+          <strong>Key Takeaway:</strong> <code>display: grid</code> creates a grid layout. <code>repeat(4, 1fr)</code> makes 4 equal columns. <code>gap</code> adds space between items.
+        </div>
+      </div>
+    </section>
+
+    <!-- Lesson 3: CSS Variables -->
+    <section class="section-card lesson-card">
+      <div class="lesson-header">
+        <span class="lesson-number">3</span>
+        <h3>CSS Variables: Theme Colors</h3>
+        <span class="badge healthy">Intermediate</span>
+      </div>
+      <p class="card-desc">Use CSS custom properties (variables) to create consistent, reusable colors.</p>
+      
+      <div class="lesson-content">
+        <h4>Concept: CSS Custom Properties</h4>
+        <p>Variables let you define values once and reuse them everywhere:</p>
+        
+        <div class="code-example">
+          <pre><code>:root {
+  --bg: #0f1420;
+  --accent: #7dd3fc;
+  --healthy: #86efac;
+  --warning: #fde68a;
+  --error: #fca5a5;
+}
+
+.health-indicator.healthy {
+  background: var(--healthy);
+  box-shadow: 0 0 8px var(--healthy);
+}</code></pre>
+        </div>
+
+        <div class="lesson-note">
+          <strong>Key Takeaway:</strong> Define colors in <code>:root</code> using <code>--name</code> syntax. Use them anywhere with <code>var(--name)</code>. This makes changing themes easy!
+        </div>
+      </div>
+    </section>
+
+    <!-- Lesson 4: JavaScript Events -->
+    <section class="section-card lesson-card">
+      <div class="lesson-header">
+        <span class="lesson-number">4</span>
+        <h3>JavaScript Events: Theme Toggle</h3>
+        <span class="badge warning">Intermediate</span>
+      </div>
+      <p class="card-desc">Make pages interactive by responding to user clicks and other events.</p>
+      
+      <div class="lesson-content">
+        <h4>Concept: Event Listeners</h4>
+        <p>JavaScript can respond when users interact with the page:</p>
+        
+        <div class="code-example">
+          <pre><code>const themeToggle = document.getElementById('themeToggle');
+
+themeToggle.addEventListener('click', function() {
+  document.body.classList.toggle('light');
+  localStorage.setItem('theme', 
+    document.body.classList.contains('light') ? 'light' : 'dark'
+  );
+});</code></pre>
+        </div>
+
+        <div class="lesson-note">
+          <strong>Key Takeaway:</strong> <code>addEventListener('click', ...)</code> runs code when an element is clicked. <code>classList.toggle()</code> adds or removes a CSS class. <code>localStorage</code> remembers settings.
+        </div>
+      </div>
+    </section>
+
+    <!-- Lesson 5: CSS Transitions -->
+    <section class="section-card lesson-card">
+      <div class="lesson-header">
+        <span class="lesson-number">5</span>
+        <h3>CSS Transitions: Smooth Animations</h3>
+        <span class="badge healthy">Beginner</span>
+      </div>
+      <p class="card-desc">Add smooth animations when elements change state.</p>
+      
+      <div class="lesson-content">
+        <h4>Concept: CSS Transitions</h4>
+        <p>Transitions animate changes smoothly instead of jumping:</p>
+        
+        <div class="code-example">
+          <pre><code>.engine-card {
+  transition: all 0.2s;
+}
+
+.engine-card:hover {
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+}</code></pre>
+        </div>
+
+        <div class="lesson-note">
+          <strong>Key Takeaway:</strong> <code>transition: all 0.2s</code> makes any change take 0.2 seconds. Combined with <code>:hover</code>, you get smooth effects when users mouse over elements.
+        </div>
+      </div>
+    </section>
+
+    <!-- Lesson 6: DOM Manipulation -->
+    <section class="section-card lesson-card">
+      <div class="lesson-header">
+        <span class="lesson-number">6</span>
+        <h3>JavaScript DOM: Finding and Changing Elements</h3>
+        <span class="badge warning">Intermediate</span>
+      </div>
+      <p class="card-desc">Use JavaScript to find HTML elements and modify them dynamically.</p>
+      
+      <div class="lesson-content">
+        <h4>Concept: DOM Manipulation</h4>
+        <p>The DOM (Document Object Model) lets JavaScript access and change HTML:</p>
+        
+        <div class="code-example">
+          <pre><code>function updateHealth(engineId, status) {
+  const card = document.querySelector(`[data-engine="${engineId}"]`);
+  if (card) {
+    const indicator = card.querySelector('.health-indicator');
+    indicator.className = 'health-indicator ' + status;
+  }
+}</code></pre>
+        </div>
+
+        <div class="lesson-note">
+          <strong>Key Takeaway:</strong> <code>querySelector()</code> finds elements using CSS selectors. <code>className</code> changes an element's classes. This lets you update the page without reloading.
+        </div>
+      </div>
+    </section>
+
+    <!-- Lesson 7: Responsive Design -->
+    <section class="section-card lesson-card">
+      <div class="lesson-header">
+        <span class="lesson-number">7</span>
+        <h3>Responsive Design: Mobile-Friendly Layouts</h3>
+        <span class="badge healthy">Intermediate</span>
+      </div>
+      <p class="card-desc">Make your design adapt to different screen sizes using media queries.</p>
+      
+      <div class="lesson-content">
+        <h4>Concept: Media Queries</h4>
+        <p>Media queries apply different styles based on screen size:</p>
+        
+        <div class="code-example">
+          <pre><code>@media (max-width: 1000px) {
+  .pipeline-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .pipeline-row {
+    grid-template-columns: 1fr;
+  }
+}</code></pre>
+        </div>
+
+        <div class="lesson-note">
+          <strong>Key Takeaway:</strong> <code>@media (max-width: ...)</code> applies styles only when the screen is smaller than that width. This lets you stack cards on mobile devices.
+        </div>
+      </div>
+    </section>
+
+    <!-- Lesson 8: Multi-Page Navigation -->
+    <section class="section-card lesson-card">
+      <div class="lesson-header">
+        <span class="lesson-number">8</span>
+        <h3>Multi-Page Apps: Navigation with Links</h3>
+        <span class="badge healthy">Beginner</span>
+      </div>
+      <p class="card-desc">Create multi-page applications with proper navigation and file organization.</p>
+      
+      <div class="lesson-content">
+        <h4>Concept: File Organization</h4>
+        <p>Organize files in folders and link between pages:</p>
+        
+        <div class="code-example">
+          <pre><code>Project Structure:
+├── index.html          (home page)
+├── styles/
+│   └── main.css        (all styles)
+├── scripts/
+│   └── main.js         (all JavaScript)
+└── pages/
+    ├── knowledge-graph.html
+    ├── rwi-system.html
+    └── lesson-builder.html
+
+Linking from index.html to a page:
+&lt;a href="pages/knowledge-graph.html"&gt;View Details&lt;/a&gt;
+
+Linking back from a page to index:
+&lt;a href="../index.html"&gt;← Back to Diagram&lt;/a&gt;</code></pre>
+        </div>
+
+        <div class="lesson-note">
+          <strong>Key Takeaway:</strong> Use <code>../</code> to go up a folder level. Keep styles and scripts in dedicated folders. This keeps your project organized as it grows.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Geo-Arts Curriculum System • Web Development Lessons</p>
+  </footer>
+
+  <script src="../scripts/main.js"></script>
+</body>
+</html>
