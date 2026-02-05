@@ -25,19 +25,19 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function highlightConnections(engine) {
-  const connectors = document.querySelectorAll('.flow-connector');
-  connectors.forEach(c => c.style.opacity = '0.3');
+  const arrows = document.querySelectorAll('.flow-arrow');
+  arrows.forEach(a => a.style.opacity = '0.3');
   
   const card = document.querySelector(`[data-engine="${engine}"]`);
   if (card) {
-    const cardConnectors = card.querySelectorAll('.flow-connector');
-    cardConnectors.forEach(c => c.style.opacity = '1');
+    const cardArrows = card.querySelectorAll('.flow-arrow');
+    cardArrows.forEach(a => a.style.opacity = '1');
   }
 }
 
 function resetConnections() {
-  const connectors = document.querySelectorAll('.flow-connector');
-  connectors.forEach(c => c.style.opacity = '1');
+  const arrows = document.querySelectorAll('.flow-arrow');
+  arrows.forEach(a => a.style.opacity = '1');
 }
 
 function updateHealth(engineId, status) {

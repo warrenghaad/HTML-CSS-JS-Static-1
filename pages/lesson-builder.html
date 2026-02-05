@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson Builder - Geo-Arts</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>Lesson Builder</h1>
+      <span class="subtitle">Drag-Drop Canvas, Section Assembly, eTextbook Distillation</span>
+    </div>
+    <div class="header-actions">
+      <a href="../index.html" class="btn">← Back to Diagram</a>
+      <button class="btn" id="themeToggle">Toggle Theme</button>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <!-- Wiki Canvas Workspace -->
+    <section class="section-card">
+      <h3><span class="health-indicator healthy"></span> Wiki Canvas Workspace</h3>
+      <p class="card-desc">Creative space to review ingested material and build research, lessons, and presentations</p>
+      
+      <div class="canvas-demo">
+        <div class="canvas-toolbar">
+          <button class="toolbar-btn">Add Node</button>
+          <button class="toolbar-btn">Connect</button>
+          <button class="toolbar-btn">Group</button>
+          <button class="toolbar-btn">Export</button>
+        </div>
+        <div class="canvas-area">
+          <div class="canvas-node draggable" style="left: 50px; top: 30px;">
+            <span class="node-label">Golden Ratio</span>
+          </div>
+          <div class="canvas-node draggable" style="left: 200px; top: 80px;">
+            <span class="node-label">Art Composition</span>
+          </div>
+          <div class="canvas-node draggable" style="left: 120px; top: 150px;">
+            <span class="node-label">Renaissance Art</span>
+          </div>
+          <div class="canvas-node draggable" style="left: 300px; top: 120px;">
+            <span class="node-label">Lesson: Proportions</span>
+          </div>
+          <svg class="canvas-lines" viewBox="0 0 400 200">
+            <line x1="120" y1="50" x2="200" y2="90" stroke="var(--accent)" stroke-width="2"/>
+            <line x1="240" y1="100" x2="300" y2="130" stroke="var(--green)" stroke-width="2"/>
+            <line x1="160" y1="170" x2="230" y2="110" stroke="var(--purple)" stroke-width="2"/>
+          </svg>
+        </div>
+        <p class="canvas-hint">Drag nodes to arrange. Each node is a wiki from the knowledge graph.</p>
+      </div>
+    </section>
+
+    <!-- Lesson Section Builder -->
+    <section class="section-card">
+      <h3><span class="health-indicator healthy"></span> Lesson Section Builder</h3>
+      <p class="card-desc">Structured lesson sections that RWI system can draft automatically</p>
+      
+      <div class="lesson-sections">
+        <div class="section-item">
+          <div class="section-header">
+            <span class="section-number">1</span>
+            <h4>Introduction</h4>
+            <span class="badge healthy">Complete</span>
+          </div>
+          <p>Hook and learning objectives</p>
+        </div>
+        
+        <div class="section-item">
+          <div class="section-header">
+            <span class="section-number">2</span>
+            <h4>Visual Story</h4>
+            <span class="badge healthy">Complete</span>
+          </div>
+          <p>Main concept through images with captions</p>
+        </div>
+        
+        <div class="section-item">
+          <div class="section-header">
+            <span class="section-number">3</span>
+            <h4>Exploration</h4>
+            <span class="badge warning">In Progress</span>
+          </div>
+          <p>Hands-on activities and discovery</p>
+        </div>
+        
+        <div class="section-item">
+          <div class="section-header">
+            <span class="section-number">4</span>
+            <h4>Application</h4>
+            <span class="badge">Pending</span>
+          </div>
+          <p>Apply concepts to real-world examples</p>
+        </div>
+        
+        <div class="section-item">
+          <div class="section-header">
+            <span class="section-number">5</span>
+            <h4>Assessment</h4>
+            <span class="badge">Pending</span>
+          </div>
+          <p>Evidence of learning and conclusions</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- eTextbook Distillation -->
+    <section class="section-card">
+      <h3><span class="health-indicator warning"></span> eTextbook Distillation</h3>
+      <p class="card-desc">Create deliverables based on evidence and conclusions in each lesson section</p>
+      
+      <div class="distillation-flow">
+        <div class="distill-input">
+          <h4>Input: Complete Lesson</h4>
+          <ul>
+            <li>All sections complete</li>
+            <li>Visual content attached</li>
+            <li>Standards aligned</li>
+          </ul>
+        </div>
+        <div class="distill-arrow">→</div>
+        <div class="distill-process">
+          <h4>Distillation Process</h4>
+          <ul>
+            <li>Extract key concepts</li>
+            <li>Identify evidence points</li>
+            <li>Compile conclusions</li>
+            <li>Format for delivery</li>
+          </ul>
+        </div>
+        <div class="distill-arrow">→</div>
+        <div class="distill-output">
+          <h4>Output: Deliverables</h4>
+          <div class="deliverable-types">
+            <span class="deliverable">📚 eTextbook Chapter</span>
+            <span class="deliverable">📊 Presentation Slides</span>
+            <span class="deliverable">📝 Student Worksheet</span>
+            <span class="deliverable">✅ Assessment Rubric</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Geo-Arts Curriculum System • Lesson Builder</p>
+  </footer>
+
+  <script src="../scripts/main.js"></script>
+</body>
+</html>

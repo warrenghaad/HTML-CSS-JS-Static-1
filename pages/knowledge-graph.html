@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knowledge Graph Engine - Geo-Arts</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>Knowledge Graph Engine</h1>
+      <span class="subtitle">3D Research Graph, Ingestion, Ontology, Wiki Nodes</span>
+    </div>
+    <div class="header-actions">
+      <a href="../index.html" class="btn">← Back to Diagram</a>
+      <button class="btn" id="themeToggle">Toggle Theme</button>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <!-- Ingestion System -->
+    <section class="section-card">
+      <h3><span class="health-indicator healthy"></span> Ingestion System</h3>
+      <p class="card-desc">Ingest local files or crawl websites. Material is annotated, summarized, and adapted.</p>
+      
+      <div class="demo-panel">
+        <div class="upload-zone">
+          <div class="upload-icon">📁</div>
+          <p>Drag files here or click to upload</p>
+          <p class="small-text">Supports: PDF, DOCX, TXT, Images, Websites</p>
+          <div class="upload-stats">
+            <span>Current queue: 30GB+ PDFs</span>
+          </div>
+        </div>
+        
+        <div class="ingestion-pipeline">
+          <div class="pipeline-step">
+            <span class="step-number">1</span>
+            <span class="step-label">Upload</span>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-step">
+            <span class="step-number">2</span>
+            <span class="step-label">Parse</span>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-step">
+            <span class="step-number">3</span>
+            <span class="step-label">Annotate</span>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-step">
+            <span class="step-number">4</span>
+            <span class="step-label">Summarize</span>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-step active">
+            <span class="step-number">5</span>
+            <span class="step-label">Tag</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ontology Tagging -->
+    <section class="section-card">
+      <h3><span class="health-indicator warning"></span> Ontology Tagging System</h3>
+      <p class="card-desc">Your custom tagging vocabulary that creates relationships between content</p>
+      
+      <div class="tag-categories">
+        <div class="tag-category">
+          <h4>Subject Tags</h4>
+          <div class="tag-list">
+            <span class="tag">Geometry</span>
+            <span class="tag">Art Composition</span>
+            <span class="tag">STEM</span>
+            <span class="tag">Visual Arts</span>
+          </div>
+        </div>
+        <div class="tag-category">
+          <h4>Cognitive Domain Tags</h4>
+          <div class="tag-list">
+            <span class="tag">Remember</span>
+            <span class="tag">Understand</span>
+            <span class="tag">Apply</span>
+            <span class="tag">Analyze</span>
+          </div>
+        </div>
+        <div class="tag-category">
+          <h4>Development Stage Tags</h4>
+          <div class="tag-list">
+            <span class="tag">Early Childhood</span>
+            <span class="tag">Elementary</span>
+            <span class="tag">Middle School</span>
+            <span class="tag">High School</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Wiki Node Generator -->
+    <section class="section-card">
+      <h3><span class="health-indicator healthy"></span> Wiki Node Generator</h3>
+      <p class="card-desc">Each piece of ingested content becomes a wiki node in the graph</p>
+      
+      <div class="wiki-example">
+        <div class="wiki-node">
+          <div class="node-header">
+            <span class="node-icon">📄</span>
+            <h4>Golden Ratio in Art</h4>
+            <span class="badge healthy">Generated</span>
+          </div>
+          <div class="node-content">
+            <p><strong>Summary:</strong> The golden ratio (φ ≈ 1.618) appears throughout art history...</p>
+            <div class="node-tags">
+              <span class="tag small">Geometry</span>
+              <span class="tag small">Art Composition</span>
+              <span class="tag small">Apply</span>
+            </div>
+            <div class="node-meta">
+              <span>Source: PDF ingestion</span>
+              <span>Created: Today</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3D Graph Visualization -->
+    <section class="section-card">
+      <h3><span class="health-indicator healthy"></span> 3D Graph Visualization</h3>
+      <p class="card-desc">Interactive 3D representation of all nodes and their relationships</p>
+      
+      <div class="graph-preview">
+        <div class="graph-placeholder">
+          <div class="node-cluster">
+            <div class="graph-node n1">Geo</div>
+            <div class="graph-node n2">Art</div>
+            <div class="graph-node n3">STEM</div>
+            <div class="graph-node n4">Lesson</div>
+            <div class="graph-node n5">Dev</div>
+          </div>
+          <p class="graph-caption">3D Knowledge Graph Visualization (Interactive when connected)</p>
+        </div>
+        <div class="graph-stats">
+          <div class="stat">
+            <span class="stat-value">1,247</span>
+            <span class="stat-label">Total Nodes</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">3,891</span>
+            <span class="stat-label">Connections</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">6</span>
+            <span class="stat-label">Presets</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Geo-Arts Curriculum System • Knowledge Graph Engine</p>
+  </footer>
+
+  <script src="../scripts/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RWI System - Geo-Arts</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>RWI System</h1>
+      <span class="subtitle">Research, Writing, Image Sourcing & Design</span>
+    </div>
+    <div class="header-actions">
+      <a href="../index.html" class="btn">← Back to Diagram</a>
+      <button class="btn" id="themeToggle">Toggle Theme</button>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <!-- Research Drafting -->
+    <section class="section-card">
+      <h3><span class="health-indicator healthy"></span> Research Drafting</h3>
+      <p class="card-desc">Draft lessons, presentations, and wikis from knowledge graph nodes</p>
+      
+      <div class="draft-workflow">
+        <div class="workflow-step">
+          <div class="step-icon">📊</div>
+          <h4>Select Nodes</h4>
+          <p>Choose wiki nodes from graph</p>
+        </div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step">
+          <div class="step-icon">✍️</div>
+          <h4>Draft Content</h4>
+          <p>AI-assisted writing</p>
+        </div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step">
+          <div class="step-icon">🎨</div>
+          <h4>Add Visuals</h4>
+          <p>Every concept gets an image</p>
+        </div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step">
+          <div class="step-icon">📄</div>
+          <h4>Output Wiki</h4>
+          <p>New node in graph</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Image Sourcing & Design -->
+    <section class="section-card">
+      <h3><span class="health-indicator warning"></span> Image Sourcing & Design</h3>
+      <p class="card-desc">Visual curriculum - story told with pictures, captioned by text</p>
+      
+      <div class="api-endpoints">
+        <div class="api-card">
+          <h4>🔍 Image Search API</h4>
+          <p>Search for existing images matching content</p>
+          <div class="api-status">
+            <span class="badge warning">Rate Limited</span>
+          </div>
+          <code class="api-endpoint">GET /api/images/search?q={query}</code>
+        </div>
+        
+        <div class="api-card gemini">
+          <h4>✨ Gemini API</h4>
+          <p>Generate short videos and simple images</p>
+          <div class="api-status">
+            <span class="badge healthy">Connected</span>
+          </div>
+          <code class="api-endpoint">POST /api/gemini/generate</code>
+          <p class="api-note">Best for: Short videos, diagrams, simple illustrations</p>
+        </div>
+        
+        <div class="api-card openai">
+          <h4>🎬 OpenAI API</h4>
+          <p>Generate longer videos and complex myths</p>
+          <div class="api-status">
+            <span class="badge healthy">Connected</span>
+          </div>
+          <code class="api-endpoint">POST /api/openai/generate</code>
+          <p class="api-note">Best for: Long videos, myths, complex narratives</p>
+        </div>
+      </div>
+      
+      <div class="image-flow">
+        <h4>Image Decision Flow</h4>
+        <div class="decision-tree">
+          <div class="decision-node">
+            <span>Content needs image?</span>
+          </div>
+          <div class="decision-branches">
+            <div class="branch">
+              <span class="branch-label">Search first</span>
+              <div class="branch-node">Image Search API</div>
+              <div class="branch-result">
+                <span class="branch-label">Found?</span>
+                <div class="sub-branches">
+                  <div class="sub-branch success">✓ Use it</div>
+                  <div class="sub-branch fail">✗ Generate</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="generate-options">
+            <div class="gen-option">Short video → Gemini</div>
+            <div class="gen-option">Long video → OpenAI</div>
+            <div class="gen-option">Complex myth → OpenAI</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Art/STEM 3D Studio -->
+    <section class="section-card">
+      <h3><span class="health-indicator healthy"></span> Art/STEM 3D Studio</h3>
+      <p class="card-desc">Create 3D diagrams of inventions and mathematical schematics. Analyze art for techniques and skills.</p>
+      
+      <div class="studio-features">
+        <div class="feature-card">
+          <div class="feature-icon">🔧</div>
+          <h4>Invention Diagrams</h4>
+          <p>3D exploded views and schematics</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📐</div>
+          <h4>Math Schematics</h4>
+          <p>Visual representations of geometric concepts</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🖼️</div>
+          <h4>Art Analysis</h4>
+          <p>Break down techniques, composition, and skills</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <h4>Composition Teaching</h4>
+          <p>Visual guides for art composition</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Geo-Arts Curriculum System • RWI System</p>
+  </footer>
+
+  <script src="../scripts/main.js"></script>
+</body>
+</html>

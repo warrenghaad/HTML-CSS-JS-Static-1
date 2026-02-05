@@ -3,55 +3,271 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Task Completion Tracker</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Geo-Arts Curriculum System</title>
+  <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-  <header>
-    <h1>Task Completion Tracker</h1>
-    <p>Tasks must be verified before they can be marked complete</p>
+  <header class="header">
+    <div>
+      <h1>Geo-Arts Curriculum Backend</h1>
+      <span class="subtitle">Visual Learning System Architecture</span>
+    </div>
+    <div class="header-actions">
+      <div class="system-health">
+        <span class="health-dot healthy"></span>
+        <span>System Online</span>
+      </div>
+      <button class="btn" id="themeToggle">Toggle Theme</button>
+    </div>
   </header>
 
-  <main>
-    <section class="task-board">
-      <div class="column" id="pending">
-        <h2>Pending</h2>
-        <div class="task-list"></div>
+  <main class="system-diagram">
+    <h2 class="diagram-title">System Architecture Diagram</h2>
+    <p class="diagram-desc">Data flows from ingestion through knowledge graph, RWI processing, lesson building, and finally to student-facing deliverables</p>
+
+    <div class="diagram-container">
+      <!-- Row 1: Governance sits above as overarching context -->
+      <div class="diagram-row governance-row">
+        <div class="engine-card governance" data-engine="governance">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>Governance & Context</h3>
+          </div>
+          <p class="card-desc">SSOTs, Program Info, Presets & Views</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Single Sources of Truth</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>6+ Preset Views/Lenses</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Standards & Mappings</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Cognitive Domains</span>
+            </div>
+          </div>
+          <a href="pages/governance.html" class="card-link">View Details →</a>
+        </div>
       </div>
 
-      <div class="column" id="in-progress">
-        <h2>In Progress</h2>
-        <div class="task-list"></div>
+      <!-- Row 2: Main processing pipeline -->
+      <div class="diagram-row pipeline-row">
+        <!-- Knowledge Graph Engine -->
+        <div class="engine-card knowledge-graph" data-engine="knowledge-graph">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>Knowledge Graph Engine</h3>
+          </div>
+          <p class="card-desc">3D Research Graph, Ingestion, Ontology, Wiki Nodes</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>File Ingestion (30GB+ PDFs)</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Website Crawler</span>
+            </div>
+            <div class="tool" data-status="warning">
+              <span class="tool-dot"></span>
+              <span>Ontology Tagging System</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Wiki Node Generator</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>3D Graph Visualization</span>
+            </div>
+          </div>
+          <a href="pages/knowledge-graph.html" class="card-link">View Details →</a>
+          <div class="flow-arrow right blue">
+            <span class="arrow-label">Tagged Content</span>
+          </div>
+        </div>
+
+        <!-- RWI System -->
+        <div class="engine-card rwi-system" data-engine="rwi-system">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>RWI System</h3>
+          </div>
+          <p class="card-desc">Research, Writing, Image Sourcing & Design</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Research Drafting</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Wiki Content Writer</span>
+            </div>
+            <div class="tool" data-status="warning">
+              <span class="tool-dot"></span>
+              <span>Image Search API</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Gemini (Short Videos)</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>OpenAI (Long Videos/Myths)</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Art/STEM 3D Studio</span>
+            </div>
+          </div>
+          <a href="pages/rwi-system.html" class="card-link">View Details →</a>
+          <div class="flow-arrow right green">
+            <span class="arrow-label">Visual Content</span>
+          </div>
+        </div>
+
+        <!-- Lesson Builder -->
+        <div class="engine-card lesson-builder" data-engine="lesson-builder">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>Lesson Builder</h3>
+          </div>
+          <p class="card-desc">Drag-Drop Canvas, Section Assembly, eTextbook</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Wiki Canvas Workspace</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Drag-Drop Node Assembly</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Lesson Section Builder</span>
+            </div>
+            <div class="tool" data-status="warning">
+              <span class="tool-dot"></span>
+              <span>eTextbook Distillation</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Deliverable Generator</span>
+            </div>
+          </div>
+          <a href="pages/lesson-builder.html" class="card-link">View Details →</a>
+          <div class="flow-arrow right purple">
+            <span class="arrow-label">Lessons</span>
+          </div>
+        </div>
+
+        <!-- Teacher/Student Facing -->
+        <div class="engine-card teacher-student" data-engine="teacher-student">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>Teacher/Student Facing</h3>
+          </div>
+          <p class="card-desc">Final Deliverables & Learning Interface</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Lesson Presentations</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>eTextbook Viewer</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Student Progress Tracking</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Assessment Tools</span>
+            </div>
+            <div class="tool" data-status="warning">
+              <span class="tool-dot"></span>
+              <span>Performance Analytics</span>
+            </div>
+          </div>
+          <a href="pages/teacher-student.html" class="card-link">View Details →</a>
+        </div>
       </div>
 
-      <div class="column" id="awaiting-verification">
-        <h2>Awaiting Verification</h2>
-        <div class="task-list"></div>
+      <!-- Feedback Loop Arrow -->
+      <div class="feedback-loop">
+        <div class="feedback-arrow">
+          <span class="arrow-label">Student Performance Data Feeds Back</span>
+        </div>
       </div>
+    </div>
 
-      <div class="column" id="complete">
-        <h2>Complete</h2>
-        <div class="task-list"></div>
+    <!-- Workflow Legend -->
+    <div class="workflow-legend">
+      <h4>Data Flow Legend</h4>
+      <div class="legend-items">
+        <div class="legend-item">
+          <span class="legend-color blue"></span>
+          <span>Tagged Content → RWI</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color green"></span>
+          <span>Visual Content → Lessons</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color purple"></span>
+          <span>Lessons → Deliverables</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color orange"></span>
+          <span>Performance → Knowledge Graph</span>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <section class="add-task">
-      <h2>Add New Task</h2>
-      <input type="text" id="taskInput" placeholder="Enter task description">
-      <button id="addBtn">Add Task</button>
-    </section>
-
-    <section class="rules">
-      <h2>Completion Rules</h2>
-      <ul>
-        <li>Tasks start in <strong>Pending</strong></li>
-        <li>Move to <strong>In Progress</strong> when work begins</li>
-        <li>When work is done, move to <strong>Awaiting Verification</strong></li>
-        <li>Only after verification can tasks move to <strong>Complete</strong></li>
-      </ul>
-    </section>
+    <!-- System Presets Panel -->
+    <div class="presets-panel">
+      <h3>Knowledge Graph Presets (Views/Lenses)</h3>
+      <p class="panel-desc">Different perspectives through the graph database</p>
+      <div class="preset-grid">
+        <div class="preset-card">
+          <h4>1. Geometric Elements</h4>
+          <p>Original research on geometric fundamentals</p>
+        </div>
+        <div class="preset-card">
+          <h4>2. Lesson Structure</h4>
+          <p>Geometric research → lesson creation</p>
+        </div>
+        <div class="preset-card">
+          <h4>3. Standards & Curriculum</h4>
+          <p>Current mappings, cognitive domains</p>
+        </div>
+        <div class="preset-card">
+          <h4>4. Child Development</h4>
+          <p>Cognitive domains & development stages</p>
+        </div>
+        <div class="preset-card">
+          <h4>5. Student Performance</h4>
+          <p>Domains, standards, performance data</p>
+        </div>
+        <div class="preset-card">
+          <h4>6. Standards Creation</h4>
+          <p>Building new standards from research</p>
+        </div>
+      </div>
+    </div>
   </main>
 
-  <script src="script.js"></script>
+  <footer class="footer">
+    <p>Geo-Arts Curriculum System • Learning Through Visual Storytelling</p>
+  </footer>
+
+  <script src="scripts/main.js"></script>
 </body>
 </html>
