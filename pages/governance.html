@@ -55,6 +55,193 @@
       </table>
     </section>
 
+    <section class="section-card" style="border-left: 3px solid var(--cyan);">
+      <h3><span class="health-indicator healthy"></span> System Functionality Document (SSOT)</h3>
+      <p class="card-desc">Master reference defining what each engine does, the rules agents follow, and how data moves through the pipeline. This document governs all system behavior.</p>
+
+      <div style="margin-top: 1.5rem;">
+        <h4 style="color: var(--cyan); margin-bottom: 1rem;">Pipeline Overview</h4>
+        <div class="code-example">
+          <pre><code>Governance (this page) sets context for all engines
+        ↓
+Knowledge Graph Engine → ingests raw content, builds tagged ontology
+        ↓
+RWI System → researches, writes, and generates visual content
+        ↓
+Lesson Builder → assembles content into structured lessons
+        ↓
+Teacher/Student Facing → delivers final materials, collects feedback
+        ↓
+Feedback Loop → performance data flows back to Knowledge Graph</code></pre>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem;">
+        <h4 style="color: var(--blue); margin-bottom: 1rem;">Engine 1: Knowledge Graph Engine</h4>
+        <table class="func-table">
+          <thead>
+            <tr><th>Function</th><th>Input</th><th>Output</th><th>Agent Rules</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>PDF Ingestion</td>
+              <td>Raw PDFs (30GB+)</td>
+              <td>Extracted text chunks with metadata</td>
+              <td>Must preserve source reference for every chunk</td>
+            </tr>
+            <tr>
+              <td>Web Crawling</td>
+              <td>URLs, search queries</td>
+              <td>Scraped content with source attribution</td>
+              <td>Respect robots.txt; store raw + cleaned versions</td>
+            </tr>
+            <tr>
+              <td>Ontology Tagging</td>
+              <td>Text chunks</td>
+              <td>Tagged nodes with domain/topic/concept labels</td>
+              <td>Use only approved ontology vocabulary from SSOTs</td>
+            </tr>
+            <tr>
+              <td>Wiki Node Generation</td>
+              <td>Tagged chunks</td>
+              <td>Structured wiki entries with relationships</td>
+              <td>Each node must link to at least one parent concept</td>
+            </tr>
+            <tr>
+              <td>3D Graph Mapping</td>
+              <td>Wiki nodes + relationships</td>
+              <td>Navigable 3D knowledge graph</td>
+              <td>Update graph incrementally; never rebuild from scratch</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 1.5rem;">
+        <h4 style="color: var(--green); margin-bottom: 1rem;">Engine 2: RWI System (Research / Writing / Images)</h4>
+        <table class="func-table">
+          <thead>
+            <tr><th>Function</th><th>Input</th><th>Output</th><th>Agent Rules</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Research Drafting</td>
+              <td>Wiki nodes, graph context</td>
+              <td>Draft content with citations</td>
+              <td>Every claim must reference a Knowledge Graph source</td>
+            </tr>
+            <tr>
+              <td>Content Writing</td>
+              <td>Research drafts</td>
+              <td>Polished educational content</td>
+              <td>Match reading level to target audience; visual-first</td>
+            </tr>
+            <tr>
+              <td>Image Search</td>
+              <td>Content topics, keywords</td>
+              <td>Curated image results</td>
+              <td>API: GET /api/images/search — every content piece MUST have an image</td>
+            </tr>
+            <tr>
+              <td>Gemini Generation</td>
+              <td>Prompts, content context</td>
+              <td>Short videos, diagrams, visual aids</td>
+              <td>API: POST /api/gemini/generate — use for diagrams and short explainers</td>
+            </tr>
+            <tr>
+              <td>OpenAI Generation</td>
+              <td>Prompts, narrative context</td>
+              <td>Long-form videos, myth illustrations</td>
+              <td>API: POST /api/openai/generate — use for storytelling and complex visuals</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 1.5rem;">
+        <h4 style="color: var(--purple); margin-bottom: 1rem;">Engine 3: Lesson Builder</h4>
+        <table class="func-table">
+          <thead>
+            <tr><th>Function</th><th>Input</th><th>Output</th><th>Agent Rules</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Wiki Canvas</td>
+              <td>Wiki nodes from Knowledge Graph</td>
+              <td>Drag-drop workspace for lesson planning</td>
+              <td>Canvas must show source traceability for every node</td>
+            </tr>
+            <tr>
+              <td>Section Assembly</td>
+              <td>Canvas selections, RWI content</td>
+              <td>Ordered lesson sections with text + images</td>
+              <td>Each section needs: objective, content, image, assessment</td>
+            </tr>
+            <tr>
+              <td>Standards Alignment</td>
+              <td>Lesson sections, Standards Registry</td>
+              <td>Mapped standards per section</td>
+              <td>Must align to at least one standard from the SSOT registry</td>
+            </tr>
+            <tr>
+              <td>eTextbook Distillation</td>
+              <td>Complete lessons</td>
+              <td>Chapters, slides, worksheets, rubrics</td>
+              <td>Output all 4 deliverable types for every completed lesson</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 1.5rem;">
+        <h4 style="color: var(--orange); margin-bottom: 1rem;">Engine 4: Teacher/Student Facing</h4>
+        <table class="func-table">
+          <thead>
+            <tr><th>Function</th><th>Input</th><th>Output</th><th>Agent Rules</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Lesson Presentations</td>
+              <td>Distilled slides</td>
+              <td>Interactive presentation viewer</td>
+              <td>Must support offline viewing after initial load</td>
+            </tr>
+            <tr>
+              <td>eTextbook Viewer</td>
+              <td>Distilled chapters</td>
+              <td>Paginated reading experience</td>
+              <td>Track reading progress per student</td>
+            </tr>
+            <tr>
+              <td>Performance Analytics</td>
+              <td>Assessment results, progress data</td>
+              <td>Dashboards by cognitive domain</td>
+              <td>Aggregate by domain, standard, and student</td>
+            </tr>
+            <tr>
+              <td>Feedback Loop</td>
+              <td>Performance data</td>
+              <td>Insights sent back to Knowledge Graph</td>
+              <td>Flag underperforming topics for re-research</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 1.5rem; background: rgba(0,255,255,0.05); border: 1px solid var(--cyan); border-radius: var(--radius); padding: 1.25rem;">
+        <h4 style="color: var(--cyan); margin-bottom: 0.75rem;">Global Agent Rules</h4>
+        <ol style="color: var(--text-muted); line-height: 2; padding-left: 1.25rem;">
+          <li><strong>Visual-First:</strong> Every piece of content must have an accompanying image — no exceptions</li>
+          <li><strong>Source Traceability:</strong> Every fact, concept, or claim must trace back to an ingested source</li>
+          <li><strong>SSOT Compliance:</strong> All tagging, standards, and domain references must come from the registries on this page</li>
+          <li><strong>No Orphan Content:</strong> Every wiki node must connect to the graph; no standalone content allowed</li>
+          <li><strong>Incremental Updates:</strong> Agents update existing data — never wipe and rebuild</li>
+          <li><strong>Validation Required:</strong> No engine can mark output as "complete" without downstream validation</li>
+          <li><strong>Feedback Priority:</strong> Underperforming topics flagged by analytics get priority re-processing</li>
+        </ol>
+      </div>
+    </section>
+
     <section class="section-card">
       <h3><span class="health-indicator healthy"></span> Knowledge Graph Presets (Views/Lenses)</h3>
       <p class="card-desc">Different perspectives through which to view and query the knowledge graph</p>
