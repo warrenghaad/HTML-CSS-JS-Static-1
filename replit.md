@@ -107,18 +107,38 @@ Knowledge Graph → (Blue) → RWI System → (Green) → Lesson Builder → (Pu
 - Health status update functions (ready for backend)
 - DOM manipulation examples
 
+## Document Editor & Versioning
+
+The Governance page includes an in-page pop-out editor for the System Functionality Document:
+- Click "Edit This Document" to open the editor modal
+- Edit content in a full-screen text area
+- Save with version notes — every save creates a new version
+- Browse version history in the sidebar
+- View or restore any previous version
+
+### API Endpoints
+- `GET /api/documents/<doc_key>` - Load a document
+- `PUT /api/documents/<doc_key>` - Save document (creates new version)
+- `GET /api/documents/<doc_key>/versions` - List all versions
+- `GET /api/documents/<doc_key>/versions/<n>` - Get specific version
+- `POST /api/documents/<doc_key>/versions/<n>/restore` - Restore a version
+
+### Database Tables
+- `documents` - Current document state (doc_key, title, content)
+- `document_versions` - Version history (version_number, content, save_note, timestamp)
+
 ## User Preferences
 
 - **Visual-first curriculum**: All content must have images
 - **Multi-page app structure**: Separate HTML files, not SPA
 - **Learning-focused**: Code serves as tutorial material
-- **Future integration**: Supabase backend planned
+- **In-page editing**: Documents should be editable with versioning
 
 ## Running the Project
 
-The project uses Python's built-in HTTP server:
+The project uses a Flask backend server:
 ```bash
-python -m http.server 5000
+python server.py
 ```
 
 Access at `http://localhost:5000`
