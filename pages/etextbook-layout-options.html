@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Etextbook Layout Options</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .layout-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .layout-option {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .layout-option:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+        }
+        
+        .layout-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .layout-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .layout-subtitle {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .layout-preview {
+            height: 300px;
+            background: #f8f9fa;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .layout-features {
+            padding: 20px;
+        }
+        
+        .features-list {
+            list-style: none;
+            margin-bottom: 15px;
+        }
+        
+        .features-list li {
+            padding: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .features-list li:before {
+            content: "✅ ";
+            color: #27ae60;
+        }
+        
+        .use-case {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #1976d2;
+            font-weight: 500;
+        }
+        
+        .action-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Layout Previews */
+        .preview-classical {
+            display: grid;
+            grid-template-areas: 
+                "nav nav nav"
+                "sidebar content toc"
+                "footer footer footer";
+            grid-template-columns: 200px 1fr 150px;
+            grid-template-rows: 40px 1fr 30px;
+            height: 100%;
+            gap: 2px;
+        }
+        
+        .preview-classical .nav { grid-area: nav; background: #3498db; }
+        .preview-classical .sidebar { grid-area: sidebar; background: #95a5a6; }
+        .preview-classical .content { grid-area: content; background: #ecf0f1; }
+        .preview-classical .toc { grid-area: toc; background: #bdc3c7; }
+        .preview-classical .footer { grid-area: footer; background: #34495e; }
+        
+        .preview-modern {
+            display: flex;
+            height: 100%;
+            background: #2c3e50;
+        }
+        
+        .preview-modern .left-panel {
+            width: 60px;
+            background: #34495e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        .preview-modern .main-content {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .preview-modern .floating-nav {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #667eea;
+            width: 40px;
+            height: 120px;
+            border-radius: 20px;
+        }
+        
+        .preview-immersive {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            position: relative;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .preview-immersive .content-card {
+            background: rgba(255,255,255,0.9);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px;
+            color: #333;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .preview-magazine {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 100%;
+            gap: 2px;
+        }
+        
+        .preview-magazine .left-page {
+            background: #ecf0f1;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .preview-magazine .right-page {
+            background: white;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .preview-magazine::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: #bdc3c7;
+            transform: translateX(-50%);
+        }
+        
+        .preview-interactive {
+            background: #2c3e50;
+            position: relative;
+            height: 100%;
+            display: grid;
+            grid-template-areas:
+                "toolbar toolbar"
+                "canvas sidebar";
+            grid-template-columns: 1fr 200px;
+            grid-template-rows: 50px 1fr;
+        }
+        
+        .preview-interactive .toolbar {
+            grid-area: toolbar;
+            background: #34495e;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+        }
+        
+        .preview-interactive .canvas {
+            grid-area: canvas;
+            background: #ecf0f1;
+            margin: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .preview-interactive .sidebar {
+            grid-area: sidebar;
+            background: #95a5a6;
+            margin: 10px 10px 10px 0;
+            border-radius: 8px;
+        }
+        
+        .preview-mobile {
+            background: #34495e;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .preview-mobile .phone-frame {
+            width: 180px;
+            height: 260px;
+            background: white;
+            border-radius: 20px;
+            padding: 15px 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        
+        .preview-mobile .phone-screen {
+            background: #f8f9fa;
+            border-radius: 12px;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .preview-mobile .mobile-nav {
+            background: #667eea;
+            height: 40px;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .preview-mobile .mobile-content {
+            padding: 15px;
+            background: white;
+            margin: 5px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+        
+        /* Demo Button */
+        .demo-section {
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .demo-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(39, 174, 96, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .demo-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(39, 174, 96, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 HTML Etextbook Layout Options</h1>
+            <p>Choose the perfect layout for your digital curriculum</p>
+        </div>
+        
+        <div class="layout-grid">
+            <!-- Classical Academic Layout -->
+            <div class="layout-option" onclick="selectLayout('classical')">
+                <div class="layout-header">
+                    <div class="layout-title">📖 Classical Academic</div>
+                    <div class="layout-subtitle">Traditional textbook experience</div>
+                </div>
+                <div class="layout-preview">
+                    <div class="preview-classical">
+                        <div class="nav"></div>
+                        <div class="sidebar"></div>
+                        <div class="content"></div>
+                        <div class="toc"></div>
+                        <div class="footer"></div>
+                    </div>
+                </div>
+                <div class="layout-features">
+                    <ul class="features-list">
+                        <li>Traditional chapter navigation</li>
+                        <li>Persistent table of contents</li>
+                        <li>Sidebar for definitions/notes</li>
+                        <li>Print-friendly formatting</li>
+                        <li>Academic citation system</li>
+                    </ul>
+                    <div class="use-case">
+                        <strong>Best for:</strong> Traditional curricula, formal assessments, reference materials
+                    </div>
+                    <button class="action-btn" onclick="generateLayout('classical')">
+                        Generate Classical Layout
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Modern Interactive Layout -->
+            <div class="layout-option" onclick="selectLayout('modern')">
+                <div class="layout-header">
+                    <div class="layout-title">🚀 Modern Interactive</div>
+                    <div class="layout-subtitle">Clean, app-like experience</div>
+                </div>
+                <div class="layout-preview">
+                    <div class="preview-modern">
+                        <div class="left-panel"></div>
+                        <div class="main-content">
+                            <div class="floating-nav"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layout-features">
+                    <ul class="features-list">
+                        <li>Floating navigation controls</li>
+                        <li>Gesture-based interactions</li>
+                        <li>Embedded multimedia zones</li>
+                        <li>Progress tracking sidebar</li>
+                        <li>Dark/light mode toggle</li>
+                    </ul>
+                    <div class="use-case">
+                        <strong>Best for:</strong> Interactive lessons, multimedia content, student engagement
+                    </div>
+                    <button class="action-btn" onclick="generateLayout('modern')">
+                        Generate Modern Layout
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Immersive Storytelling Layout -->
+            <div class="layout-option" onclick="selectLayout('immersive')">
+                <div class="layout-header">
+                    <div class="layout-title">🌟 Immersive Storytelling</div>
+                    <div class="layout-subtitle">Narrative-driven experience</div>
+                </div>
+                <div class="layout-preview">
+                    <div class="preview-immersive">
+                        <div class="content-card">
+                            <strong>Story Section</strong><br>
+                            Engaging narrative...
+                        </div>
+                    </div>
+                </div>
+                <div class="layout-features">
+                    <ul class="features-list">
+                        <li>Full-screen background imagery</li>
+                        <li>Parallax scrolling effects</li>
+                        <li>Cinematic transitions</li>
+                        <li>Audio narration support</li>
+                        <li>Choice-based interactions</li>
+                    </ul>
+                    <div class="use-case">
+                        <strong>Best for:</strong> Historical narratives, cultural studies, creative writing
+                    </div>
+                    <button class="action-btn" onclick="generateLayout('immersive')">
+                        Generate Immersive Layout
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Magazine-Style Layout -->
+            <div class="layout-option" onclick="selectLayout('magazine')">
+                <div class="layout-header">
+                    <div class="layout-title">📰 Magazine Style</div>
+                    <div class="layout-subtitle">Publication-quality design</div>
+                </div>
+                <div class="layout-preview">
+                    <div class="preview-magazine">
+                        <div class="left-page"></div>
+                        <div class="right-page"></div>
+                    </div>
+                </div>
+                <div class="layout-features">
+                    <ul class="features-list">
+                        <li>Two-page spread view</li>
+                        <li>Rich typography system</li>
+                        <li>Photo-editorial layouts</li>
+                        <li>Pull quotes and callouts</li>
+                        <li>Professional grid system</li>
+                    </ul>
+                    <div class="use-case">
+                        <strong>Best for:</strong> Visual subjects, art history, design curricula
+                    </div>
+                    <button class="action-btn" onclick="generateLayout('magazine')">
+                        Generate Magazine Layout
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Interactive Canvas Layout -->
+            <div class="layout-option" onclick="selectLayout('interactive')">
+                <div class="layout-header">
+                    <div class="layout-title">🎯 Interactive Canvas</div>
+                    <div class="layout-subtitle">Hands-on learning workspace</div>
+                </div>
+                <div class="layout-preview">
+                    <div class="preview-interactive">
+                        <div class="toolbar"></div>
+                        <div class="canvas">Interactive Area</div>
+                        <div class="sidebar"></div>
+                    </div>
+                </div>
+                <div class="layout-features">
+                    <ul class="features-list">
+                        <li>Draggable interface elements</li>
+                        <li>Built-in drawing tools</li>
+                        <li>3D model viewers</li>
+                        <li>Simulation environments</li>
+                        <li>Collaborative features</li>
+                    </ul>
+                    <div class="use-case">
+                        <strong>Best for:</strong> STEM subjects, geometry, engineering, hands-on activities
+                    </div>
+                    <button class="action-btn" onclick="generateLayout('interactive')">
+                        Generate Interactive Layout
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile-First Layout -->
+            <div class="layout-option" onclick="selectLayout('mobile')">
+                <div class="layout-header">
+                    <div class="layout-title">📱 Mobile-First</div>
+                    <div class="layout-subtitle">Optimized for tablets/phones</div>
+                </div>
+                <div class="layout-preview">
+                    <div class="preview-mobile">
+                        <div class="phone-frame">
+                            <div class="phone-screen">
+                                <div class="mobile-nav"></div>
+                                <div class="mobile-content">
+                                    Lesson content optimized for mobile reading...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layout-features">
+                    <ul class="features-list">
+                        <li>Touch-optimized controls</li>
+                        <li>Swipe-based navigation</li>
+                        <li>Thumb-friendly UI</li>
+                        <li>Offline reading support</li>
+                        <li>Voice input capabilities</li>
+                    </ul>
+                    <div class="use-case">
+                        <strong>Best for:</strong> Student devices, field trips, accessibility needs
+                    </div>
+                    <button class="action-btn" onclick="generateLayout('mobile')">
+                        Generate Mobile Layout
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <button class="demo-btn" onclick="createCustomDemo()">
+                🎨 Create Custom Layout Demo
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        let selectedLayoutType = null;
+        
+        function selectLayout(type) {
+            selectedLayoutType = type;
+            
+            // Visual feedback
+            document.querySelectorAll('.layout-option').forEach(option => {
+                option.style.transform = '';
+                option.style.boxShadow = '';
+            });
+            
+            event.currentTarget.style.transform = 'translateY(-10px) scale(1.02)';
+            event.currentTarget.style.boxShadow = '0 30px 60px rgba(102, 126, 234, 0.3)';
+            
+            console.log(`Selected layout: ${type}`);
+        }
+        
+        function generateLayout(type) {
+            console.log(`Generating ${type} layout...`);
+            
+            // This would integrate with your curriculum system
+            const layoutSpecs = {
+                classical: {
+                    template: 'academic',
+                    navigation: 'sidebar-toc',
+                    features: ['citations', 'footnotes', 'print-view'],
+                    responsive: 'desktop-first'
+                },
+                modern: {
+                    template: 'app-style', 
+                    navigation: 'floating',
+                    features: ['multimedia', 'progress-tracking', 'dark-mode'],
+                    responsive: 'mobile-first'
+                },
+                immersive: {
+                    template: 'narrative',
+                    navigation: 'hidden',
+                    features: ['parallax', 'audio', 'transitions'],
+                    responsive: 'fullscreen'
+                },
+                magazine: {
+                    template: 'editorial',
+                    navigation: 'page-based',
+                    features: ['typography', 'grids', 'media-rich'],
+                    responsive: 'print-based'
+                },
+                interactive: {
+                    template: 'canvas',
+                    navigation: 'toolbar',
+                    features: ['drawing-tools', '3d-viewer', 'simulation'],
+                    responsive: 'workspace'
+                },
+                mobile: {
+                    template: 'touch-optimized',
+                    navigation: 'swipe',
+                    features: ['offline', 'voice', 'thumb-ui'],
+                    responsive: 'mobile-only'
+                }
+            };
+            
+            alert(`🚀 Generating ${type} layout with these specs:\\n\\n` + 
+                  JSON.stringify(layoutSpecs[type], null, 2) + 
+                  `\\n\\nThis would create a new HTML template file optimized for your Mesopotamian curriculum!`);
+        }
+        
+        function createCustomDemo() {
+            const demoSpecs = {
+                title: "Mesopotamian Patterns: Interactive Etextbook Demo",
+                layouts: Object.keys({classical: 1, modern: 1, immersive: 1, magazine: 1, interactive: 1, mobile: 1}),
+                sampleContent: "Ziggurat Architecture and Sacred Geometry",
+                integrations: ["Perplexity Import", "Animation Studio", "WikiNode Bridge"]
+            };
+            
+            alert("🎨 Custom Demo Creator\\n\\n" + 
+                  "This would generate a complete demo etextbook featuring:\\n" +
+                  "• All 6 layout styles\\n" + 
+                  "• Sample Mesopotamian content\\n" +
+                  "• Integration with your existing tools\\n" +
+                  "• Interactive elements and animations\\n\\n" +
+                  "Demo would be created as: 'Etextbook_Demo_All_Layouts.html'");
+        }
+        
+        console.log("📚 HTML Etextbook Layout Options loaded!");
+        console.log("Available layouts: Classical, Modern, Immersive, Magazine, Interactive, Mobile-First");
+    </script>
+</body>
+</html>
