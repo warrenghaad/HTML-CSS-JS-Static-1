@@ -4,10 +4,16 @@ from datetime import datetime
 from flask import Flask, send_from_directory, request, jsonify
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from openai import OpenAI
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
+
+ai_client = OpenAI(
+    base_url=os.environ.get('AI_INTEGRATIONS_OPENAI_BASE_URL'),
+    api_key=os.environ.get('AI_INTEGRATIONS_OPENAI_API_KEY'),
+)
 
 def get_db():
     conn = psycopg2.connect(DATABASE_URL)
@@ -40,6 +46,19 @@ def init_db():
     cur.execute('''
         CREATE INDEX IF NOT EXISTS idx_versions_doc_key 
         ON document_versions(doc_key, version_number DESC)
+    ''')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS playground_drafts (
+            id SERIAL PRIMARY KEY,
+            draft_key VARCHAR(100) UNIQUE NOT NULL,
+            title VARCHAR(255) NOT NULL DEFAULT 'Untitled Draft',
+            html_content TEXT NOT NULL DEFAULT '',
+            css_content TEXT NOT NULL DEFAULT '',
+            status VARCHAR(20) NOT NULL DEFAULT 'draft',
+            review_feedback TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        )
     ''')
     cur.close()
     conn.close()
@@ -185,6 +204,126 @@ def restore_version(doc_key, version_number):
         'version': next_version,
         'saved_at': datetime.now().isoformat()
     })
+
+@app.route('/api/playground/drafts', methods=['GET'])
+def list_drafts():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        SELECT id, draft_key, title, status, review_feedback,
+               LENGTH(html_content) as html_length,
+               created_at, updated_at
+        FROM playground_drafts ORDER BY updated_at DESC
+    ''')
+    drafts = cur.fetchall()
+    for d in drafts:
+        d['created_at'] = d['created_at'].isoformat() if d['created_at'] else None
+        d['updated_at'] = d['updated_at'].isoformat() if d['updated_at'] else None
+    cur.close()
+    conn.close()
+    return jsonify(drafts)
+
+@app.route('/api/playground/drafts/<draft_key>', methods=['GET'])
+def get_draft(draft_key):
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('SELECT * FROM playground_drafts WHERE draft_key = %s', (draft_key,))
+    draft = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not draft:
+        return jsonify({'exists': False, 'draft_key': draft_key})
+    draft['created_at'] = draft['created_at'].isoformat() if draft['created_at'] else None
+    draft['updated_at'] = draft['updated_at'].isoformat() if draft['updated_at'] else None
+    return jsonify({**dict(draft), 'exists': True})
+
+@app.route('/api/playground/drafts/<draft_key>', methods=['PUT'])
+def save_draft(draft_key):
+    data = request.get_json()
+    title = data.get('title', 'Untitled Draft')
+    html_content = data.get('html_content', '')
+    css_content = data.get('css_content', '')
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute('''
+        INSERT INTO playground_drafts (draft_key, title, html_content, css_content, updated_at)
+        VALUES (%s, %s, %s, %s, NOW())
+        ON CONFLICT (draft_key) DO UPDATE SET
+            title = EXCLUDED.title,
+            html_content = EXCLUDED.html_content,
+            css_content = EXCLUDED.css_content,
+            updated_at = NOW()
+    ''', (draft_key, title, html_content, css_content))
+    cur.close()
+    conn.close()
+    return jsonify({'success': True, 'saved_at': datetime.now().isoformat()})
+
+@app.route('/api/playground/drafts/<draft_key>', methods=['DELETE'])
+def delete_draft(draft_key):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute('DELETE FROM playground_drafts WHERE draft_key = %s', (draft_key,))
+    cur.close()
+    conn.close()
+    return jsonify({'success': True})
+
+@app.route('/api/playground/review', methods=['POST'])
+def ai_review():
+    data = request.get_json()
+    html_content = data.get('html_content', '')
+    css_content = data.get('css_content', '')
+    title = data.get('title', 'Untitled')
+    draft_key = data.get('draft_key', '')
+
+    prompt = f"""You are reviewing a draft page for the Geo-Arts Curriculum System — a visual-first educational platform that processes content through 5 engines: Governance, Knowledge Graph, RWI System, Lesson Builder, and Teacher/Student Facing.
+
+Review the following HTML/CSS draft and provide feedback on:
+1. **Content Quality** — Is the content clear, educational, and well-organized?
+2. **Visual Design** — Does the layout work well? Any improvements?
+3. **Curriculum Alignment** — Does it fit the Geo-Arts visual-first philosophy (every content piece needs an image)?
+4. **Technical Quality** — Is the HTML/CSS well-structured and accessible?
+5. **Suggestions** — What specific improvements would make this better?
+
+Give a rating: PASS (ready to use), NEEDS WORK (has issues), or REVISE (major changes needed).
+
+Draft Title: {title}
+
+HTML Content:
+```html
+{html_content[:8000]}
+```
+
+{f'CSS Content:' if css_content else ''}
+{f'```css' if css_content else ''}
+{css_content[:3000] if css_content else ''}
+{f'```' if css_content else ''}
+
+Provide your review in a clear, friendly format. Be specific with suggestions."""
+
+    try:
+        response = ai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1500,
+            temperature=0.7
+        )
+        feedback = response.choices[0].message.content
+
+        if draft_key:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute('''
+                UPDATE playground_drafts 
+                SET review_feedback = %s, status = 'reviewed', updated_at = NOW()
+                WHERE draft_key = %s
+            ''', (feedback, draft_key))
+            cur.close()
+            conn.close()
+
+        return jsonify({'success': True, 'feedback': feedback})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 with app.app_context():
     init_db()

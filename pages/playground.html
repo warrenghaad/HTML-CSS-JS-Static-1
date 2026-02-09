@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Playground - Geo-Arts</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <style>
+    .playground-layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 1rem;
+      min-height: calc(100vh - 200px);
+    }
+
+    .playground-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .draft-list-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+
+    .draft-list-card h4 {
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+      font-size: 0.875rem;
+    }
+
+    .draft-item {
+      padding: 0.625rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .draft-item:hover { border-color: var(--accent); }
+    .draft-item.active { border-color: var(--accent); background: rgba(125,211,252,0.1); }
+
+    .draft-item-title {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+
+    .draft-item-meta {
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+    }
+
+    .draft-status {
+      display: inline-block;
+      padding: 0.125rem 0.375rem;
+      border-radius: 4px;
+      font-size: 0.625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .draft-status.draft { background: rgba(125,211,252,0.2); color: var(--accent); }
+    .draft-status.reviewed { background: rgba(134,239,172,0.2); color: var(--healthy); }
+
+    .new-draft-btn {
+      width: 100%;
+      padding: 0.5rem;
+      background: rgba(125,211,252,0.1);
+      border: 1px dashed var(--accent);
+      border-radius: 6px;
+      color: var(--accent);
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 0.8125rem;
+      transition: all 0.15s;
+    }
+
+    .new-draft-btn:hover {
+      background: rgba(125,211,252,0.2);
+    }
+
+    .playground-main {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .editor-tabs {
+      display: flex;
+      gap: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius) var(--radius) 0 0;
+      overflow: hidden;
+    }
+
+    .editor-tab {
+      padding: 0.5rem 1.25rem;
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 0.8125rem;
+      transition: all 0.15s;
+    }
+
+    .editor-tab.active {
+      background: rgba(125,211,252,0.1);
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .editor-tab:hover { color: var(--text); }
+
+    .pg-title-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .pg-title-input {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.875rem;
+    }
+
+    .pg-title-input:focus { outline: none; border-color: var(--accent); }
+
+    .pg-code-area {
+      flex: 1;
+      min-height: 300px;
+      resize: vertical;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      color: var(--text);
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      tab-size: 2;
+    }
+
+    .pg-code-area:focus { outline: none; }
+
+    .pg-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .pg-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .pg-btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+
+    .pg-btn-primary:hover { opacity: 0.9; }
+
+    .pg-btn-review {
+      background: linear-gradient(135deg, rgba(167,139,250,0.2), rgba(125,211,252,0.2));
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .pg-btn-review:hover {
+      background: linear-gradient(135deg, rgba(167,139,250,0.3), rgba(125,211,252,0.3));
+    }
+
+    .pg-btn-secondary {
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+    }
+
+    .pg-btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+    .pg-btn-danger {
+      background: rgba(252,165,165,0.1);
+      color: var(--error);
+      border-color: var(--error);
+    }
+
+    .pg-btn-danger:hover { background: rgba(252,165,165,0.2); }
+
+    .preview-frame {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      min-height: 400px;
+      overflow: hidden;
+    }
+
+    .preview-frame iframe {
+      width: 100%;
+      height: 500px;
+      border: none;
+    }
+
+    .review-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+    }
+
+    .review-panel h4 {
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .review-content {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+
+    .review-loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+    }
+
+    .review-loading .spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 0.5rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 900px) {
+      .playground-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>Playground</h1>
+      <span class="subtitle">Experiment with layouts, then submit for AI review</span>
+    </div>
+    <div class="header-actions">
+      <a href="../index.html" class="btn">← Back to Diagram</a>
+      <button class="btn" id="themeToggle">Toggle Theme</button>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="playground-layout">
+      <div class="playground-sidebar">
+        <div class="draft-list-card">
+          <h4>Your Drafts</h4>
+          <div id="draftList"></div>
+          <button class="new-draft-btn" onclick="Playground.newDraft()">+ New Draft</button>
+        </div>
+
+        <div class="draft-list-card">
+          <h4>Quick Templates</h4>
+          <div class="draft-item" onclick="Playground.loadTemplate('engine')">
+            <div class="draft-item-title">Engine Page</div>
+            <div class="draft-item-meta">Standard engine detail page</div>
+          </div>
+          <div class="draft-item" onclick="Playground.loadTemplate('lesson')">
+            <div class="draft-item-title">Lesson Card</div>
+            <div class="draft-item-meta">Code lesson with examples</div>
+          </div>
+          <div class="draft-item" onclick="Playground.loadTemplate('dashboard')">
+            <div class="draft-item-title">Dashboard Section</div>
+            <div class="draft-item-meta">Data cards with status</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="playground-main">
+        <div class="pg-title-row">
+          <input type="text" id="pgTitle" class="pg-title-input" placeholder="Draft title...">
+          <div class="pg-actions">
+            <button class="pg-btn pg-btn-primary" onclick="Playground.save()">Save</button>
+            <button class="pg-btn pg-btn-secondary" onclick="Playground.preview()">Preview</button>
+            <button class="pg-btn pg-btn-review" onclick="Playground.submitReview()">AI Review</button>
+            <button class="pg-btn pg-btn-danger" onclick="Playground.deleteDraft()">Delete</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="editor-tabs">
+            <button class="editor-tab active" id="tabHtml" onclick="Playground.switchTab('html')">HTML</button>
+            <button class="editor-tab" id="tabCss" onclick="Playground.switchTab('css')">CSS</button>
+            <button class="editor-tab" id="tabPreview" onclick="Playground.switchTab('preview')">Preview</button>
+            <button class="editor-tab" id="tabReview" onclick="Playground.switchTab('review')">AI Review</button>
+          </div>
+
+          <textarea id="htmlEditor" class="pg-code-area" placeholder="Write your HTML here..."></textarea>
+          <textarea id="cssEditor" class="pg-code-area hidden" placeholder="Write your CSS here (optional)..."></textarea>
+
+          <div id="previewPanel" class="preview-frame hidden">
+            <iframe id="previewFrame" sandbox="allow-same-origin"></iframe>
+          </div>
+
+          <div id="reviewPanel" class="review-panel hidden">
+            <h4>AI Review Feedback</h4>
+            <div id="reviewContent" class="review-content">
+              No review yet. Click "AI Review" to submit your draft for analysis.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>Geo-Arts Curriculum System • Playground</p>
+  </footer>
+
+  <script src="../scripts/main.js"></script>
+  <script>
+    const Playground = {
+      currentDraftKey: null,
+      activeTab: 'html',
+
+      templates: {
+        engine: {
+          title: 'New Engine Page',
+          html: `<header class="header">\n  <div>\n    <h1>Engine Name</h1>\n    <span class="subtitle">Description here</span>\n  </div>\n</header>\n\n<main class="page-content">\n  <section class="section-card">\n    <h3><span class="health-indicator healthy"></span> Feature Name</h3>\n    <p class="card-desc">Describe what this feature does</p>\n    <div class="tool-list">\n      <div class="tool">\n        <span class="health-indicator healthy"></span>\n        <span>Tool 1</span>\n      </div>\n      <div class="tool">\n        <span class="health-indicator warning"></span>\n        <span>Tool 2</span>\n      </div>\n    </div>\n  </section>\n</main>`,
+          css: ''
+        },
+        lesson: {
+          title: 'New Lesson',
+          html: `<section class="section-card lesson-card">\n  <div class="lesson-header">\n    <span class="lesson-number">1</span>\n    <h3>Lesson Title</h3>\n    <span class="badge healthy">Beginner</span>\n  </div>\n  <p class="card-desc">What students will learn</p>\n  \n  <div class="lesson-content">\n    <h4>Concept: Topic Name</h4>\n    <p>Explain the concept here</p>\n    \n    <div class="code-example">\n      <pre><code>// Your code example here\nconst example = "hello";\nconsole.log(example);</code></pre>\n    </div>\n\n    <div class="lesson-note">\n      <strong>Key Takeaway:</strong> What to remember from this lesson.\n    </div>\n  </div>\n</section>`,
+          css: ''
+        },
+        dashboard: {
+          title: 'Dashboard Section',
+          html: `<section class="section-card">\n  <h3><span class="health-indicator healthy"></span> Dashboard Overview</h3>\n  <p class="card-desc">System status at a glance</p>\n  \n  <table class="func-table">\n    <thead>\n      <tr>\n        <th>Component</th>\n        <th>Status</th>\n        <th>Last Updated</th>\n      </tr>\n    </thead>\n    <tbody>\n      <tr>\n        <td>Knowledge Graph</td>\n        <td><span class="badge healthy">Online</span></td>\n        <td>2 min ago</td>\n      </tr>\n      <tr>\n        <td>RWI System</td>\n        <td><span class="badge warning">Processing</span></td>\n        <td>5 min ago</td>\n      </tr>\n      <tr>\n        <td>Lesson Builder</td>\n        <td><span class="badge healthy">Online</span></td>\n        <td>1 min ago</td>\n      </tr>\n    </tbody>\n  </table>\n</section>`,
+          css: ''
+        }
+      },
+
+      init() {
+        this.loadDraftList();
+        this.newDraft();
+      },
+
+      generateKey() {
+        return 'draft-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+      },
+
+      async loadDraftList() {
+        try {
+          const res = await fetch('/api/playground/drafts');
+          const drafts = await res.json();
+          const list = document.getElementById('draftList');
+
+          if (drafts.length === 0) {
+            list.innerHTML = '<div style="color:var(--text-muted);font-size:0.8125rem;padding:0.5rem 0;">No drafts yet</div>';
+            return;
+          }
+
+          list.innerHTML = drafts.map(d => `
+            <div class="draft-item ${d.draft_key === this.currentDraftKey ? 'active' : ''}" 
+                 onclick="Playground.loadDraft('${d.draft_key}')">
+              <div class="draft-item-title">${this.esc(d.title)}</div>
+              <div class="draft-item-meta">
+                <span class="draft-status ${d.status}">${d.status}</span>
+              </div>
+            </div>
+          `).join('');
+        } catch (err) {
+          console.error(err);
+        }
+      },
+
+      newDraft() {
+        this.currentDraftKey = this.generateKey();
+        document.getElementById('pgTitle').value = '';
+        document.getElementById('htmlEditor').value = '';
+        document.getElementById('cssEditor').value = '';
+        document.getElementById('reviewContent').textContent = 'No review yet. Click "AI Review" to submit your draft for analysis.';
+        this.switchTab('html');
+      },
+
+      loadTemplate(name) {
+        const t = this.templates[name];
+        if (!t) return;
+        this.currentDraftKey = this.generateKey();
+        document.getElementById('pgTitle').value = t.title;
+        document.getElementById('htmlEditor').value = t.html;
+        document.getElementById('cssEditor').value = t.css;
+        this.switchTab('html');
+      },
+
+      async loadDraft(key) {
+        try {
+          const res = await fetch(`/api/playground/drafts/${key}`);
+          const draft = await res.json();
+          if (!draft.exists) return;
+
+          this.currentDraftKey = key;
+          document.getElementById('pgTitle').value = draft.title;
+          document.getElementById('htmlEditor').value = draft.html_content;
+          document.getElementById('cssEditor').value = draft.css_content || '';
+          document.getElementById('reviewContent').textContent = draft.review_feedback || 'No review yet.';
+          this.loadDraftList();
+          this.switchTab('html');
+        } catch (err) {
+          console.error(err);
+        }
+      },
+
+      async save() {
+        const title = document.getElementById('pgTitle').value.trim() || 'Untitled Draft';
+        const html = document.getElementById('htmlEditor').value;
+        const css = document.getElementById('cssEditor').value;
+
+        try {
+          const res = await fetch(`/api/playground/drafts/${this.currentDraftKey}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, html_content: html, css_content: css })
+          });
+          const result = await res.json();
+          if (result.success) {
+            this.loadDraftList();
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      },
+
+      preview() {
+        this.switchTab('preview');
+        const html = document.getElementById('htmlEditor').value;
+        const css = document.getElementById('cssEditor').value;
+        const frame = document.getElementById('previewFrame');
+
+        const content = `<!DOCTYPE html>
+<html><head>
+<link rel="stylesheet" href="/styles/main.css">
+<style>${css}</style>
+</head><body>${html}</body></html>`;
+
+        frame.srcdoc = content;
+      },
+
+      async submitReview() {
+        const title = document.getElementById('pgTitle').value.trim() || 'Untitled';
+        const html = document.getElementById('htmlEditor').value;
+        const css = document.getElementById('cssEditor').value;
+
+        if (!html.trim()) {
+          alert('Write some HTML content first before requesting a review.');
+          return;
+        }
+
+        await this.save();
+        this.switchTab('review');
+
+        const reviewEl = document.getElementById('reviewContent');
+        reviewEl.innerHTML = '<div class="review-loading"><div class="spinner"></div><div>AI is reviewing your draft...</div></div>';
+
+        try {
+          const res = await fetch('/api/playground/review', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title,
+              html_content: html,
+              css_content: css,
+              draft_key: this.currentDraftKey
+            })
+          });
+          const result = await res.json();
+          if (result.success) {
+            reviewEl.textContent = result.feedback;
+            this.loadDraftList();
+          } else {
+            reviewEl.textContent = 'Error getting review: ' + (result.error || 'Unknown error');
+          }
+        } catch (err) {
+          reviewEl.textContent = 'Error connecting to review service.';
+          console.error(err);
+        }
+      },
+
+      async deleteDraft() {
+        if (!confirm('Delete this draft?')) return;
+        try {
+          await fetch(`/api/playground/drafts/${this.currentDraftKey}`, { method: 'DELETE' });
+          this.newDraft();
+          this.loadDraftList();
+        } catch (err) {
+          console.error(err);
+        }
+      },
+
+      switchTab(tab) {
+        this.activeTab = tab;
+        document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('htmlEditor').classList.add('hidden');
+        document.getElementById('cssEditor').classList.add('hidden');
+        document.getElementById('previewPanel').classList.add('hidden');
+        document.getElementById('reviewPanel').classList.add('hidden');
+
+        if (tab === 'html') {
+          document.getElementById('tabHtml').classList.add('active');
+          document.getElementById('htmlEditor').classList.remove('hidden');
+        } else if (tab === 'css') {
+          document.getElementById('tabCss').classList.add('active');
+          document.getElementById('cssEditor').classList.remove('hidden');
+        } else if (tab === 'preview') {
+          document.getElementById('tabPreview').classList.add('active');
+          document.getElementById('previewPanel').classList.remove('hidden');
+          this.preview();
+        } else if (tab === 'review') {
+          document.getElementById('tabReview').classList.add('active');
+          document.getElementById('reviewPanel').classList.remove('hidden');
+        }
+      },
+
+      esc(str) {
+        const d = document.createElement('div');
+        d.textContent = str || '';
+        return d.innerHTML;
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => Playground.init());
+  </script>
+</body>
+</html>

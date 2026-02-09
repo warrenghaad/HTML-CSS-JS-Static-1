@@ -126,6 +126,23 @@ The Governance page includes an in-page pop-out editor for the System Functional
 ### Database Tables
 - `documents` - Current document state (doc_key, title, content)
 - `document_versions` - Version history (version_number, content, save_note, timestamp)
+- `playground_drafts` - Sandbox drafts (draft_key, title, html_content, css_content, status, review_feedback)
+
+## Playground & AI Review
+
+The Playground page (`pages/playground.html`) provides a sandbox for experimenting:
+- Write HTML/CSS in a code editor with tabs
+- Preview rendered output in an iframe
+- Submit drafts for AI review (OpenAI integration via Replit AI Integrations)
+- Save/load multiple drafts with status tracking
+- Quick templates for Engine Page, Lesson Card, and Dashboard Section
+
+### Playground API Endpoints
+- `GET /api/playground/drafts` - List all drafts
+- `GET /api/playground/drafts/<key>` - Load a draft
+- `PUT /api/playground/drafts/<key>` - Save a draft
+- `DELETE /api/playground/drafts/<key>` - Delete a draft
+- `POST /api/playground/review` - Submit draft for AI review
 
 ## User Preferences
 
@@ -133,6 +150,7 @@ The Governance page includes an in-page pop-out editor for the System Functional
 - **Multi-page app structure**: Separate HTML files, not SPA
 - **Learning-focused**: Code serves as tutorial material
 - **In-page editing**: Documents should be editable with versioning
+- **Sandbox workflow**: Experiment in playground, get AI review before promoting
 
 ## Running the Project
 
