@@ -4,8 +4,8 @@
 A learning-focused project management documentation space that serves as both a tutorial for web development (HTML/CSS/JS) and a visual diagram of the Geo-Arts educational curriculum backend system.
 
 **Created:** February 4, 2026  
-**Updated:** February 5, 2026  
-**Status:** Complete end-goal example with lessons
+**Updated:** February 10, 2026  
+**Status:** Complete end-goal example with lessons + production dashboard
 
 ## Purpose
 This project has two goals:
@@ -23,7 +23,9 @@ This project has two goals:
 │   ├── rwi-system.html           - RWI (Research/Writing/Image) System
 │   ├── lesson-builder.html       - Lesson Builder engine
 │   ├── teacher-student.html      - Teacher/Student facing interface
-│   └── lessons.html              - Web development lessons
+│   ├── lessons.html              - Web development lessons
+│   ├── playground.html           - Code sandbox with AI review
+│   └── production-dashboard.html - 48-lesson production workflow tracker
 ├── styles/
 │   └── main.css                  - Shared stylesheet (1800+ lines)
 ├── scripts/
@@ -143,6 +145,35 @@ The Playground page (`pages/playground.html`) provides a sandbox for experimenti
 - `PUT /api/playground/drafts/<key>` - Save a draft
 - `DELETE /api/playground/drafts/<key>` - Delete a draft
 - `POST /api/playground/review` - Submit draft for AI review
+
+## Production Dashboard (Section 1)
+
+The Production Dashboard (`pages/production-dashboard.html`) tracks the 48 Mesopotamia lesson production workflow:
+- **Overall Progress Bar** - Visual completion tracker across all 432 tasks
+- **Project Stats Grid** - Live counts (lessons, tasks, artifacts, images, myths, math, activities)
+- **9 Team Cards** - Each team with progress bar and task counts
+- **Lesson Pipeline Table** - All 48 lessons showing status across 9 stages (clickable to update)
+- **Unit Filters** - Filter pipeline by 8 curriculum units
+
+### Production Database Tables
+- `production_lessons` - 48 lessons (lesson_number, title, unit, status)
+- `production_teams` - 9 teams (team_number, name, description, color, category)
+- `production_tasks` - 432 tasks linking lessons to teams (lesson_id, team_id, task_type, status)
+
+### Production API Endpoints
+- `GET /api/production/stats` - Aggregated project statistics
+- `GET /api/production/teams` - Teams with computed progress
+- `GET /api/production/lessons` - All lessons with per-team stage status
+- `PUT /api/production/tasks/<id>` - Update task status
+- `GET /api/production/tasks/by-lesson/<lesson_id>/<team_number>` - Lookup task by lesson/team
+- `PUT /api/production/lessons/<id>` - Update lesson status
+
+### Planned Sections (Not Yet Built)
+- Section 2: Variables Spreadsheet
+- Section 3: Asset Manager
+- Section 4: Content Pipeline
+- Section 5: Lesson Assembly
+- Section 6: QA Review System
 
 ## User Preferences
 
