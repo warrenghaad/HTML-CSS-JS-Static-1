@@ -111,6 +111,28 @@ def init_db():
             updated_at TIMESTAMP DEFAULT NOW()
         )
     ''')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS production_assets (
+            id SERIAL PRIMARY KEY,
+            lesson_id INTEGER REFERENCES production_lessons(id),
+            asset_type VARCHAR(30) NOT NULL,
+            title VARCHAR(255) NOT NULL DEFAULT '',
+            description TEXT DEFAULT '',
+            source VARCHAR(255) DEFAULT '',
+            source_url TEXT DEFAULT '',
+            license VARCHAR(100) DEFAULT '',
+            status VARCHAR(30) DEFAULT 'planned',
+            filename VARCHAR(255) DEFAULT '',
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        )
+    ''')
+    cur.execute('''
+        CREATE INDEX IF NOT EXISTS idx_assets_lesson ON production_assets(lesson_id)
+    ''')
+    cur.execute('''
+        CREATE INDEX IF NOT EXISTS idx_assets_type ON production_assets(asset_type)
+    ''')
     cur.close()
     conn.close()
 
@@ -184,6 +206,7 @@ def seed_production_data():
     cur.execute('SELECT COUNT(*) as cnt FROM production_teams')
     if cur.fetchone()['cnt'] > 0:
         seed_lesson_variables(cur)
+        seed_assets(cur)
         cur.close()
         conn.close()
         return
@@ -369,8 +392,62 @@ def seed_production_data():
                 VALUES (%s, %s, %s, 'not_started')
             ''', (lesson['id'], team['id'], task_type))
 
+    seed_assets(cur)
+
     cur.close()
     conn.close()
+
+def seed_assets(cur):
+    cur.execute('SELECT COUNT(*) as cnt FROM production_assets')
+    if cur.fetchone()['cnt'] > 0:
+        return
+    cur.execute('SELECT id, lesson_number, title, artifact, god FROM production_lessons ORDER BY lesson_number')
+    all_lessons = cur.fetchall()
+
+    museums = ['Metropolitan Museum', 'British Museum', 'Louvre', 'Penn Museum', 'Oriental Institute']
+
+    for i, lesson in enumerate(all_lessons):
+        lid = lesson['id']
+        artifact_name = lesson['artifact'] or f"Artifact {lesson['lesson_number']}"
+        god_name = lesson['god'] or 'Unknown'
+        museum = museums[i % len(museums)]
+
+        cur.execute('''
+            INSERT INTO production_assets (lesson_id, asset_type, title, description, source, license, status)
+            VALUES (%s, 'artifact', %s, %s, %s, 'Public Domain', 'planned')
+        ''', (lid, artifact_name, f'Primary artifact for lesson {lesson["lesson_number"]}', museum))
+        cur.execute('''
+            INSERT INTO production_assets (lesson_id, asset_type, title, description, source, license, status)
+            VALUES (%s, 'artifact', %s, %s, %s, 'Public Domain', 'planned')
+        ''', (lid, f'{artifact_name} - Detail View', f'Detail photograph of {artifact_name}', museum))
+        cur.execute('''
+            INSERT INTO production_assets (lesson_id, asset_type, title, description, source, license, status)
+            VALUES (%s, 'artifact', %s, %s, %s, 'Public Domain', 'planned')
+        ''', (lid, f'{artifact_name} - Context', f'Contextual view showing {artifact_name} in museum setting', museum))
+
+        for j, img_type in enumerate(['Hero image', 'Artifact photo 1', 'Artifact photo 2', 'Background texture', 'Map/diagram']):
+            cur.execute('''
+                INSERT INTO production_assets (lesson_id, asset_type, title, description, source, status)
+                VALUES (%s, 'download', %s, %s, %s, 'planned')
+            ''', (lid, f'{img_type} - L{lesson["lesson_number"]}', f'{img_type} for {lesson["title"]}', f'{museum} Digital Archive'))
+
+        gen_items = [
+            (f'{god_name} character portrait', 'myth_character', 'Gemini API'),
+            (f'{god_name} in scene', 'myth_character', 'Gemini API'),
+            (f'Geometric concept diagram', 'concept_diagram', 'OpenAI API'),
+            (f'Activity step illustration', 'activity_visual', 'OpenAI API'),
+        ]
+        for title_g, desc, src in gen_items:
+            cur.execute('''
+                INSERT INTO production_assets (lesson_id, asset_type, title, description, source, status)
+                VALUES (%s, 'generated', %s, %s, %s, 'planned')
+            ''', (lid, f'{title_g} - L{lesson["lesson_number"]}', desc, src))
+
+        for ov_type in ['Primary geometric overlay', 'Measurement labels overlay']:
+            cur.execute('''
+                INSERT INTO production_assets (lesson_id, asset_type, title, description, status)
+                VALUES (%s, 'overlay', %s, %s, 'planned')
+            ''', (lid, f'{ov_type} - L{lesson["lesson_number"]}', f'SVG overlay for {lesson["title"]}'))
 
 @app.route('/')
 def serve_index():
@@ -880,6 +957,150 @@ def update_lesson_variables(lesson_id):
     if not lesson:
         return jsonify({'error': 'Lesson not found'}), 404
     return jsonify(dict(lesson))
+
+ASSET_STATUSES = ('planned', 'sourced', 'downloaded', 'ready', 'rejected')
+
+@app.route('/api/production/assets/stats', methods=['GET'])
+def asset_stats():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        SELECT asset_type,
+            COUNT(*) as total,
+            COUNT(*) FILTER (WHERE status = 'ready') as ready,
+            COUNT(*) FILTER (WHERE status = 'sourced') as sourced,
+            COUNT(*) FILTER (WHERE status = 'downloaded') as downloaded,
+            COUNT(*) FILTER (WHERE status = 'planned') as planned,
+            COUNT(*) FILTER (WHERE status = 'rejected') as rejected
+        FROM production_assets
+        GROUP BY asset_type
+        ORDER BY asset_type
+    ''')
+    by_type = cur.fetchall()
+    cur.execute('''
+        SELECT COUNT(*) as total,
+            COUNT(*) FILTER (WHERE status = 'ready') as ready
+        FROM production_assets
+    ''')
+    overall = cur.fetchone()
+    cur.close()
+    conn.close()
+    return jsonify({'by_type': by_type, 'overall': dict(overall)})
+
+@app.route('/api/production/assets', methods=['GET'])
+def list_assets():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    asset_type = request.args.get('type', '')
+    lesson_id = request.args.get('lesson_id', '')
+    status = request.args.get('status', '')
+
+    where_parts = []
+    params = []
+    if asset_type:
+        where_parts.append("a.asset_type = %s")
+        params.append(asset_type)
+    if lesson_id:
+        where_parts.append("a.lesson_id = %s")
+        params.append(int(lesson_id))
+    if status:
+        where_parts.append("a.status = %s")
+        params.append(status)
+
+    where_clause = (' WHERE ' + ' AND '.join(where_parts)) if where_parts else ''
+
+    cur.execute(f'''
+        SELECT a.*, pl.lesson_number, pl.title as lesson_title, pl.unit
+        FROM production_assets a
+        JOIN production_lessons pl ON a.lesson_id = pl.id
+        {where_clause}
+        ORDER BY pl.lesson_number, a.asset_type, a.id
+    ''', params)
+    assets = cur.fetchall()
+    cur.close()
+    conn.close()
+    for a in assets:
+        a['created_at'] = a['created_at'].isoformat() if a.get('created_at') else None
+        a['updated_at'] = a['updated_at'].isoformat() if a.get('updated_at') else None
+    return jsonify(assets)
+
+@app.route('/api/production/assets', methods=['POST'])
+def create_asset():
+    data = request.get_json()
+    lesson_id = data.get('lesson_id')
+    asset_type = data.get('asset_type', 'artifact')
+    title = data.get('title', '')
+    if not lesson_id or not title:
+        return jsonify({'error': 'lesson_id and title required'}), 400
+    if asset_type not in ('artifact', 'download', 'generated', 'overlay'):
+        return jsonify({'error': 'Invalid asset_type'}), 400
+    status = data.get('status', 'planned')
+    if status not in ASSET_STATUSES:
+        return jsonify({'error': f'Invalid status. Use: {ASSET_STATUSES}'}), 400
+
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        INSERT INTO production_assets (lesson_id, asset_type, title, description, source, source_url, license, status, filename)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING *
+    ''', (lesson_id, asset_type, title,
+          data.get('description', ''), data.get('source', ''),
+          data.get('source_url', ''), data.get('license', ''),
+          status, data.get('filename', '')))
+    asset = cur.fetchone()
+    cur.close()
+    conn.close()
+    asset['created_at'] = asset['created_at'].isoformat() if asset.get('created_at') else None
+    asset['updated_at'] = asset['updated_at'].isoformat() if asset.get('updated_at') else None
+    return jsonify(dict(asset)), 201
+
+@app.route('/api/production/assets/<int:asset_id>', methods=['PUT'])
+def update_asset(asset_id):
+    data = request.get_json()
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    allowed = ['title', 'description', 'source', 'source_url', 'license', 'status', 'filename']
+    set_parts = []
+    values = []
+    for col in allowed:
+        if col in data:
+            if col == 'status' and data[col] not in ASSET_STATUSES:
+                cur.close()
+                conn.close()
+                return jsonify({'error': f'Invalid status. Use: {ASSET_STATUSES}'}), 400
+            set_parts.append(f"{col} = %s")
+            values.append(data[col])
+    if not set_parts:
+        cur.close()
+        conn.close()
+        return jsonify({'error': 'No fields to update'}), 400
+    set_parts.append("updated_at = NOW()")
+    values.append(asset_id)
+    cur.execute(f'''
+        UPDATE production_assets SET {', '.join(set_parts)}
+        WHERE id = %s RETURNING *
+    ''', values)
+    asset = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not asset:
+        return jsonify({'error': 'Asset not found'}), 404
+    asset['created_at'] = asset['created_at'].isoformat() if asset.get('created_at') else None
+    asset['updated_at'] = asset['updated_at'].isoformat() if asset.get('updated_at') else None
+    return jsonify(dict(asset))
+
+@app.route('/api/production/assets/<int:asset_id>', methods=['DELETE'])
+def delete_asset(asset_id):
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('DELETE FROM production_assets WHERE id = %s RETURNING id', (asset_id,))
+    deleted = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not deleted:
+        return jsonify({'error': 'Asset not found'}), 404
+    return jsonify({'deleted': True, 'id': asset_id})
 
 with app.app_context():
     init_db()

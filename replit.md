@@ -26,7 +26,8 @@ This project has two goals:
 │   ├── lessons.html              - Web development lessons
 │   ├── playground.html           - Code sandbox with AI review
 │   ├── production-dashboard.html - 48-lesson production workflow tracker
-│   └── variables-spreadsheet.html - Editable lesson variables (Section 2)
+│   ├── variables-spreadsheet.html - Editable lesson variables (Section 2)
+│   └── asset-manager.html        - Visual asset tracking (Section 3)
 ├── styles/
 │   └── main.css                  - Shared stylesheet (1800+ lines)
 ├── scripts/
@@ -183,8 +184,28 @@ The Variables Spreadsheet (`pages/variables-spreadsheet.html`) defines key varia
 - `GET /api/production/variables` - All lessons with variable data
 - `PUT /api/production/variables/<id>` - Update variable fields for a lesson
 
+## Asset Manager (Section 3)
+
+The Asset Manager (`pages/asset-manager.html`) tracks all visual assets across the 48 lessons:
+- **672 Seeded Assets** across 4 categories: Artifacts (144), Downloads (240), AI Generated (192), Overlays (96)
+- **Stats Overview** - Total count and ready percentage per asset type with progress bars
+- **Category Tabs** - Filter by artifact, download, generated, or overlay
+- **Grouped by Lesson** - Assets organized under lesson headers with number badges
+- **Status Cycling** - Click status chip to advance: planned → sourced → downloaded → ready
+- **Add/Edit/Delete** - Full CRUD via modal form with all asset metadata fields
+- **Search & Filter** - Filter by lesson, status, or keyword search
+
+### Asset Database Table
+- `production_assets` - Individual asset records (lesson_id, asset_type, title, description, source, source_url, license, status, filename)
+
+### Asset API Endpoints
+- `GET /api/production/assets/stats` - Aggregated counts by type and status
+- `GET /api/production/assets` - List assets with optional filters (?type=, ?lesson_id=, ?status=)
+- `POST /api/production/assets` - Create a new asset
+- `PUT /api/production/assets/<id>` - Update asset fields
+- `DELETE /api/production/assets/<id>` - Remove an asset
+
 ### Planned Sections (Not Yet Built)
-- Section 3: Asset Manager
 - Section 4: Content Pipeline
 - Section 5: Lesson Assembly
 - Section 6: QA Review System
