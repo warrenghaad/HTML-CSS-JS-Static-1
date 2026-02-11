@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson Assembly - Geo-Arts Production</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <style>
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+      background: linear-gradient(to bottom, rgba(15,20,32,0.9), rgba(15,20,32,0.7));
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    body.light .top-bar {
+      background: linear-gradient(to bottom, rgba(245,247,250,0.95), rgba(245,247,250,0.8));
+    }
+    .top-bar .logo {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .top-bar .nav-links {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .top-bar .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.8rem;
+      transition: color 0.15s;
+    }
+    .top-bar .nav-links a:hover { color: var(--accent); }
+    .top-bar .theme-toggle {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+    .top-bar .theme-toggle:hover { border-color: var(--accent); color: var(--text); }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 3rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    .la-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .la-header h2 { margin: 0; color: var(--accent); }
+    .la-header p { color: var(--text-muted); font-size: 0.85rem; margin: 0.25rem 0 0; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .la-stat {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      text-align: center;
+    }
+    .la-stat .big-num {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1.1;
+    }
+    .la-stat .stat-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 0.25rem;
+    }
+    .la-stat .stat-bar-bg {
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      margin-top: 0.5rem;
+    }
+    .la-stat .stat-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.5s;
+    }
+
+    .overall-progress {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .overall-progress h4 {
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      font-size: 0.875rem;
+    }
+    .overall-bar-bg {
+      width: 100%;
+      height: 16px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    .overall-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #4CAF50);
+      border-radius: 8px;
+      transition: width 0.8s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      min-width: 0;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .filter-bar input, .filter-bar select {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 0.45rem 0.65rem;
+      font-size: 0.8rem;
+    }
+    .filter-bar input:focus, .filter-bar select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .filter-bar input { width: 220px; }
+
+    .lessons-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .lesson-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      transition: border-color 0.2s;
+    }
+    .lesson-card:hover { border-color: rgba(255,255,255,0.18); }
+
+    .lesson-card-head {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.65rem;
+    }
+    .lesson-badge {
+      background: #00bcd4;
+      color: #000;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .lesson-card-title {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text);
+      flex: 1;
+      line-height: 1.3;
+    }
+    .lesson-unit-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.06);
+      padding: 0.15rem 0.45rem;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    .checklist-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 0.78rem;
+    }
+    .checklist-row:last-of-type { border-bottom: none; }
+    .comp-name {
+      flex: 1;
+      color: var(--text);
+      font-size: 0.78rem;
+    }
+    .comp-notes {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .status-chip {
+      font-size: 0.6rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 3px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .status-chip:hover { opacity: 0.75; }
+    .status-chip.s-pending { background: rgba(136,136,136,0.2); color: #888; }
+    .status-chip.s-in_progress { background: rgba(251,192,45,0.2); color: #FBC02D; }
+    .status-chip.s-complete { background: rgba(76,175,80,0.2); color: #4CAF50; }
+    .status-chip.s-blocked { background: rgba(244,67,54,0.2); color: #f44336; }
+
+    .mini-progress {
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .mini-bar-bg {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .mini-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: #4CAF50;
+      transition: width 0.4s;
+    }
+    .mini-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      grid-column: 1 / -1;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.8125rem;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .stats-row { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .lessons-grid { grid-template-columns: 1fr; }
+      .container { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="logo">Geo-Arts Curriculum System</div>
+    <div class="nav-links">
+      <a href="../index.html">Home</a>
+      <a href="production-dashboard.html">Dashboard</a>
+      <a href="variables-spreadsheet.html">Variables</a>
+      <a href="asset-manager.html">Assets</a>
+      <a href="content-pipeline.html">Content</a>
+      <a href="lesson-assembly.html">Assembly</a>
+      <a href="snapshot.html">QA</a>
+      <a href="governance.html">Governance</a>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+
+  <div class="container">
+    <a href="production-dashboard.html" class="back-link">&larr; Back to Dashboard</a>
+
+    <div class="la-header">
+      <div>
+        <h2>Lesson Assembly</h2>
+        <p>Section 5: Track component readiness for each of the 48 lessons before final assembly.</p>
+      </div>
+    </div>
+
+    <div class="stats-row" id="statsRow"></div>
+
+    <div class="overall-progress">
+      <h4>Overall Assembly Progress</h4>
+      <div class="overall-bar-bg">
+        <div class="overall-bar-fill" id="overallBar" style="width:0%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:0.5rem;font-size:0.75rem;color:var(--text-muted);">
+        <span id="overallText">Loading...</span>
+        <span id="overallPct">0%</span>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <input type="text" id="searchInput" placeholder="Search lessons...">
+      <select id="unitFilter">
+        <option value="">All Units</option>
+      </select>
+      <select id="statusFilter">
+        <option value="">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="in_progress">In Progress</option>
+        <option value="complete">Complete</option>
+        <option value="blocked">Blocked</option>
+      </select>
+    </div>
+
+    <div class="lessons-grid" id="lessonsGrid">
+      <div class="empty-state">Loading assembly data...</div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Geo-Arts Curriculum System &bull; Lesson Assembly</p>
+  </footer>
+
+  <script src="../scripts/main.js"></script>
+  <script>
+    const componentLabels = {
+      artifacts_ready: 'Artifacts Ready',
+      downloads_ready: 'Downloads Ready',
+      content_written: 'Content Written',
+      ai_images_generated: 'AI Images',
+      overlays_designed: 'Overlays Designed',
+      layout_assembled: 'Layout Assembled'
+    };
+
+    const statusCycle = {
+      pending: 'in_progress',
+      in_progress: 'complete',
+      complete: 'blocked',
+      blocked: 'pending'
+    };
+
+    let stats = null;
+    let allItems = [];
+    let units = [];
+
+    function toggleTheme() {
+      document.body.classList.toggle('light');
+      localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
+    }
+
+    if (localStorage.getItem('theme') === 'light') {
+      document.body.classList.add('light');
+    }
+
+    async function init() {
+      const [statsRes, itemsRes] = await Promise.all([
+        fetch('/api/production/assembly/stats'),
+        fetch('/api/production/assembly')
+      ]);
+      stats = await statsRes.json();
+      allItems = await itemsRes.json();
+      extractUnits();
+      renderStats();
+      renderOverall();
+      renderLessons();
+
+      document.getElementById('searchInput').addEventListener('input', renderLessons);
+      document.getElementById('unitFilter').addEventListener('change', renderLessons);
+      document.getElementById('statusFilter').addEventListener('change', loadAndRender);
+    }
+
+    function extractUnits() {
+      const unitSet = new Set();
+      stats.lessons.forEach(l => { if (l.unit) unitSet.add(l.unit); });
+      units = [...unitSet].sort();
+      const sel = document.getElementById('unitFilter');
+      units.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u;
+        opt.textContent = u;
+        sel.appendChild(opt);
+      });
+    }
+
+    function renderStats() {
+      const row = document.getElementById('statsRow');
+      const overall = stats.overall;
+      const comps = stats.by_component;
+
+      const compOrder = ['artifacts_ready', 'downloads_ready', 'content_written', 'ai_images_generated', 'overlays_designed', 'layout_assembled'];
+
+      let html = `<div class="la-stat">
+        <div class="big-num">${overall.total}</div>
+        <div class="stat-sub">Total Checklists</div>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${overall.total > 0 ? Math.round(overall.complete / overall.total * 100) : 0}%;background:var(--accent)"></div></div>
+        <div class="stat-sub">${overall.complete} complete</div>
+      </div>`;
+
+      compOrder.forEach(key => {
+        const c = comps.find(x => x.component === key) || { total: 0, complete: 0 };
+        const pct = c.total > 0 ? Math.round(c.complete / c.total * 100) : 0;
+        html += `<div class="la-stat">
+          <div class="big-num">${c.complete}<span style="font-size:0.9rem;color:var(--text-muted)">/${c.total}</span></div>
+          <div class="stat-sub">${componentLabels[key] || key}</div>
+          <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${pct}%;background:#4CAF50"></div></div>
+          <div class="stat-sub">${pct}% complete</div>
+        </div>`;
+      });
+
+      row.innerHTML = html;
+    }
+
+    function renderOverall() {
+      const o = stats.overall;
+      const pct = o.total > 0 ? Math.round(o.complete / o.total * 100) : 0;
+      document.getElementById('overallBar').style.width = pct + '%';
+      document.getElementById('overallBar').textContent = pct > 5 ? pct + '%' : '';
+      document.getElementById('overallPct').textContent = pct + '%';
+      document.getElementById('overallText').textContent = `${o.complete} of ${o.total} checklist items complete across 48 lessons`;
+    }
+
+    function renderLessons() {
+      const grid = document.getElementById('lessonsGrid');
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const unitFilter = document.getElementById('unitFilter').value;
+      const statusFilter = document.getElementById('statusFilter').value;
+
+      const lessonMap = {};
+      allItems.forEach(item => {
+        if (!lessonMap[item.lesson_id]) {
+          lessonMap[item.lesson_id] = {
+            lesson_id: item.lesson_id,
+            lesson_number: item.lesson_number,
+            lesson_title: item.lesson_title,
+            unit: item.unit,
+            components: []
+          };
+        }
+        lessonMap[item.lesson_id].components.push(item);
+      });
+
+      let lessons = Object.values(lessonMap);
+      lessons.sort((a, b) => a.lesson_number - b.lesson_number);
+
+      if (search) {
+        lessons = lessons.filter(l =>
+          l.lesson_title.toLowerCase().includes(search) ||
+          String(l.lesson_number).includes(search) ||
+          (l.unit || '').toLowerCase().includes(search)
+        );
+      }
+
+      if (unitFilter) {
+        lessons = lessons.filter(l => l.unit === unitFilter);
+      }
+
+      if (statusFilter) {
+        lessons = lessons.filter(l =>
+          l.components.some(c => c.status === statusFilter)
+        );
+      }
+
+      if (lessons.length === 0) {
+        grid.innerHTML = '<div class="empty-state">No lessons match your filters.</div>';
+        return;
+      }
+
+      grid.innerHTML = lessons.map(l => {
+        const completeCount = l.components.filter(c => c.status === 'complete').length;
+        const total = l.components.length;
+        const pct = total > 0 ? Math.round(completeCount / total * 100) : 0;
+
+        const rows = l.components.map(c => `
+          <div class="checklist-row">
+            <span class="comp-name">${componentLabels[c.component] || c.component}</span>
+            ${c.notes ? `<span class="comp-notes" title="${esc(c.notes)}">${esc(c.notes)}</span>` : ''}
+            <span class="status-chip s-${c.status}" onclick="cycleStatus(${c.id}, '${c.status}')">${formatStatus(c.status)}</span>
+          </div>
+        `).join('');
+
+        return `<div class="lesson-card">
+          <div class="lesson-card-head">
+            <div class="lesson-badge">${l.lesson_number}</div>
+            <span class="lesson-card-title">${esc(l.lesson_title)}</span>
+            <span class="lesson-unit-label">${esc(l.unit)}</span>
+          </div>
+          ${rows}
+          <div class="mini-progress">
+            <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
+            <span class="mini-label">${completeCount}/${total}</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function formatStatus(s) {
+      return s.replace(/_/g, ' ');
+    }
+
+    function esc(str) {
+      if (!str) return '';
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    async function cycleStatus(itemId, currentStatus) {
+      const newStatus = statusCycle[currentStatus] || 'pending';
+      await fetch(`/api/production/assembly/${itemId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const [statsRes, itemsRes] = await Promise.all([
+        fetch('/api/production/assembly/stats'),
+        fetch('/api/production/assembly' + buildQueryString())
+      ]);
+      stats = await statsRes.json();
+      allItems = await itemsRes.json();
+      renderStats();
+      renderOverall();
+      renderLessons();
+    }
+
+    function buildQueryString() {
+      const params = new URLSearchParams();
+      const status = document.getElementById('statusFilter').value;
+      if (status) params.set('status', status);
+      const qs = params.toString();
+      return qs ? '?' + qs : '';
+    }
+
+    async function loadAndRender() {
+      const res = await fetch('/api/production/assembly' + buildQueryString());
+      allItems = await res.json();
+      renderLessons();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

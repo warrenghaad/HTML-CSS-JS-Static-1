@@ -27,7 +27,10 @@ This project has two goals:
 │   ├── playground.html           - Code sandbox with AI review
 │   ├── production-dashboard.html - 48-lesson production workflow tracker
 │   ├── variables-spreadsheet.html - Editable lesson variables (Section 2)
-│   └── asset-manager.html        - Visual asset tracking (Section 3)
+│   ├── asset-manager.html        - Visual asset tracking (Section 3)
+│   ├── content-pipeline.html     - Content drafts tracking (Section 4)
+│   ├── lesson-assembly.html      - Component readiness (Section 5)
+│   └── qa-review.html            - Quality assurance checks (Section 6)
 ├── styles/
 │   └── main.css                  - Shared stylesheet (1800+ lines)
 ├── scripts/
@@ -205,10 +208,63 @@ The Asset Manager (`pages/asset-manager.html`) tracks all visual assets across t
 - `PUT /api/production/assets/<id>` - Update asset fields
 - `DELETE /api/production/assets/<id>` - Remove an asset
 
-### Planned Sections (Not Yet Built)
-- Section 4: Content Pipeline
-- Section 5: Lesson Assembly
-- Section 6: QA Review System
+## Content Pipeline (Section 4)
+
+The Content Pipeline (`pages/content-pipeline.html`) tracks content drafts across 48 lessons:
+- **192 Seeded Items** across 4 types: Myths (48), Math (48), Visual Stories (48), Activities (48)
+- **Stats Overview** - Total count and approved percentage per content type
+- **Type Tabs** - Filter by myth, math, visual_story, or activity
+- **Status Cycling** - Click status chip to advance: not_started → drafting → review → revision → approved
+- **Add/Edit/Delete** - Full CRUD via modal form with all content fields
+- **Search & Filter** - Filter by lesson, status, type, or keyword
+- **Assigned Writers** - Track who is writing each piece
+
+### Content Database Table
+- `content_items` - Content records (lesson_id, content_type, title, body, status, assigned_to, word_count, notes)
+
+### Content API Endpoints
+- `GET /api/production/content/stats` - Aggregated counts by type and status
+- `GET /api/production/content` - List items with optional filters (?type=, ?lesson_id=, ?status=)
+- `POST /api/production/content` - Create a new content item
+- `PUT /api/production/content/<id>` - Update content fields
+- `DELETE /api/production/content/<id>` - Remove a content item
+
+## Lesson Assembly (Section 5)
+
+The Lesson Assembly (`pages/lesson-assembly.html`) tracks component readiness for each lesson:
+- **288 Checklist Items** across 6 components per lesson
+- **Overall Progress Bar** - Visual completion tracker
+- **Component Stats** - Per-component completion rates
+- **Lesson Cards** - Each lesson shows 6 checklist items with clickable status
+- **Status Cycling** - Click to advance: pending → in_progress → complete → blocked
+- **Filter by Unit/Status** - Filter cards by curriculum unit or component status
+
+### Assembly Database Table
+- `assembly_checklists` - Checklist records (lesson_id, component, status, notes, completed_at)
+
+### Assembly API Endpoints
+- `GET /api/production/assembly/stats` - Stats with per-lesson completion
+- `GET /api/production/assembly` - List checklist items (?lesson_id=, ?status=)
+- `PUT /api/production/assembly/<id>` - Update status/notes
+
+## QA Review (Section 6)
+
+The QA Review (`pages/qa-review.html`) provides quality assurance checks:
+- **240 QA Checks** across 5 categories per lesson
+- **Overall Pass Rate** - Visual progress of passed checks
+- **Category Stats** - Per-category pass/fail/revision counts
+- **Review Table** - All 48 lessons with 5 category columns showing colored status dots
+- **Click to Cycle** - Status cycles: not_checked → pass → fail → needs_revision
+- **Unit Filters** - Filter by curriculum unit
+- **Summary Badges** - Color-coded counts for each status
+
+### QA Database Table
+- `qa_reviews` - Review records (lesson_id, category, status, reviewer_notes, reviewed_at)
+
+### QA API Endpoints
+- `GET /api/production/qa/stats` - Stats by category with per-lesson info
+- `GET /api/production/qa` - List QA items (?lesson_id=, ?status=, ?category=)
+- `PUT /api/production/qa/<id>` - Update status/reviewer_notes
 
 ## User Preferences
 

@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Asset Manager - Geo-Arts Production</title>
+  <title>Content Pipeline - Geo-Arts Production</title>
   <link rel="stylesheet" href="../styles/main.css">
   <style>
-    .am-header {
+    .cp-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -14,8 +14,8 @@
       gap: 1rem;
       margin-bottom: 1.5rem;
     }
-    .am-header h2 { margin: 0; color: var(--accent); }
-    .am-header p { color: var(--text-muted); font-size: 0.85rem; margin: 0.25rem 0 0; }
+    .cp-header h2 { margin: 0; color: var(--accent); }
+    .cp-header p { color: var(--text-muted); font-size: 0.85rem; margin: 0.25rem 0 0; }
 
     .stats-row {
       display: grid;
@@ -24,33 +24,33 @@
       margin-bottom: 1.5rem;
     }
 
-    .asset-stat {
+    .cp-stat {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 1rem;
       text-align: center;
     }
-    .asset-stat .big-num {
+    .cp-stat .big-num {
       font-size: 1.8rem;
       font-weight: 700;
       color: var(--accent);
       line-height: 1.1;
     }
-    .asset-stat .stat-sub {
+    .cp-stat .stat-sub {
       font-size: 0.7rem;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.04em;
       margin-top: 0.25rem;
     }
-    .asset-stat .stat-bar-bg {
+    .cp-stat .stat-bar-bg {
       height: 4px;
       background: rgba(255,255,255,0.08);
       border-radius: 2px;
       margin-top: 0.5rem;
     }
-    .asset-stat .stat-bar-fill {
+    .cp-stat .stat-bar-fill {
       height: 100%;
       border-radius: 2px;
       transition: width 0.5s;
@@ -73,7 +73,7 @@
       transition: all 0.2s;
     }
     .type-tab:hover { border-color: var(--accent); color: var(--text); }
-    .type-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(212,175,55,0.1); }
+    .type-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(125,211,252,0.1); }
 
     .filter-bar {
       display: flex;
@@ -109,36 +109,36 @@
     }
     .add-btn:hover { opacity: 0.85; }
 
-    .assets-grid {
+    .content-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 0.75rem;
     }
 
-    .asset-card {
+    .content-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 0.85rem;
       transition: border-color 0.2s;
     }
-    .asset-card:hover { border-color: rgba(255,255,255,0.15); }
+    .content-card:hover { border-color: rgba(255,255,255,0.15); }
 
-    .asset-card-head {
+    .content-card-head {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       gap: 0.5rem;
       margin-bottom: 0.5rem;
     }
-    .asset-title {
+    .content-title {
       font-weight: 600;
       font-size: 0.82rem;
       color: var(--text);
       line-height: 1.3;
       flex: 1;
     }
-    .asset-lesson {
+    .content-lesson {
       font-size: 0.65rem;
       color: var(--text-muted);
       background: rgba(255,255,255,0.06);
@@ -147,7 +147,7 @@
       white-space: nowrap;
     }
 
-    .asset-meta {
+    .content-meta {
       display: flex;
       flex-wrap: wrap;
       gap: 0.35rem;
@@ -159,10 +159,10 @@
       border-radius: 3px;
       border: 1px solid rgba(255,255,255,0.1);
     }
-    .meta-chip.type-artifact { color: #ffd54f; border-color: rgba(255,213,79,0.3); }
-    .meta-chip.type-download { color: #4fc3f7; border-color: rgba(79,195,247,0.3); }
-    .meta-chip.type-generated { color: #ba68c8; border-color: rgba(186,104,200,0.3); }
-    .meta-chip.type-overlay { color: #81c784; border-color: rgba(129,199,132,0.3); }
+    .meta-chip.type-myth { color: #E91E63; border-color: rgba(233,30,99,0.3); }
+    .meta-chip.type-math { color: #673AB7; border-color: rgba(103,58,183,0.3); }
+    .meta-chip.type-visual_story { color: #00BCD4; border-color: rgba(0,188,212,0.3); }
+    .meta-chip.type-activity { color: #FF9800; border-color: rgba(255,152,0,0.3); }
 
     .status-chip {
       font-size: 0.65rem;
@@ -173,25 +173,21 @@
       transition: opacity 0.2s;
     }
     .status-chip:hover { opacity: 0.8; }
-    .status-chip.s-planned { background: rgba(158,158,158,0.2); color: #9e9e9e; }
-    .status-chip.s-sourced { background: rgba(79,195,247,0.2); color: #4fc3f7; }
-    .status-chip.s-downloaded { background: rgba(255,183,77,0.2); color: #ffb74d; }
-    .status-chip.s-ready { background: rgba(129,199,132,0.2); color: #81c784; }
-    .status-chip.s-rejected { background: rgba(239,83,80,0.2); color: #ef5350; }
+    .status-chip.s-not_started { background: rgba(158,158,158,0.2); color: #9e9e9e; }
+    .status-chip.s-drafting { background: rgba(251,192,45,0.2); color: #FBC02D; }
+    .status-chip.s-review { background: rgba(33,150,243,0.2); color: #2196F3; }
+    .status-chip.s-revision { background: rgba(255,152,0,0.2); color: #FF9800; }
+    .status-chip.s-approved { background: rgba(76,175,80,0.2); color: #4CAF50; }
 
-    .asset-desc {
+    .content-detail {
       font-size: 0.75rem;
       color: var(--text-muted);
       line-height: 1.3;
       margin-bottom: 0.4rem;
     }
-    .asset-source {
-      font-size: 0.68rem;
-      color: var(--text-muted);
-      opacity: 0.7;
-    }
+    .content-detail span { margin-right: 0.75rem; }
 
-    .asset-actions {
+    .content-actions {
       display: flex;
       gap: 0.35rem;
       margin-top: 0.5rem;
@@ -251,7 +247,7 @@
       font-size: 0.85rem;
       font-family: inherit;
     }
-    .form-group textarea { resize: vertical; min-height: 60px; }
+    .form-group textarea { resize: vertical; min-height: 80px; }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
       outline: none;
       border-color: var(--accent);
@@ -302,7 +298,7 @@
       gap: 0.5rem;
     }
     .lesson-group-header .lg-num {
-      background: var(--accent);
+      background: #00BCD4;
       color: #000;
       width: 24px;
       height: 24px;
@@ -325,7 +321,7 @@
 
     @media (max-width: 768px) {
       .stats-row { grid-template-columns: repeat(2, 1fr); }
-      .assets-grid { grid-template-columns: 1fr; }
+      .content-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -336,9 +332,10 @@
       <a href="../index.html">Home</a>
       <a href="production-dashboard.html">Dashboard</a>
       <a href="variables-spreadsheet.html">Variables</a>
+      <a href="asset-manager.html">Assets</a>
       <a href="content-pipeline.html">Content</a>
-      <a href="lesson-assembly.html">Assembly</a>
-      <a href="qa-review.html">QA</a>
+      <a href="lesson-builder.html">Assembly</a>
+      <a href="snapshot.html">QA</a>
       <a href="governance.html">Governance</a>
     </div>
     <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
@@ -347,165 +344,194 @@
   <div class="container" style="max-width: 1400px;">
     <a href="production-dashboard.html" class="back-link">&larr; Back to Dashboard</a>
 
-    <div class="am-header">
+    <div class="cp-header">
       <div>
-        <h2>Asset Manager</h2>
-        <p>Section 3: Track all visual assets across 48 lessons &mdash; artifacts, downloads, AI-generated images, and geometric overlays.</p>
+        <h2>Content Pipeline</h2>
+        <p>Section 4: Track content drafts across 48 lessons &mdash; myths, math write-ups, visual stories, and activities.</p>
       </div>
     </div>
 
     <div class="stats-row" id="statsRow"></div>
 
     <div class="type-tabs" id="typeTabs">
-      <button class="type-tab active" data-type="">All Assets</button>
-      <button class="type-tab" data-type="artifact">Artifacts (144+)</button>
-      <button class="type-tab" data-type="download">Downloads (2,400+)</button>
-      <button class="type-tab" data-type="generated">AI Generated (1,500+)</button>
-      <button class="type-tab" data-type="overlay">Overlays (400-600)</button>
+      <button class="type-tab active" data-type="">All Content</button>
+      <button class="type-tab" data-type="myth">Myths (48)</button>
+      <button class="type-tab" data-type="math">Math (48)</button>
+      <button class="type-tab" data-type="visual_story">Visual Stories (48)</button>
+      <button class="type-tab" data-type="activity">Activities (48)</button>
     </div>
 
     <div class="filter-bar">
-      <input type="text" id="searchInput" placeholder="Search assets...">
+      <input type="text" id="searchInput" placeholder="Search content...">
       <select id="lessonFilter">
         <option value="">All Lessons</option>
       </select>
       <select id="statusFilter">
         <option value="">All Statuses</option>
-        <option value="planned">Planned</option>
-        <option value="sourced">Sourced</option>
-        <option value="downloaded">Downloaded</option>
-        <option value="ready">Ready</option>
-        <option value="rejected">Rejected</option>
+        <option value="not_started">Not Started</option>
+        <option value="drafting">Drafting</option>
+        <option value="review">Review</option>
+        <option value="revision">Revision</option>
+        <option value="approved">Approved</option>
       </select>
       <select id="groupBy">
         <option value="lesson">Group by Lesson</option>
-        <option value="flat">Flat List</option>
+        <option value="type">Group by Type</option>
       </select>
-      <button class="add-btn" onclick="openAddModal()">+ Add Asset</button>
+      <button class="add-btn" onclick="openAddModal()">+ Add Content</button>
     </div>
 
-    <div class="assets-grid" id="assetsGrid">
-      <div class="empty-state">Loading assets...</div>
+    <div class="content-grid" id="contentGrid">
+      <div class="empty-state">Loading content...</div>
     </div>
   </div>
 
-  <div class="modal-overlay" id="assetModal">
+  <div class="modal-overlay" id="contentModal">
     <div class="modal-box">
-      <h3 id="modalTitle">Add New Asset</h3>
-      <input type="hidden" id="editAssetId">
+      <h3 id="modalTitle">Add New Content</h3>
+      <input type="hidden" id="editContentId">
       <div class="form-group">
         <label>Lesson</label>
         <select id="formLesson"></select>
       </div>
       <div class="form-group">
-        <label>Asset Type</label>
+        <label>Content Type</label>
         <select id="formType">
-          <option value="artifact">Artifact</option>
-          <option value="download">Download</option>
-          <option value="generated">AI Generated</option>
-          <option value="overlay">Overlay</option>
+          <option value="myth">Myth</option>
+          <option value="math">Math</option>
+          <option value="visual_story">Visual Story</option>
+          <option value="activity">Activity</option>
         </select>
       </div>
       <div class="form-group">
         <label>Title</label>
-        <input type="text" id="formTitle" placeholder="Asset title...">
+        <input type="text" id="formTitle" placeholder="Content title...">
       </div>
       <div class="form-group">
-        <label>Description</label>
-        <textarea id="formDesc" placeholder="Brief description..."></textarea>
+        <label>Body</label>
+        <textarea id="formBody" placeholder="Content body..."></textarea>
       </div>
       <div class="form-group">
-        <label>Source</label>
-        <input type="text" id="formSource" placeholder="e.g., British Museum, Gemini API">
+        <label>Assigned To</label>
+        <input type="text" id="formAssigned" placeholder="e.g., Writer name">
       </div>
       <div class="form-group">
-        <label>Source URL</label>
-        <input type="text" id="formUrl" placeholder="https://...">
+        <label>Word Count</label>
+        <input type="number" id="formWordCount" placeholder="0" min="0">
       </div>
       <div class="form-group">
-        <label>License</label>
-        <input type="text" id="formLicense" placeholder="e.g., Public Domain, CC BY">
+        <label>Notes</label>
+        <textarea id="formNotes" placeholder="Additional notes..." style="min-height:50px"></textarea>
       </div>
       <div class="form-group">
         <label>Status</label>
         <select id="formStatus">
-          <option value="planned">Planned</option>
-          <option value="sourced">Sourced</option>
-          <option value="downloaded">Downloaded</option>
-          <option value="ready">Ready</option>
-          <option value="rejected">Rejected</option>
+          <option value="not_started">Not Started</option>
+          <option value="drafting">Drafting</option>
+          <option value="review">Review</option>
+          <option value="revision">Revision</option>
+          <option value="approved">Approved</option>
         </select>
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-        <button class="btn-save" onclick="saveAsset()">Save Asset</button>
+        <button class="btn-save" onclick="saveContent()">Save Content</button>
       </div>
     </div>
   </div>
 
   <script src="../scripts/main.js"></script>
   <script>
-    let allAssets = [];
+    let allContent = [];
     let allLessons = [];
     let currentType = '';
     let stats = null;
 
     const typeColors = {
-      artifact: '#ffd54f',
-      download: '#4fc3f7',
-      generated: '#ba68c8',
-      overlay: '#81c784',
+      myth: '#E91E63',
+      math: '#673AB7',
+      visual_story: '#00BCD4',
+      activity: '#FF9800',
     };
     const typeLabels = {
-      artifact: 'Artifact',
-      download: 'Download',
-      generated: 'AI Generated',
-      overlay: 'Overlay',
+      myth: 'Myth',
+      math: 'Math',
+      visual_story: 'Visual Story',
+      activity: 'Activity',
     };
-    const statusOrder = ['planned', 'sourced', 'downloaded', 'ready', 'rejected'];
+    const statusLabels = {
+      not_started: 'Not Started',
+      drafting: 'Drafting',
+      review: 'Review',
+      revision: 'Revision',
+      approved: 'Approved',
+    };
+    const statusOrder = ['not_started', 'drafting', 'review', 'revision', 'approved'];
     const nextStatus = {
-      planned: 'sourced',
-      sourced: 'downloaded',
-      downloaded: 'ready',
-      ready: 'planned',
-      rejected: 'planned',
+      not_started: 'drafting',
+      drafting: 'review',
+      review: 'revision',
+      revision: 'approved',
+      approved: 'not_started',
     };
+
+    function toggleTheme() {
+      document.body.classList.toggle('light');
+      localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
+    }
+
+    if (localStorage.getItem('theme') === 'light') {
+      document.body.classList.add('light');
+    }
 
     async function init() {
       const [statsRes, lessonsRes] = await Promise.all([
-        fetch('/api/production/assets/stats'),
-        fetch('/api/production/variables'),
+        fetch('/api/production/content/stats'),
+        fetch('/api/production/lessons'),
       ]);
       stats = await statsRes.json();
       allLessons = await lessonsRes.json();
       renderStats();
       populateLessonDropdowns();
-      await loadAssets();
+      await loadContent();
+
+      document.querySelectorAll('.type-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          currentType = tab.dataset.type;
+          loadContent();
+        });
+      });
+
+      document.getElementById('searchInput').addEventListener('input', renderContent);
+      document.getElementById('lessonFilter').addEventListener('change', loadContent);
+      document.getElementById('statusFilter').addEventListener('change', loadContent);
+      document.getElementById('groupBy').addEventListener('change', renderContent);
     }
 
     function renderStats() {
       const row = document.getElementById('statsRow');
       const overall = stats.overall;
-      const overallPct = overall.total > 0 ? Math.round(overall.ready / overall.total * 100) : 0;
+      const overallPct = overall.total > 0 ? Math.round(overall.approved / overall.total * 100) : 0;
 
-      const typeOrder = ['artifact', 'download', 'generated', 'overlay'];
-      const typeTargets = { artifact: '144+', download: '2,400+', generated: '1,500+', overlay: '400-600' };
+      const typeOrder = ['myth', 'math', 'visual_story', 'activity'];
 
-      let html = `<div class="asset-stat">
+      let html = `<div class="cp-stat">
         <div class="big-num">${overall.total}</div>
-        <div class="stat-sub">Total Assets</div>
+        <div class="stat-sub">Total Items</div>
         <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${overallPct}%;background:var(--accent)"></div></div>
-        <div class="stat-sub">${overall.ready} ready (${overallPct}%)</div>
+        <div class="stat-sub">${overall.approved} approved (${overallPct}%)</div>
       </div>`;
 
       typeOrder.forEach(t => {
-        const data = stats.by_type.find(s => s.asset_type === t) || { total: 0, ready: 0 };
-        const pct = data.total > 0 ? Math.round(data.ready / data.total * 100) : 0;
-        html += `<div class="asset-stat">
+        const data = stats.by_type.find(s => s.content_type === t) || { total: 0, approved: 0 };
+        const pct = data.total > 0 ? Math.round(data.approved / data.total * 100) : 0;
+        html += `<div class="cp-stat">
           <div class="big-num" style="color:${typeColors[t]}">${data.total}</div>
-          <div class="stat-sub">${typeLabels[t]}s (target: ${typeTargets[t]})</div>
+          <div class="stat-sub">${typeLabels[t]}s</div>
           <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${pct}%;background:${typeColors[t]}"></div></div>
-          <div class="stat-sub">${data.ready} ready (${pct}%)</div>
+          <div class="stat-sub">${data.approved || 0} approved (${pct}%)</div>
         </div>`;
       });
       row.innerHTML = html;
@@ -524,7 +550,7 @@
       });
     }
 
-    async function loadAssets() {
+    async function loadContent() {
       const params = new URLSearchParams();
       if (currentType) params.set('type', currentType);
       const lessonId = document.getElementById('lessonFilter').value;
@@ -532,67 +558,80 @@
       const status = document.getElementById('statusFilter').value;
       if (status) params.set('status', status);
 
-      const res = await fetch('/api/production/assets?' + params.toString());
-      allAssets = await res.json();
-      renderAssets();
+      const res = await fetch('/api/production/content?' + params.toString());
+      allContent = await res.json();
+      renderContent();
     }
 
-    function renderAssets() {
-      const grid = document.getElementById('assetsGrid');
+    function renderContent() {
+      const grid = document.getElementById('contentGrid');
       const search = document.getElementById('searchInput').value.toLowerCase();
       const groupBy = document.getElementById('groupBy').value;
 
-      let filtered = allAssets;
+      let filtered = allContent;
       if (search) {
-        filtered = filtered.filter(a =>
-          (a.title || '').toLowerCase().includes(search) ||
-          (a.description || '').toLowerCase().includes(search) ||
-          (a.source || '').toLowerCase().includes(search) ||
-          (a.lesson_title || '').toLowerCase().includes(search)
+        filtered = filtered.filter(c =>
+          (c.title || '').toLowerCase().includes(search) ||
+          (c.body || '').toLowerCase().includes(search) ||
+          (c.assigned_to || '').toLowerCase().includes(search) ||
+          (c.lesson_title || '').toLowerCase().includes(search)
         );
       }
 
       if (filtered.length === 0) {
-        grid.innerHTML = '<div class="empty-state">No assets match your filters.</div>';
+        grid.innerHTML = '<div class="empty-state">No content items match your filters.</div>';
         return;
       }
 
       let html = '';
       if (groupBy === 'lesson') {
         let currentLesson = -1;
-        filtered.forEach(a => {
-          if (a.lesson_id !== currentLesson) {
-            currentLesson = a.lesson_id;
+        filtered.forEach(c => {
+          if (c.lesson_id !== currentLesson) {
+            currentLesson = c.lesson_id;
             html += `<div class="lesson-group-header">
-              <span class="lg-num">${a.lesson_number}</span>
-              <span class="lg-title">${esc(a.lesson_title)}</span>
-              <span class="lg-unit">${esc(a.unit)}</span>
+              <span class="lg-num">${c.lesson_number}</span>
+              <span class="lg-title">${esc(c.lesson_title)}</span>
             </div>`;
           }
-          html += renderCard(a);
+          html += renderCard(c);
+        });
+      } else if (groupBy === 'type') {
+        const types = ['myth', 'math', 'visual_story', 'activity'];
+        types.forEach(t => {
+          const items = filtered.filter(c => c.content_type === t);
+          if (items.length === 0) return;
+          html += `<div class="lesson-group-header">
+            <span class="lg-num" style="background:${typeColors[t]}">${items.length}</span>
+            <span class="lg-title">${typeLabels[t]}s</span>
+          </div>`;
+          items.forEach(c => { html += renderCard(c); });
         });
       } else {
-        filtered.forEach(a => { html += renderCard(a); });
+        filtered.forEach(c => { html += renderCard(c); });
       }
       grid.innerHTML = html;
     }
 
-    function renderCard(a) {
-      return `<div class="asset-card" data-id="${a.id}">
-        <div class="asset-card-head">
-          <div class="asset-title">${esc(a.title)}</div>
-          <span class="asset-lesson">L${a.lesson_number}</span>
+    function renderCard(c) {
+      const wordCount = c.word_count || 0;
+      const assignedTo = c.assigned_to || 'Unassigned';
+      return `<div class="content-card" data-id="${c.id}">
+        <div class="content-card-head">
+          <div class="content-title">${esc(c.title)}</div>
+          <span class="content-lesson">L${c.lesson_number}</span>
         </div>
-        <div class="asset-meta">
-          <span class="meta-chip type-${a.asset_type}">${typeLabels[a.asset_type] || a.asset_type}</span>
-          <span class="status-chip s-${a.status}" onclick="cycleStatus(${a.id}, '${a.status}')">${a.status}</span>
-          ${a.license ? `<span class="meta-chip" style="color:var(--text-muted)">${esc(a.license)}</span>` : ''}
+        <div class="content-meta">
+          <span class="meta-chip type-${c.content_type}">${typeLabels[c.content_type] || c.content_type}</span>
+          <span class="status-chip s-${c.status}" onclick="cycleStatus(${c.id}, '${c.status}')">${statusLabels[c.status] || c.status}</span>
         </div>
-        ${a.description ? `<div class="asset-desc">${esc(a.description)}</div>` : ''}
-        ${a.source ? `<div class="asset-source">Source: ${esc(a.source)}</div>` : ''}
-        <div class="asset-actions">
-          <button class="action-btn" onclick="openEditModal(${a.id})">Edit</button>
-          <button class="action-btn delete" onclick="deleteAsset(${a.id})">Delete</button>
+        <div class="content-detail">
+          <span>&#128100; ${esc(assignedTo)}</span>
+          <span>&#128221; ${wordCount} words</span>
+        </div>
+        <div class="content-actions">
+          <button class="action-btn" onclick="openEditModal(${c.id})">Edit</button>
+          <button class="action-btn delete" onclick="deleteContent(${c.id})">Delete</button>
         </div>
       </div>`;
     }
@@ -604,115 +643,101 @@
       return d.innerHTML;
     }
 
-    async function cycleStatus(assetId, currentStatus) {
-      const newStatus = nextStatus[currentStatus] || 'planned';
-      await fetch(`/api/production/assets/${assetId}`, {
+    async function cycleStatus(itemId, currentSt) {
+      const newStatus = nextStatus[currentSt] || 'not_started';
+      await fetch(`/api/production/content/${itemId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
-      const [statsRes] = await Promise.all([fetch('/api/production/assets/stats')]);
+      const statsRes = await fetch('/api/production/content/stats');
       stats = await statsRes.json();
       renderStats();
-      await loadAssets();
+      await loadContent();
     }
 
-    async function deleteAsset(assetId) {
-      if (!confirm('Remove this asset?')) return;
-      await fetch(`/api/production/assets/${assetId}`, { method: 'DELETE' });
-      const statsRes = await fetch('/api/production/assets/stats');
+    async function deleteContent(itemId) {
+      if (!confirm('Delete this content item?')) return;
+      await fetch(`/api/production/content/${itemId}`, { method: 'DELETE' });
+      const statsRes = await fetch('/api/production/content/stats');
       stats = await statsRes.json();
       renderStats();
-      await loadAssets();
+      await loadContent();
     }
 
     function openAddModal() {
-      document.getElementById('modalTitle').textContent = 'Add New Asset';
-      document.getElementById('editAssetId').value = '';
+      document.getElementById('modalTitle').textContent = 'Add New Content';
+      document.getElementById('editContentId').value = '';
       document.getElementById('formTitle').value = '';
-      document.getElementById('formDesc').value = '';
-      document.getElementById('formSource').value = '';
-      document.getElementById('formUrl').value = '';
-      document.getElementById('formLicense').value = '';
-      document.getElementById('formType').value = 'artifact';
-      document.getElementById('formStatus').value = 'planned';
+      document.getElementById('formBody').value = '';
+      document.getElementById('formAssigned').value = '';
+      document.getElementById('formWordCount').value = '';
+      document.getElementById('formNotes').value = '';
+      document.getElementById('formType').value = 'myth';
+      document.getElementById('formStatus').value = 'not_started';
       const lessonFilter = document.getElementById('lessonFilter').value;
       if (lessonFilter) {
         document.getElementById('formLesson').value = lessonFilter;
       }
-      document.getElementById('assetModal').classList.add('show');
+      document.getElementById('contentModal').classList.add('show');
     }
 
-    function openEditModal(assetId) {
-      const a = allAssets.find(x => x.id === assetId);
-      if (!a) return;
-      document.getElementById('modalTitle').textContent = 'Edit Asset';
-      document.getElementById('editAssetId').value = a.id;
-      document.getElementById('formLesson').value = a.lesson_id;
-      document.getElementById('formType').value = a.asset_type;
-      document.getElementById('formTitle').value = a.title || '';
-      document.getElementById('formDesc').value = a.description || '';
-      document.getElementById('formSource').value = a.source || '';
-      document.getElementById('formUrl').value = a.source_url || '';
-      document.getElementById('formLicense').value = a.license || '';
-      document.getElementById('formStatus').value = a.status || 'planned';
-      document.getElementById('assetModal').classList.add('show');
+    function openEditModal(itemId) {
+      const c = allContent.find(x => x.id === itemId);
+      if (!c) return;
+      document.getElementById('modalTitle').textContent = 'Edit Content';
+      document.getElementById('editContentId').value = c.id;
+      document.getElementById('formLesson').value = c.lesson_id;
+      document.getElementById('formType').value = c.content_type;
+      document.getElementById('formTitle').value = c.title || '';
+      document.getElementById('formBody').value = c.body || '';
+      document.getElementById('formAssigned').value = c.assigned_to || '';
+      document.getElementById('formWordCount').value = c.word_count || '';
+      document.getElementById('formNotes').value = c.notes || '';
+      document.getElementById('formStatus').value = c.status || 'not_started';
+      document.getElementById('contentModal').classList.add('show');
     }
 
     function closeModal() {
-      document.getElementById('assetModal').classList.remove('show');
+      document.getElementById('contentModal').classList.remove('show');
     }
 
-    async function saveAsset() {
-      const editId = document.getElementById('editAssetId').value;
+    async function saveContent() {
+      const editId = document.getElementById('editContentId').value;
       const body = {
         lesson_id: parseInt(document.getElementById('formLesson').value),
-        asset_type: document.getElementById('formType').value,
+        content_type: document.getElementById('formType').value,
         title: document.getElementById('formTitle').value,
-        description: document.getElementById('formDesc').value,
-        source: document.getElementById('formSource').value,
-        source_url: document.getElementById('formUrl').value,
-        license: document.getElementById('formLicense').value,
+        body: document.getElementById('formBody').value,
+        assigned_to: document.getElementById('formAssigned').value,
+        word_count: parseInt(document.getElementById('formWordCount').value) || 0,
+        notes: document.getElementById('formNotes').value,
         status: document.getElementById('formStatus').value,
       };
-      if (!body.title) { alert('Title is required'); return; }
 
       if (editId) {
-        await fetch(`/api/production/assets/${editId}`, {
+        await fetch(`/api/production/content/${editId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
+          body: JSON.stringify(body),
         });
       } else {
-        await fetch('/api/production/assets', {
+        await fetch('/api/production/content', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
+          body: JSON.stringify(body),
         });
       }
+
       closeModal();
-      const statsRes = await fetch('/api/production/assets/stats');
+      const statsRes = await fetch('/api/production/content/stats');
       stats = await statsRes.json();
       renderStats();
-      await loadAssets();
+      await loadContent();
     }
 
-    document.querySelectorAll('.type-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        currentType = tab.dataset.type;
-        loadAssets();
-      });
-    });
-
-    document.getElementById('searchInput').addEventListener('input', renderAssets);
-    document.getElementById('lessonFilter').addEventListener('change', loadAssets);
-    document.getElementById('statusFilter').addEventListener('change', loadAssets);
-    document.getElementById('groupBy').addEventListener('change', renderAssets);
-
-    document.getElementById('assetModal').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('assetModal')) closeModal();
+    document.getElementById('contentModal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
     });
 
     init();

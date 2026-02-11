@@ -133,6 +133,49 @@ def init_db():
     cur.execute('''
         CREATE INDEX IF NOT EXISTS idx_assets_type ON production_assets(asset_type)
     ''')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS content_items (
+            id SERIAL PRIMARY KEY,
+            lesson_id INTEGER REFERENCES production_lessons(id),
+            content_type VARCHAR(30) NOT NULL,
+            title VARCHAR(255) NOT NULL DEFAULT '',
+            body TEXT DEFAULT '',
+            status VARCHAR(30) DEFAULT 'not_started',
+            assigned_to VARCHAR(100) DEFAULT '',
+            word_count INTEGER DEFAULT 0,
+            notes TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        )
+    ''')
+    cur.execute('CREATE INDEX IF NOT EXISTS idx_content_lesson ON content_items(lesson_id)')
+    cur.execute('CREATE INDEX IF NOT EXISTS idx_content_type ON content_items(content_type)')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS assembly_checklists (
+            id SERIAL PRIMARY KEY,
+            lesson_id INTEGER REFERENCES production_lessons(id),
+            component VARCHAR(50) NOT NULL,
+            status VARCHAR(30) DEFAULT 'pending',
+            notes TEXT DEFAULT '',
+            completed_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        )
+    ''')
+    cur.execute('CREATE INDEX IF NOT EXISTS idx_assembly_lesson ON assembly_checklists(lesson_id)')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS qa_reviews (
+            id SERIAL PRIMARY KEY,
+            lesson_id INTEGER REFERENCES production_lessons(id),
+            category VARCHAR(50) NOT NULL,
+            status VARCHAR(30) DEFAULT 'not_checked',
+            reviewer_notes TEXT DEFAULT '',
+            reviewed_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        )
+    ''')
+    cur.execute('CREATE INDEX IF NOT EXISTS idx_qa_lesson ON qa_reviews(lesson_id)')
     cur.close()
     conn.close()
 
@@ -207,6 +250,9 @@ def seed_production_data():
     if cur.fetchone()['cnt'] > 0:
         seed_lesson_variables(cur)
         seed_assets(cur)
+        seed_content_items(cur)
+        seed_assembly_checklists(cur)
+        seed_qa_reviews(cur)
         cur.close()
         conn.close()
         return
@@ -393,6 +439,9 @@ def seed_production_data():
             ''', (lesson['id'], team['id'], task_type))
 
     seed_assets(cur)
+    seed_content_items(cur)
+    seed_assembly_checklists(cur)
+    seed_qa_reviews(cur)
 
     cur.close()
     conn.close()
@@ -448,6 +497,74 @@ def seed_assets(cur):
                 INSERT INTO production_assets (lesson_id, asset_type, title, description, status)
                 VALUES (%s, 'overlay', %s, %s, 'planned')
             ''', (lid, f'{ov_type} - L{lesson["lesson_number"]}', f'SVG overlay for {lesson["title"]}'))
+
+def seed_content_items(cur):
+    cur.execute('SELECT COUNT(*) as cnt FROM content_items')
+    if cur.fetchone()['cnt'] > 0:
+        return
+    cur.execute('SELECT id, lesson_number, title, god, myth_theme, math_concept, activity FROM production_lessons ORDER BY lesson_number')
+    all_lessons = cur.fetchall()
+    writers = ['Writer A', 'Writer B', 'Writer C', 'Writer D', 'Writer E']
+    for i, lesson in enumerate(all_lessons):
+        lid = lesson['id']
+        lnum = lesson['lesson_number']
+        god = lesson['god'] or 'Unknown'
+        myth = lesson['myth_theme'] or 'Mythology'
+        math = lesson['math_concept'] or 'Mathematics'
+        act = lesson['activity'] or 'Activity'
+        w = writers[i % len(writers)]
+        items = [
+            ('myth', f'{god}: {myth}', f'Mythological narrative for lesson {lnum} featuring {god}', w),
+            ('math', f'Math: {math}', f'Mathematical content covering {math} for lesson {lnum}', w),
+            ('visual_story', f'Visual Story: {lesson["title"]}', f'Visual storytelling script with image sequences for lesson {lnum}', w),
+            ('activity', f'Activity: {act}', f'Student activity instructions for {act} in lesson {lnum}', w),
+        ]
+        for ctype, title, body_desc, assigned in items:
+            cur.execute('''
+                INSERT INTO content_items (lesson_id, content_type, title, body, status, assigned_to)
+                VALUES (%s, %s, %s, %s, 'not_started', %s)
+            ''', (lid, ctype, title, body_desc, assigned))
+
+def seed_assembly_checklists(cur):
+    cur.execute('SELECT COUNT(*) as cnt FROM assembly_checklists')
+    if cur.fetchone()['cnt'] > 0:
+        return
+    cur.execute('SELECT id, lesson_number FROM production_lessons ORDER BY lesson_number')
+    all_lessons = cur.fetchall()
+    components = [
+        ('artifacts_ready', 'All museum artifacts sourced and cataloged'),
+        ('downloads_ready', 'All download images acquired'),
+        ('content_written', 'Myth, math, and activity text finalized'),
+        ('ai_images_generated', 'AI-generated images created and approved'),
+        ('overlays_designed', 'Geometric overlays designed in SVG'),
+        ('layout_assembled', 'Full lesson layout assembled and formatted'),
+    ]
+    for lesson in all_lessons:
+        for comp, note in components:
+            cur.execute('''
+                INSERT INTO assembly_checklists (lesson_id, component, status, notes)
+                VALUES (%s, %s, 'pending', %s)
+            ''', (lesson['id'], comp, note))
+
+def seed_qa_reviews(cur):
+    cur.execute('SELECT COUNT(*) as cnt FROM qa_reviews')
+    if cur.fetchone()['cnt'] > 0:
+        return
+    cur.execute('SELECT id, lesson_number FROM production_lessons ORDER BY lesson_number')
+    all_lessons = cur.fetchall()
+    categories = [
+        ('content_accuracy', 'Historical and factual accuracy of all text'),
+        ('visual_quality', 'Image resolution, composition, and relevance'),
+        ('math_correctness', 'Mathematical examples, problems, and solutions verified'),
+        ('accessibility', 'Alt text, readability, color contrast compliance'),
+        ('standards_alignment', 'Alignment with curriculum standards and learning objectives'),
+    ]
+    for lesson in all_lessons:
+        for cat, note in categories:
+            cur.execute('''
+                INSERT INTO qa_reviews (lesson_id, category, status, reviewer_notes)
+                VALUES (%s, %s, 'not_checked', %s)
+            ''', (lesson['id'], cat, note))
 
 @app.route('/')
 def serve_index():
@@ -1101,6 +1218,375 @@ def delete_asset(asset_id):
     if not deleted:
         return jsonify({'error': 'Asset not found'}), 404
     return jsonify({'deleted': True, 'id': asset_id})
+
+CONTENT_STATUSES = ('not_started', 'drafting', 'review', 'revision', 'approved')
+CONTENT_TYPES = ('myth', 'math', 'visual_story', 'activity')
+
+@app.route('/api/production/content/stats', methods=['GET'])
+def content_stats():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        SELECT content_type,
+            COUNT(*) as total,
+            COUNT(*) FILTER (WHERE status = 'approved') as approved,
+            COUNT(*) FILTER (WHERE status = 'drafting') as drafting,
+            COUNT(*) FILTER (WHERE status = 'review') as in_review,
+            COUNT(*) FILTER (WHERE status = 'revision') as revision,
+            COUNT(*) FILTER (WHERE status = 'not_started') as not_started
+        FROM content_items
+        GROUP BY content_type
+        ORDER BY content_type
+    ''')
+    by_type = cur.fetchall()
+    cur.execute('''
+        SELECT COUNT(*) as total,
+            COUNT(*) FILTER (WHERE status = 'approved') as approved
+        FROM content_items
+    ''')
+    overall = cur.fetchone()
+    cur.close()
+    conn.close()
+    return jsonify({'by_type': by_type, 'overall': dict(overall)})
+
+@app.route('/api/production/content', methods=['GET'])
+def list_content():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    content_type = request.args.get('type', '')
+    lesson_id = request.args.get('lesson_id', '')
+    status = request.args.get('status', '')
+    where_parts = []
+    params = []
+    if content_type:
+        where_parts.append("c.content_type = %s")
+        params.append(content_type)
+    if lesson_id:
+        where_parts.append("c.lesson_id = %s")
+        params.append(int(lesson_id))
+    if status:
+        where_parts.append("c.status = %s")
+        params.append(status)
+    where_clause = (' WHERE ' + ' AND '.join(where_parts)) if where_parts else ''
+    cur.execute(f'''
+        SELECT c.*, pl.lesson_number, pl.title as lesson_title, pl.unit
+        FROM content_items c
+        JOIN production_lessons pl ON c.lesson_id = pl.id
+        {where_clause}
+        ORDER BY pl.lesson_number, c.content_type, c.id
+    ''', params)
+    items = cur.fetchall()
+    cur.close()
+    conn.close()
+    for item in items:
+        item['created_at'] = item['created_at'].isoformat() if item.get('created_at') else None
+        item['updated_at'] = item['updated_at'].isoformat() if item.get('updated_at') else None
+    return jsonify(items)
+
+@app.route('/api/production/content', methods=['POST'])
+def create_content():
+    data = request.get_json()
+    lesson_id = data.get('lesson_id')
+    content_type = data.get('content_type', 'myth')
+    title = data.get('title', '')
+    if not lesson_id or not title:
+        return jsonify({'error': 'lesson_id and title required'}), 400
+    if content_type not in CONTENT_TYPES:
+        return jsonify({'error': f'Invalid content_type. Use: {CONTENT_TYPES}'}), 400
+    status = data.get('status', 'not_started')
+    if status not in CONTENT_STATUSES:
+        return jsonify({'error': f'Invalid status. Use: {CONTENT_STATUSES}'}), 400
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        INSERT INTO content_items (lesson_id, content_type, title, body, status, assigned_to, word_count, notes)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING *
+    ''', (lesson_id, content_type, title, data.get('body', ''), status,
+          data.get('assigned_to', ''), data.get('word_count', 0), data.get('notes', '')))
+    item = cur.fetchone()
+    cur.close()
+    conn.close()
+    item['created_at'] = item['created_at'].isoformat() if item.get('created_at') else None
+    item['updated_at'] = item['updated_at'].isoformat() if item.get('updated_at') else None
+    return jsonify(dict(item)), 201
+
+@app.route('/api/production/content/<int:item_id>', methods=['PUT'])
+def update_content(item_id):
+    data = request.get_json()
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    allowed = ['title', 'body', 'status', 'assigned_to', 'word_count', 'notes']
+    set_parts = []
+    values = []
+    for col in allowed:
+        if col in data:
+            if col == 'status' and data[col] not in CONTENT_STATUSES:
+                cur.close()
+                conn.close()
+                return jsonify({'error': f'Invalid status. Use: {CONTENT_STATUSES}'}), 400
+            set_parts.append(f"{col} = %s")
+            values.append(data[col])
+    if not set_parts:
+        cur.close()
+        conn.close()
+        return jsonify({'error': 'No fields to update'}), 400
+    set_parts.append("updated_at = NOW()")
+    values.append(item_id)
+    cur.execute(f'''
+        UPDATE content_items SET {', '.join(set_parts)}
+        WHERE id = %s RETURNING *
+    ''', values)
+    item = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not item:
+        return jsonify({'error': 'Content item not found'}), 404
+    item['created_at'] = item['created_at'].isoformat() if item.get('created_at') else None
+    item['updated_at'] = item['updated_at'].isoformat() if item.get('updated_at') else None
+    return jsonify(dict(item))
+
+@app.route('/api/production/content/<int:item_id>', methods=['DELETE'])
+def delete_content(item_id):
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('DELETE FROM content_items WHERE id = %s RETURNING id', (item_id,))
+    deleted = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not deleted:
+        return jsonify({'error': 'Content item not found'}), 404
+    return jsonify({'deleted': True, 'id': item_id})
+
+ASSEMBLY_STATUSES = ('pending', 'in_progress', 'complete', 'blocked')
+ASSEMBLY_COMPONENTS = ('artifacts_ready', 'downloads_ready', 'content_written', 'ai_images_generated', 'overlays_designed', 'layout_assembled')
+
+@app.route('/api/production/assembly/stats', methods=['GET'])
+def assembly_stats():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        SELECT component,
+            COUNT(*) as total,
+            COUNT(*) FILTER (WHERE status = 'complete') as complete,
+            COUNT(*) FILTER (WHERE status = 'in_progress') as in_progress,
+            COUNT(*) FILTER (WHERE status = 'pending') as pending,
+            COUNT(*) FILTER (WHERE status = 'blocked') as blocked
+        FROM assembly_checklists
+        GROUP BY component
+        ORDER BY component
+    ''')
+    by_component = cur.fetchall()
+    cur.execute('''
+        SELECT COUNT(*) as total,
+            COUNT(*) FILTER (WHERE status = 'complete') as complete
+        FROM assembly_checklists
+    ''')
+    overall = cur.fetchone()
+    cur.execute('''
+        SELECT pl.id as lesson_id, pl.lesson_number, pl.title, pl.unit,
+            COUNT(ac.id) as total_components,
+            COUNT(ac.id) FILTER (WHERE ac.status = 'complete') as complete_components
+        FROM production_lessons pl
+        LEFT JOIN assembly_checklists ac ON ac.lesson_id = pl.id
+        GROUP BY pl.id, pl.lesson_number, pl.title, pl.unit
+        ORDER BY pl.lesson_number
+    ''')
+    lessons = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify({'by_component': by_component, 'overall': dict(overall), 'lessons': lessons})
+
+@app.route('/api/production/assembly', methods=['GET'])
+def list_assembly():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    lesson_id = request.args.get('lesson_id', '')
+    status = request.args.get('status', '')
+    where_parts = []
+    params = []
+    if lesson_id:
+        where_parts.append("ac.lesson_id = %s")
+        params.append(int(lesson_id))
+    if status:
+        where_parts.append("ac.status = %s")
+        params.append(status)
+    where_clause = (' WHERE ' + ' AND '.join(where_parts)) if where_parts else ''
+    cur.execute(f'''
+        SELECT ac.*, pl.lesson_number, pl.title as lesson_title, pl.unit
+        FROM assembly_checklists ac
+        JOIN production_lessons pl ON ac.lesson_id = pl.id
+        {where_clause}
+        ORDER BY pl.lesson_number, ac.component
+    ''', params)
+    items = cur.fetchall()
+    cur.close()
+    conn.close()
+    for item in items:
+        item['completed_at'] = item['completed_at'].isoformat() if item.get('completed_at') else None
+        item['created_at'] = item['created_at'].isoformat() if item.get('created_at') else None
+        item['updated_at'] = item['updated_at'].isoformat() if item.get('updated_at') else None
+    return jsonify(items)
+
+@app.route('/api/production/assembly/<int:item_id>', methods=['PUT'])
+def update_assembly(item_id):
+    data = request.get_json()
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    new_status = data.get('status')
+    notes = data.get('notes')
+    set_parts = []
+    values = []
+    if new_status:
+        if new_status not in ASSEMBLY_STATUSES:
+            cur.close()
+            conn.close()
+            return jsonify({'error': f'Invalid status. Use: {ASSEMBLY_STATUSES}'}), 400
+        set_parts.append("status = %s")
+        values.append(new_status)
+        if new_status == 'complete':
+            set_parts.append("completed_at = NOW()")
+        else:
+            set_parts.append("completed_at = NULL")
+    if notes is not None:
+        set_parts.append("notes = %s")
+        values.append(notes)
+    if not set_parts:
+        cur.close()
+        conn.close()
+        return jsonify({'error': 'No fields to update'}), 400
+    set_parts.append("updated_at = NOW()")
+    values.append(item_id)
+    cur.execute(f'''
+        UPDATE assembly_checklists SET {', '.join(set_parts)}
+        WHERE id = %s RETURNING *
+    ''', values)
+    item = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not item:
+        return jsonify({'error': 'Assembly item not found'}), 404
+    item['completed_at'] = item['completed_at'].isoformat() if item.get('completed_at') else None
+    item['created_at'] = item['created_at'].isoformat() if item.get('created_at') else None
+    item['updated_at'] = item['updated_at'].isoformat() if item.get('updated_at') else None
+    return jsonify(dict(item))
+
+QA_STATUSES = ('not_checked', 'pass', 'fail', 'needs_revision')
+QA_CATEGORIES = ('content_accuracy', 'visual_quality', 'math_correctness', 'accessibility', 'standards_alignment')
+
+@app.route('/api/production/qa/stats', methods=['GET'])
+def qa_stats():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        SELECT category,
+            COUNT(*) as total,
+            COUNT(*) FILTER (WHERE status = 'pass') as passed,
+            COUNT(*) FILTER (WHERE status = 'fail') as failed,
+            COUNT(*) FILTER (WHERE status = 'needs_revision') as needs_revision,
+            COUNT(*) FILTER (WHERE status = 'not_checked') as not_checked
+        FROM qa_reviews
+        GROUP BY category
+        ORDER BY category
+    ''')
+    by_category = cur.fetchall()
+    cur.execute('''
+        SELECT COUNT(*) as total,
+            COUNT(*) FILTER (WHERE status = 'pass') as passed,
+            COUNT(*) FILTER (WHERE status = 'fail') as failed,
+            COUNT(*) FILTER (WHERE status = 'needs_revision') as needs_revision,
+            COUNT(*) FILTER (WHERE status = 'not_checked') as not_checked
+        FROM qa_reviews
+    ''')
+    overall = cur.fetchone()
+    cur.execute('''
+        SELECT pl.id as lesson_id, pl.lesson_number, pl.title, pl.unit,
+            COUNT(qr.id) as total_checks,
+            COUNT(qr.id) FILTER (WHERE qr.status = 'pass') as passed_checks,
+            COUNT(qr.id) FILTER (WHERE qr.status = 'fail') as failed_checks
+        FROM production_lessons pl
+        LEFT JOIN qa_reviews qr ON qr.lesson_id = pl.id
+        GROUP BY pl.id, pl.lesson_number, pl.title, pl.unit
+        ORDER BY pl.lesson_number
+    ''')
+    lessons = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify({'by_category': by_category, 'overall': dict(overall), 'lessons': lessons})
+
+@app.route('/api/production/qa', methods=['GET'])
+def list_qa():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    lesson_id = request.args.get('lesson_id', '')
+    status = request.args.get('status', '')
+    category = request.args.get('category', '')
+    where_parts = []
+    params = []
+    if lesson_id:
+        where_parts.append("qr.lesson_id = %s")
+        params.append(int(lesson_id))
+    if status:
+        where_parts.append("qr.status = %s")
+        params.append(status)
+    if category:
+        where_parts.append("qr.category = %s")
+        params.append(category)
+    where_clause = (' WHERE ' + ' AND '.join(where_parts)) if where_parts else ''
+    cur.execute(f'''
+        SELECT qr.*, pl.lesson_number, pl.title as lesson_title, pl.unit
+        FROM qa_reviews qr
+        JOIN production_lessons pl ON qr.lesson_id = pl.id
+        {where_clause}
+        ORDER BY pl.lesson_number, qr.category
+    ''', params)
+    items = cur.fetchall()
+    cur.close()
+    conn.close()
+    for item in items:
+        item['reviewed_at'] = item['reviewed_at'].isoformat() if item.get('reviewed_at') else None
+        item['created_at'] = item['created_at'].isoformat() if item.get('created_at') else None
+        item['updated_at'] = item['updated_at'].isoformat() if item.get('updated_at') else None
+    return jsonify(items)
+
+@app.route('/api/production/qa/<int:item_id>', methods=['PUT'])
+def update_qa(item_id):
+    data = request.get_json()
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    new_status = data.get('status')
+    notes = data.get('reviewer_notes')
+    set_parts = []
+    values = []
+    if new_status:
+        if new_status not in QA_STATUSES:
+            cur.close()
+            conn.close()
+            return jsonify({'error': f'Invalid status. Use: {QA_STATUSES}'}), 400
+        set_parts.append("status = %s")
+        values.append(new_status)
+        set_parts.append("reviewed_at = NOW()")
+    if notes is not None:
+        set_parts.append("reviewer_notes = %s")
+        values.append(notes)
+    if not set_parts:
+        cur.close()
+        conn.close()
+        return jsonify({'error': 'No fields to update'}), 400
+    set_parts.append("updated_at = NOW()")
+    values.append(item_id)
+    cur.execute(f'''
+        UPDATE qa_reviews SET {', '.join(set_parts)}
+        WHERE id = %s RETURNING *
+    ''', values)
+    item = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not item:
+        return jsonify({'error': 'QA review not found'}), 404
+    item['reviewed_at'] = item['reviewed_at'].isoformat() if item.get('reviewed_at') else None
+    item['created_at'] = item['created_at'].isoformat() if item.get('created_at') else None
+    item['updated_at'] = item['updated_at'].isoformat() if item.get('updated_at') else None
+    return jsonify(dict(item))
 
 with app.app_context():
     init_db()

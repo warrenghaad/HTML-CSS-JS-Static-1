@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QA Review - Geo-Arts Production</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <style>
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+      background: linear-gradient(to bottom, rgba(15,20,32,0.9), rgba(15,20,32,0.7));
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    body.light .top-bar {
+      background: linear-gradient(to bottom, rgba(245,247,250,0.95), rgba(245,247,250,0.8));
+    }
+    .top-bar .logo {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .top-bar .nav-links {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .top-bar .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.8rem;
+      transition: color 0.15s;
+    }
+    .top-bar .nav-links a:hover { color: var(--accent); }
+    .top-bar .theme-toggle {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+    .top-bar .theme-toggle:hover { border-color: var(--accent); color: var(--text); }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 3rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    .qa-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .qa-header h2 { margin: 0; color: var(--accent); }
+    .qa-header p { color: var(--text-muted); font-size: 0.85rem; margin: 0.25rem 0 0; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .qa-stat {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      text-align: center;
+    }
+    .qa-stat .big-num {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1.1;
+    }
+    .qa-stat .stat-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 0.25rem;
+    }
+    .qa-stat .stat-bar-bg {
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      margin-top: 0.5rem;
+    }
+    .qa-stat .stat-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.5s;
+    }
+
+    .overall-progress {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .overall-progress h4 {
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      font-size: 0.875rem;
+    }
+    .overall-bar-bg {
+      width: 100%;
+      height: 20px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .overall-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #4CAF50);
+      border-radius: 10px;
+      transition: width 0.8s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      min-width: 0;
+    }
+
+    .summary-badges {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .summary-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid;
+    }
+    .summary-badge.pass { background: rgba(76,175,80,0.15); border-color: rgba(76,175,80,0.3); color: #4CAF50; }
+    .summary-badge.fail { background: rgba(244,67,54,0.15); border-color: rgba(244,67,54,0.3); color: #f44336; }
+    .summary-badge.needs_revision { background: rgba(255,152,0,0.15); border-color: rgba(255,152,0,0.3); color: #FF9800; }
+    .summary-badge.not_checked { background: rgba(136,136,136,0.15); border-color: rgba(136,136,136,0.3); color: #888; }
+
+    .filter-bar {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .filter-bar input, .filter-bar select {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 0.45rem 0.65rem;
+      font-size: 0.8rem;
+    }
+    .filter-bar input:focus, .filter-bar select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .filter-bar input { width: 200px; }
+
+    .unit-filters {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .unit-btn {
+      padding: 0.375rem 0.75rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+    }
+    .unit-btn:hover { border-color: var(--accent); color: var(--text); }
+    .unit-btn.active { background: rgba(125,211,252,0.15); border-color: var(--accent); color: var(--accent); }
+
+    .qa-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .qa-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      min-width: 800px;
+    }
+    .qa-table th {
+      background: rgba(255,255,255,0.04);
+      padding: 0.625rem 0.5rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      white-space: nowrap;
+    }
+    .qa-table td {
+      padding: 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: middle;
+    }
+    .qa-table tr:hover td {
+      background: rgba(125,211,252,0.04);
+    }
+
+    .lesson-num {
+      font-weight: 700;
+      color: var(--accent);
+      width: 30px;
+      text-align: center;
+    }
+    .lesson-title-cell {
+      font-weight: 500;
+      color: var(--text);
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .lesson-unit-cell {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cat-col { text-align: center; width: 60px; }
+
+    .qa-dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 2px solid transparent;
+      line-height: 1;
+    }
+    .qa-dot:hover {
+      transform: scale(1.3);
+    }
+    .qa-dot.not_checked {
+      background: rgba(136,136,136,0.15);
+      border-color: rgba(136,136,136,0.4);
+      color: #888;
+    }
+    .qa-dot.pass {
+      background: rgba(76,175,80,0.2);
+      border-color: #4CAF50;
+      color: #4CAF50;
+    }
+    .qa-dot.fail {
+      background: rgba(244,67,54,0.2);
+      border-color: #f44336;
+      color: #f44336;
+    }
+    .qa-dot.needs_revision {
+      background: rgba(255,152,0,0.2);
+      border-color: #FF9800;
+      color: #FF9800;
+    }
+
+    .result-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .result-badge.pass { background: rgba(76,175,80,0.15); color: #4CAF50; }
+    .result-badge.fail { background: rgba(244,67,54,0.15); color: #f44336; }
+    .result-badge.needs_revision { background: rgba(255,152,0,0.15); color: #FF9800; }
+    .result-badge.not_checked { background: rgba(136,136,136,0.15); color: #888; }
+    .result-badge.mixed { background: rgba(125,211,252,0.15); color: var(--accent); }
+
+    .legend-row {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid;
+    }
+    .legend-dot.not_checked { background: rgba(136,136,136,0.15); border-color: rgba(136,136,136,0.4); }
+    .legend-dot.pass { background: rgba(76,175,80,0.2); border-color: #4CAF50; }
+    .legend-dot.fail { background: rgba(244,67,54,0.2); border-color: #f44336; }
+    .legend-dot.needs_revision { background: rgba(255,152,0,0.2); border-color: #FF9800; }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 900px) {
+      .stats-row { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="logo">Geo-Arts Curriculum System</div>
+    <div class="nav-links">
+      <a href="../index.html">Home</a>
+      <a href="production-dashboard.html">Dashboard</a>
+      <a href="variables-spreadsheet.html">Variables</a>
+      <a href="asset-manager.html">Assets</a>
+      <a href="content-pipeline.html">Content</a>
+      <a href="lesson-assembly.html">Assembly</a>
+      <a href="qa-review.html">QA</a>
+      <a href="governance.html">Governance</a>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+
+  <div class="container">
+    <a href="production-dashboard.html" class="back-link">&larr; Back to Dashboard</a>
+
+    <div class="qa-header">
+      <div>
+        <h2>QA Review</h2>
+        <p>Section 6: Quality assurance checks for all 48 lessons across 5 review categories.</p>
+      </div>
+    </div>
+
+    <div class="stats-row" id="statsRow"></div>
+
+    <div class="overall-progress">
+      <h4>Overall QA Pass Rate</h4>
+      <div class="overall-bar-bg">
+        <div class="overall-bar-fill" id="overallBar" style="width: 0%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:0.5rem;font-size:0.75rem;color:var(--text-muted);">
+        <span id="overallText">Loading...</span>
+        <span id="overallPct">0%</span>
+      </div>
+    </div>
+
+    <div class="summary-badges" id="summaryBadges"></div>
+
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-dot not_checked"></div> Not Checked</div>
+      <div class="legend-item"><div class="legend-dot pass"></div> Pass</div>
+      <div class="legend-item"><div class="legend-dot fail"></div> Fail</div>
+      <div class="legend-item"><div class="legend-dot needs_revision"></div> Needs Revision</div>
+    </div>
+
+    <div class="filter-bar">
+      <input type="text" id="searchInput" placeholder="Search lessons...">
+      <select id="unitFilter">
+        <option value="">All Units</option>
+      </select>
+      <select id="statusFilter">
+        <option value="">All Statuses</option>
+        <option value="not_checked">Not Checked</option>
+        <option value="pass">Pass</option>
+        <option value="fail">Fail</option>
+        <option value="needs_revision">Needs Revision</option>
+      </select>
+      <select id="categoryFilter">
+        <option value="">All Categories</option>
+        <option value="content_accuracy">Content Accuracy</option>
+        <option value="visual_quality">Visual Quality</option>
+        <option value="math_correctness">Math Correctness</option>
+        <option value="accessibility">Accessibility</option>
+        <option value="standards_alignment">Standards Alignment</option>
+      </select>
+    </div>
+
+    <div class="unit-filters" id="unitButtons">
+      <button class="unit-btn active" data-unit="">All Units</button>
+    </div>
+
+    <div class="qa-table-wrap">
+      <table class="qa-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Lesson</th>
+            <th>Unit</th>
+            <th class="cat-col" title="Content Accuracy">Content</th>
+            <th class="cat-col" title="Visual Quality">Visual</th>
+            <th class="cat-col" title="Math Correctness">Math</th>
+            <th class="cat-col" title="Accessibility">Access</th>
+            <th class="cat-col" title="Standards Alignment">Standards</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody id="qaBody">
+          <tr><td colspan="9" class="empty-state">Loading QA data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Geo-Arts Curriculum System &bull; QA Review</p>
+  </footer>
+
+  <script src="../scripts/main.js"></script>
+  <script>
+    const QA = {
+      qaItems: [],
+      lessons: [],
+      stats: null,
+      currentUnit: '',
+      units: [],
+
+      categoryKeys: ['content_accuracy', 'visual_quality', 'math_correctness', 'accessibility', 'standards_alignment'],
+      categoryLabels: {
+        content_accuracy: 'Content',
+        visual_quality: 'Visual',
+        math_correctness: 'Math',
+        accessibility: 'Access',
+        standards_alignment: 'Standards'
+      },
+
+      statusIcons: {
+        not_checked: '○',
+        pass: '✓',
+        fail: '✗',
+        needs_revision: '⚠'
+      },
+
+      statusCycle: ['not_checked', 'pass', 'fail', 'needs_revision'],
+
+      async init() {
+        await Promise.all([
+          this.loadStats(),
+          this.loadQAItems()
+        ]);
+        this.setupListeners();
+      },
+
+      async loadStats() {
+        try {
+          const res = await fetch('/api/production/qa/stats');
+          this.stats = await res.json();
+          this.renderStats();
+        } catch (err) {
+          console.error('Stats error:', err);
+        }
+      },
+
+      async loadQAItems() {
+        try {
+          const res = await fetch('/api/production/qa');
+          this.qaItems = await res.json();
+          this.buildLessonData();
+          this.renderTable();
+        } catch (err) {
+          console.error('QA items error:', err);
+        }
+      },
+
+      buildLessonData() {
+        const lessonMap = {};
+        this.qaItems.forEach(item => {
+          const lid = item.lesson_id;
+          if (!lessonMap[lid]) {
+            lessonMap[lid] = {
+              lesson_id: lid,
+              lesson_number: item.lesson_number,
+              lesson_title: item.lesson_title || `Lesson ${item.lesson_number}`,
+              unit: item.unit || '',
+              categories: {}
+            };
+          }
+          lessonMap[lid].categories[item.category] = {
+            id: item.id,
+            status: item.status || 'not_checked',
+            reviewer_notes: item.reviewer_notes || ''
+          };
+        });
+
+        this.lessons = Object.values(lessonMap).sort((a, b) => a.lesson_number - b.lesson_number);
+
+        const unitSet = new Set();
+        this.lessons.forEach(l => { if (l.unit) unitSet.add(l.unit); });
+        this.units = Array.from(unitSet).sort();
+        this.populateUnitControls();
+      },
+
+      populateUnitControls() {
+        const sel = document.getElementById('unitFilter');
+        const btnContainer = document.getElementById('unitButtons');
+
+        this.units.forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u;
+          opt.textContent = u;
+          sel.appendChild(opt);
+        });
+
+        this.units.forEach((u, i) => {
+          const btn = document.createElement('button');
+          btn.className = 'unit-btn';
+          btn.dataset.unit = u;
+          const shortName = u.split(':').length > 1 ? u.split(':')[0].trim() : u;
+          btn.textContent = `Unit ${i + 1}: ${shortName.length > 12 ? shortName.substring(0, 12) + '…' : shortName}`;
+          btn.title = u;
+          btnContainer.appendChild(btn);
+        });
+
+        btnContainer.querySelectorAll('.unit-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            btnContainer.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            this.currentUnit = btn.dataset.unit;
+            document.getElementById('unitFilter').value = this.currentUnit;
+            this.renderTable();
+          });
+        });
+      },
+
+      renderStats() {
+        const s = this.stats;
+        if (!s) return;
+
+        const total = s.total_checks || 240;
+        const passed = s.passed || 0;
+        const failed = s.failed || 0;
+        const needsRevision = s.needs_revision || 0;
+        const notChecked = s.not_checked || (total - passed - failed - needsRevision);
+        const passRate = total > 0 ? Math.round(passed / total * 100) : 0;
+
+        const categories = s.by_category || {};
+        const catOrder = this.categoryKeys;
+        const catLabels = {
+          content_accuracy: 'Content Accuracy',
+          visual_quality: 'Visual Quality',
+          math_correctness: 'Math Correctness',
+          accessibility: 'Accessibility',
+          standards_alignment: 'Standards Alignment'
+        };
+
+        let statsHtml = `<div class="qa-stat">
+          <div class="big-num">${total}</div>
+          <div class="stat-sub">Total Checks</div>
+          <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${passRate}%;background:var(--accent)"></div></div>
+          <div class="stat-sub">${passed} passed (${passRate}%)</div>
+        </div>`;
+
+        catOrder.forEach(cat => {
+          const data = categories[cat] || { total: 48, passed: 0 };
+          const catTotal = data.total || 48;
+          const catPassed = data.passed || 0;
+          const pct = catTotal > 0 ? Math.round(catPassed / catTotal * 100) : 0;
+          const color = pct >= 80 ? '#4CAF50' : pct >= 50 ? '#FF9800' : pct > 0 ? '#f44336' : '#888';
+          statsHtml += `<div class="qa-stat">
+            <div class="big-num" style="color:${color}">${catTotal}</div>
+            <div class="stat-sub">${catLabels[cat]}</div>
+            <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+            <div class="stat-sub">${catPassed} passed (${pct}%)</div>
+          </div>`;
+        });
+
+        document.getElementById('statsRow').innerHTML = statsHtml;
+
+        document.getElementById('overallBar').style.width = passRate + '%';
+        document.getElementById('overallBar').textContent = passRate > 5 ? passRate + '%' : '';
+        document.getElementById('overallPct').textContent = passRate + '%';
+        document.getElementById('overallText').textContent = `${passed} of ${total} checks passed across 48 lessons`;
+
+        document.getElementById('summaryBadges').innerHTML = `
+          <span class="summary-badge pass">✓ Passed: ${passed}</span>
+          <span class="summary-badge fail">✗ Failed: ${failed}</span>
+          <span class="summary-badge needs_revision">⚠ Needs Revision: ${needsRevision}</span>
+          <span class="summary-badge not_checked">○ Not Checked: ${notChecked}</span>
+        `;
+      },
+
+      renderTable() {
+        const body = document.getElementById('qaBody');
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const unitFilter = this.currentUnit || document.getElementById('unitFilter').value;
+        const statusFilter = document.getElementById('statusFilter').value;
+        const categoryFilter = document.getElementById('categoryFilter').value;
+
+        let filtered = this.lessons;
+
+        if (unitFilter) {
+          filtered = filtered.filter(l => l.unit === unitFilter);
+        }
+
+        if (search) {
+          filtered = filtered.filter(l =>
+            (l.lesson_title || '').toLowerCase().includes(search) ||
+            (l.unit || '').toLowerCase().includes(search) ||
+            String(l.lesson_number).includes(search)
+          );
+        }
+
+        if (statusFilter) {
+          filtered = filtered.filter(l => {
+            const cats = categoryFilter ? [categoryFilter] : this.categoryKeys;
+            return cats.some(cat => {
+              const c = l.categories[cat];
+              return c && c.status === statusFilter;
+            });
+          });
+        }
+
+        if (filtered.length === 0) {
+          body.innerHTML = '<tr><td colspan="9" class="empty-state">No lessons match your filters.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = filtered.map(l => {
+          const catCells = this.categoryKeys.map(cat => {
+            const c = l.categories[cat];
+            const status = c ? c.status : 'not_checked';
+            const qaId = c ? c.id : null;
+            const icon = this.statusIcons[status] || '○';
+            return `<td class="cat-col">
+              <div class="qa-dot ${status}" 
+                   title="${this.categoryLabels[cat]}: ${status.replace('_', ' ')}"
+                   onclick="QA.cycleStatus(${l.lesson_id}, '${cat}', ${qaId}, '${status}')">
+                ${icon}
+              </div>
+            </td>`;
+          }).join('');
+
+          const result = this.getLessonResult(l);
+
+          return `<tr data-unit="${this.esc(l.unit)}">
+            <td class="lesson-num">${l.lesson_number}</td>
+            <td class="lesson-title-cell" title="${this.esc(l.lesson_title)}">${this.esc(l.lesson_title)}</td>
+            <td class="lesson-unit-cell" title="${this.esc(l.unit)}">${this.esc(l.unit)}</td>
+            ${catCells}
+            <td><span class="result-badge ${result}">${result.replace('_', ' ')}</span></td>
+          </tr>`;
+        }).join('');
+      },
+
+      getLessonResult(lesson) {
+        const statuses = this.categoryKeys.map(cat => {
+          const c = lesson.categories[cat];
+          return c ? c.status : 'not_checked';
+        });
+
+        if (statuses.every(s => s === 'pass')) return 'pass';
+        if (statuses.some(s => s === 'fail')) return 'fail';
+        if (statuses.some(s => s === 'needs_revision')) return 'needs_revision';
+        if (statuses.every(s => s === 'not_checked')) return 'not_checked';
+        return 'mixed';
+      },
+
+      async cycleStatus(lessonId, category, qaId, currentStatus) {
+        const nextIdx = (this.statusCycle.indexOf(currentStatus) + 1) % this.statusCycle.length;
+        const nextStatus = this.statusCycle[nextIdx];
+
+        if (qaId) {
+          try {
+            await fetch(`/api/production/qa/${qaId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: nextStatus })
+            });
+          } catch (err) {
+            console.error('Error updating QA status:', err);
+            return;
+          }
+        }
+
+        const lesson = this.lessons.find(l => l.lesson_id === lessonId);
+        if (lesson && lesson.categories[category]) {
+          lesson.categories[category].status = nextStatus;
+        }
+
+        this.renderTable();
+        await this.loadStats();
+      },
+
+      setupListeners() {
+        document.getElementById('searchInput').addEventListener('input', () => this.renderTable());
+        document.getElementById('unitFilter').addEventListener('change', () => {
+          this.currentUnit = document.getElementById('unitFilter').value;
+          document.querySelectorAll('.unit-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.unit === this.currentUnit);
+          });
+          this.renderTable();
+        });
+        document.getElementById('statusFilter').addEventListener('change', () => this.renderTable());
+        document.getElementById('categoryFilter').addEventListener('change', () => this.renderTable());
+      },
+
+      esc(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+      }
+    };
+
+    function toggleTheme() {
+      document.body.classList.toggle('light');
+      localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('theme') === 'light') {
+        document.body.classList.add('light');
+      }
+      QA.init();
+    });
+  </script>
+</body>
+</html>
