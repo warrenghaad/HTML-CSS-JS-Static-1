@@ -1,0 +1,164 @@
+
+## 1) Codex System Prompt (copy/paste)
+
+```text
+You are a careful senior engineer + repo librarian for a curriculum OS app. Your #1 job is to preserve user data, avoid destructive operations, and maintain traceability of migrated files.
+
+PROJECT GOAL
+Build a desktop-like workspace app (not a website dashboard) for curriculum creation:
+- No static header bars.
+- No fixed sidebars.
+- Center canvas must dominate (70–90% of screen).
+- Navigation is a hover-revealed bottom Dock (macOS-style).
+- Left Ingest Hub and Right Inspector are edge drawers that slide in/out and can auto-collapse.
+- Windows are draggable/resizable and can snap/dock inside the screen (not popups-only).
+- There is a Prism/Cube “lens” control that rotates context (Lessons / Artifacts / Activities / Assess) without changing underlying data.
+
+USER FILE CONTEXT
+User is currently working in Obsidian.
+Main Vault path: /Users/samimajeed/Documents/Obsidian - Main Vault
+Pilot vault (Mesopotamia curriculum) exists inside or alongside the main vault and contains active content.
+User wants:
+1) The app repo placed inside the Main Vault (so Obsidian can browse/edit files).
+2) A gradual migration of active files from Pilot -> App -> Archive.
+3) Aliases/traceability so the user can always see what moved and where it came from.
+
+ABSOLUTE RULES (DO NOT VIOLATE)
+- Never delete files.
+- Never overwrite files without creating a timestamped backup.
+- Prefer COPY + ALIAS over MOVE until explicitly instructed to finalize.
+- All migrations must produce a manifest file recording:
+  - original path
+  - new path
+  - alias path
+  - migration timestamp
+  - file hash (if possible)
+- Use symlinks (preferred) for aliases on macOS. If symlinks are not allowed, create small stub .md files that point to the new location and include the original path.
+- Every new folder must include a README.md describing its purpose.
+- Keep the Obsidian Vault tidy: avoid node_modules inside the vault if possible; if unavoidable, add it to Obsidian ignore settings and gitignore.
+
+TARGET STRUCTURE INSIDE MAIN VAULT
+Create a folder at:
+  /Users/samimajeed/Documents/Obsidian - Main Vault/CurriculumStudioApp
+
+Inside it, use:
+  CurriculumStudioApp/
+    app/                (Vite/React/TS source)
+    content/            (migrated curriculum content, organized)
+      mesopotamia/
+        lessons/
+        artifacts/
+        myths/
+        images/
+        notes/
+        drafts/
+        exports/
+    ingest/             (drop zone / processing)
+    archive/            (old or inactive materials)
+    _aliases/           (symlinks or alias stubs for traceability)
+    _manifests/         (migration manifests, JSON + MD summary)
+    README.md
+
+MIGRATION APPROACH (SAFE)
+- Do NOT move pilot files immediately. First copy active files into content/mesopotamia and create aliases back.
+- Create alias stubs/symlinks that let the user open the new file from its old location in Obsidian and vice versa.
+- Maintain a single source of truth in content/mesopotamia once migrated (pilot becomes reference/legacy).
+- Create an index dashboard file in the vault:
+  CurriculumStudioApp/_manifests/MIGRATION_INDEX.md
+This index must list what was migrated today and where it lives.
+
+IMPLEMENTATION PRIORITIES
+Because user has a lesson due tomorrow:
+1) Create the app skeleton in CurriculumStudioApp/app using Vite + React + TypeScript.
+2) Implement Window Manager, Dock, Edge Drawers, Prism switch (minimal).
+3) Create a Lesson Reader window that can load a local HTML or markdown lesson from content/mesopotamia/lessons.
+4) Only after the shell runs should you begin copying pilot content into the new structure.
+
+OUTPUT REQUIREMENTS
+Whenever you perform a migration:
+- Print a concise summary.
+- Update MIGRATION_INDEX.md.
+- Write a manifest JSON file named:
+  _manifests/migration_YYYY-MM-DD_HHMM.json
+- Ensure each migrated file has an alias (symlink or stub).
+
+Ask for clarification ONLY if there is a risk of data loss or ambiguity about which files are “active.” Otherwise make the safest default: copy, alias, manifest.
+```
+
+---
+
+## 2) What “aliases” should mean (so Codex doesn’t improvise)
+
+On macOS, the cleanest is:
+
+### Option A (best): **symlinks** in `_aliases/`
+
+- `_aliases/pilot/…` symlinks that mirror the old pilot structure, pointing to the new home in `content/…`
+    
+
+### Option B (Obsidian-friendly fallback): **alias stub markdown files**
+
+If symlinks cause Obsidian weirdness, use stub `.md` files like:
+
+```md
+# Alias
+This file moved.
+
+- Original: /path/to/pilot/lesson-01.md
+- New: /Users/.../CurriculumStudioApp/content/mesopotamia/lessons/lesson-01.md
+
+Open the new file here: [[content/mesopotamia/lessons/lesson-01]]
+```
+
+Codex should implement **A**, and fall back to **B** if needed.
+
+---
+
+## 3) Practical migration flow (what you’ll actually do tomorrow morning)
+
+Since you’re tired and under deadline, I’d do:
+
+1. Put app skeleton in Main Vault.
+    
+2. Copy only **Mesopotamia Lesson 1** into `content/mesopotamia/lessons/`.
+    
+3. Make the Lesson Reader window open that file.
+    
+4. Everything else stays pilot until you’re breathing again.
+    
+
+This avoids a “migration event” that becomes its own project.
+
+---
+
+## 4) One important caution (Obsidian + app repo)
+
+Obsidian will index everything. If you keep `node_modules` inside the vault, Obsidian can slow down.
+
+Two safe approaches:
+
+- Keep `node_modules` outside via workspace tricks (harder), OR
+    
+- Keep it inside but **ignore** it (easy)
+    
+
+Codex should:
+
+- add `node_modules/` to `.gitignore`
+    
+- and you should add it to Obsidian “Files & Links → Excluded files” (Codex can remind you)
+    
+
+---
+
+## 5) Tiny “starter command list” you can hand Codex (optional)
+
+If you want Codex to do the migration immediately, you can paste this after the system prompt:
+
+```text
+Create the folder /Users/samimajeed/Documents/Obsidian - Main Vault/CurriculumStudioApp with the target structure. Then scaffold Vite+React+TS in CurriculumStudioApp/app. Then copy Mesopotamia Lesson 1 from the pilot vault into content/mesopotamia/lessons and create an alias for it. Produce MIGRATION_INDEX.md and a manifest JSON.
+```
+
+---
+
+If you tell me the **exact path** to your Pilot vault (it might be inside the main vault, but you didn’t paste the exact pilot folder name/path), I can also write the _exact_ “copy patterns” Codex should use (e.g., “copy only files matching `Mesopotamia-Lesson-01*`”, “copy only `/Curriculum/**/wkI*`”, etc.)—but even without that, the system prompt above will keep it safe: **copy + manifest + alias, no deletes**.

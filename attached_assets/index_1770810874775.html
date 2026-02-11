@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Lesson Shell Demo</title>
+  <style>
+:root{
+  --bg:#0b1220; --panel:#0f1a30; --card:#0e162a; --text:#e8eefc; --muted:#a9b7d6; --border:#22304f; --accent:#7aa2ff;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  background:linear-gradient(180deg, var(--bg), #070b14);
+  color:var(--text);
+}
+header{
+  height:56px;
+  display:flex; align-items:center; gap:14px;
+  padding:0 16px;
+  border-bottom:1px solid var(--border);
+  background:rgba(11,18,32,.92); backdrop-filter: blur(10px);
+}
+header .title{font-weight:850}
+header .hint{color:var(--muted); font-size:12px}
+.wrap{display:grid; grid-template-columns: 360px 1fr; height: calc(100% - 56px);}
+@media (max-width: 980px){ .wrap{grid-template-columns: 1fr;} .sidebar{height:auto; border-right:none; border-bottom:1px solid var(--border);} }
+.sidebar{
+  border-right:1px solid var(--border);
+  background:rgba(15,26,48,.55);
+  padding:12px;
+  overflow:auto;
+}
+.sidebar input{
+  width:100%;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:rgba(15,26,48,.75);
+  color:var(--text);
+}
+.node{
+  margin-top:10px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:rgba(14,22,42,.7);
+  overflow:hidden;
+}
+.node button{
+  width:100%;
+  text-align:left;
+  background:none;
+  border:none;
+  color:var(--text);
+  padding:10px 12px;
+  cursor:pointer;
+  display:flex; justify-content:space-between; align-items:center;
+  font-weight:650;
+}
+.node button:hover{background:rgba(122,162,255,.08)}
+.node .path{color:var(--muted); font-size:12px; padding:0 12px 10px 12px}
+.main{
+  padding:18px 22px;
+  overflow:auto;
+}
+.main h1{margin:8px 0 10px 0}
+.main .meta{color:var(--muted); font-size:12px; margin-bottom:14px}
+.card{
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:rgba(15,26,48,.55);
+  padding:14px;
+  margin:14px 0;
+}
+.imgph{
+  border:1px dashed rgba(122,162,255,.5);
+  border-radius:16px;
+  padding:12px;
+  background:rgba(122,162,255,.06);
+  margin:10px 0;
+}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+  <header>
+    <div class="title">📚 Lesson Shell Demo</div>
+    <div class="hint">Sidebar navigation • Hash URLs • Image placeholders from <code>images_needed::</code></div>
+    <div class="hint"><a href="../kanban/index.html">← back to Kanban</a></div>
+  </header>
+
+  <div class="wrap">
+    <aside class="sidebar">
+      <input id="q" placeholder="Search lessons…"/>
+      <div class="card" style="margin:12px 0; color:var(--muted); font-size:12px; line-height:1.5">
+        This demo shows the <b>shell pattern</b> you described:
+        a left nav that jumps between lesson chunks, and a main content area that can include images, artifacts, etc.
+        Replace the inline <code>LESSONS</code> JSON with your MD→JSON conversion output.
+      </div>
+      <div id="list"></div>
+    </aside>
+
+    <main class="main">
+      <h1 id="title"></h1>
+      <div class="meta" id="meta"></div>
+
+      <section id="images"></section>
+
+      <section class="card">
+        <div style="color:var(--muted); font-size:12px; margin-bottom:10px">
+          Content (rendered from markdown-like text):
+        </div>
+        <div id="content"></div>
+      </section>
+
+      <div class="card" style="color:var(--muted); font-size:12px; line-height:1.6">
+        <b>Wiring this to your real build</b><br/>
+        1) Parse the pilot MD into structured units (Week → Day → Section).<br/>
+        2) For each unit, store <code>title</code>, <code>nav path</code>, <code>content_html</code>, and <code>images_needed</code>.<br/>
+        3) Store artifact metadata in a separate array so you can render it as a panel, callouts, or “resources” section.<br/>
+      </div>
+    </main>
+  </div>
+
+<script>
+window.LESSONS = [{"id": "g5_5_2_bridge", "title": "Grade 5 — 5.2 Bridge — Sickle and Crescent", "nav": ["Grade 5", "Week ?", "5.2 Bridge"], "images": ["sickle"], "content_html": "<h2>5.2 - BRIDGE - SICKLE AND CRESCENT (images_needed:: sickle)</h2>\n<p></p>\n<h2>5.2b - FUNCTION </h2>\n<p></p>\n<p><strong>B1: Bridge Review (Connection to Day A)</strong></p>\n<p></p>\n<p>The sickle blade follows the crescent&#x27;s geometry—an annular segment with the cutting edge along the outer arc. Farmers across millennia have used this curved blade to harvest grain.</p>\n<p></p>\n<p>The curve is functionally significant. Curved cutting edges produce mechanical effects through the geometry of contact, and these effects make curved blades more efficient than straight blades for cutting fibrous materials.</p>\n<p></p>\n<p><strong>Artifacts:</strong></p>\n<p></p>\n<ul>\n<li>Same sickle and geometric overlay from A8</li>\n</ul>\n<p></p>\n<p>---</p>\n<p></p>\n<p><strong>B2: Math Proof (Proof)</strong></p>\n<p></p>\n<p>Curved blades produce efficient cutting through three geometric mechanisms: progressive contact, angular engagement, and velocity differential.</p>\n<p></p>\n<p><strong>Progressive contact:</strong></p>\n<p></p>\n<p>When a curved blade swings through material (e.g., grain stalks), the blade does not contact all material simultaneously. The blade tip contacts first; the contact point then travels along the blade edge during the swing.</p>\n<p></p>\n<p>At any instant, only a small portion of the blade edge engages the material. If the engaged length is δs at time t, and the total cutting force is F, then the pressure at the contact region is:</p>\n<p></p>\n<p>P = F / (δs × w)</p>\n<p></p>\n<p>where w is the blade width. Smaller engaged length δs produces higher local pressure P for the same total force F. Higher pressure facilitates cutting.</p>\n<p></p>\n<p><strong>Angular engagement:</strong></p>\n<p></p>\n<p>At each point along a curved blade, the edge meets the material at an angle determined by the local tangent to the curve. For a blade of radius R, the tangent angle changes continuously along the arc.</p>\n<p></p>\n<p>The contact angle α (angle between blade edge and material stem) affects cutting mechanics. More acute (sharper) angles produce cleaner cuts with less force. At a point on the curved blade, the contact angle is:</p>\n<p></p>\n<p>α = 90° - φ</p>\n<p></p>\n<p>where φ is the angle between the velocity vector and the local tangent. This angle varies along the blade, but the curved geometry ensures that some portion of the blade achieves optimal contact angle during any swing.</p>\n<p></p>\n<p><strong>Velocity differential:</strong></p>\n<p></p>\n<p>When the blade swings around a pivot point (the farmer&#x27;s grip), all points rotate at the same angular velocity ω (radians per second). However, linear velocity v varies with distance from the pivot:</p>\n<p></p>\n<p>v = ωr</p>\n<p></p>\n<p>where r is distance from pivot. The blade tip (farther from pivot) moves faster than points near the handle. This velocity gradient creates shearing action as faster-moving portions pull through material relative to slower-moving portions.</p>\n<p></p>\n<p>For a sickle blade spanning from r₁ (near handle) to r₂ (at tip), the velocity differential is:</p>\n<p></p>\n<p>Δv = ω(r₂ - r₁)</p>\n<p></p>\n<p>This differential generates shear stress in the cut material, enhancing separation.</p>\n<p></p>\n<p><strong>Artifacts:</strong></p>\n<p></p>\n<ul>\n<li>Progressive contact diagram: Curved blade in multiple positions during swing. Contact point position marked at each instant. Engaged length δs indicated.</li>\n<li>Contact angle analysis: Curved blade meeting material stalk. Tangent line at contact point. Angle α marked. Comparison to straight blade&#x27;s constant angle.</li>\n<li>Velocity differential diagram: Pivot point, blade arc, velocity vectors at different positions (longer arrows at tip, shorter near pivot). Angular velocity ω constant; linear velocities v₁ and v₂ at different radii.</li>\n</ul>\n<p></p>\n<p>---</p>\n<p></p>\n<p><strong>B3: Transformation (Operation)</strong></p>\n<p></p>\n<p>The rotational mechanics of sickle use transform angular motion into efficient cutting through several related transformations.</p>\n<p></p>\n<p><strong>Angular motion to linear motion:</strong></p>\n<p></p>\n<p>The farmer&#x27;s hand serves as pivot point (approximating fixed rotation center). The blade undergoes angular displacement Δθ during the swing. Each point on the blade travels a linear distance:</p>\n<p></p>\n<p>s = rΔθ</p>\n<p></p>\n<p>where r is that point&#x27;s distance from the pivot. The blade tip travels farther than points near the handle.</p>\n<p></p>\n<p><strong>Input force to cutting force:</strong></p>\n<p></p>\n<p>The farmer applies torque τ about the pivot:</p>\n<p></p>\n<p>τ = F_hand × d_hand</p>"}, {"id": "g4_b7_engineering", "title": "Grade 4 — B7 Engineering Activity (Apply)", "nav": ["Grade 4", "Week ?", "B7 Engineering"], "images": [], "content_html": "<p><strong>B7: Engineering Activity (Apply)</strong></p>\n<p></p>\n<p>Quantitative comparison of curved versus straight cutting edges.</p>\n<p></p>\n<p>Materials: Cardboard for blade construction, protractor, bundle of yarn or string (simulating grain stalks), clamp or tape to secure bundle, ruler, recording sheet.</p>\n<p></p>\n<p>Blade construction:</p>\n<p></p>\n<ul>\n<li>Cut a straight blade from cardboard: approximately 15 cm long, 3 cm wide, one edge sharpened to a consistent angle</li>\n<li>Cut a curved blade from cardboard: same total length following crescent arc (approximately 10 cm radius of curvature), same width, same edge angle</li>\n</ul>\n<p></p>\n<p>Testing procedure:</p>\n<p></p>\n<ul>\n<li>Secure yarn bundle vertically (approximately 20 strands)</li>\n<li>Swing straight blade through bundle at consistent speed and force</li>\n<li>Count strands cut. Record.</li>\n<li>Repeat with fresh bundle and curved blade, matching speed and force as closely as possible</li>\n<li>Count strands cut. Record.</li>\n<li>Repeat trials (minimum 3 per blade type) to account for variation</li>\n</ul>\n<p></p>\n<p>Data collection:</p>\n<p></p>\n<ul>\n<li>Strands cut per swing (average across trials)</li>\n<li>Subjective effort assessment (which blade felt easier to use)</li>\n<li>Cut quality (clean cuts versus torn/bent strands)</li>\n</ul>\n<p></p>\n<p>Expected results: Curved blade should cut more strands with less perceived effort and cleaner cuts. The difference demonstrates the mechanical principles: progressive contact and angular engagement.</p>\n<p></p>\n<p><strong>Artifacts:</strong></p>\n<p></p>\n<ul>\n<li>Experimental setup diagram: Yarn bundle in clamp. Blade shapes shown. Swing direction indicated. Measurement method illustrated.</li>\n<li>Data recording table: Columns for trial number, blade type, strands cut, effort rating, cut quality notes.</li>\n</ul>\n<p></p>\n<p>---</p>\n<p></p>\n<p><strong>B8: Exit Synthesis (Conclusion)</strong></p>\n<p></p>\n<p>The crescent connects lunar symbolism and cutting mechanics through the same geometric property: concentric arcs creating bounded curvature.</p>\n<p></p>\n<p>Sin&#x27;s crescent represented cyclical change—the moon&#x27;s predictable phases, the calendar&#x27;s monthly structure, time&#x27;s reliable passage. Two arcs sharing a center, differing in radius, creating the characteristic shape of the first visible moon after darkness.</p>\n<p></p>\n<p>The same geometry, applied to a blade edge, produces efficient cutting. Progressive contact concentrates force. Angular engagement creates acute cutting angles. Velocity differential generates shearing action. Materials evolved from flint to bronze to iron, but the crescent curve persisted because the geometry itself—not the material—produces the mechanical advantage.</p>\n<p></p>\n<p>One geometric form serves two functions: metaphorical (representing time&#x27;s cycles) and mechanical (enabling efficient harvest). The crescent signified periodicity and enabled the agricultural productivity that civilizations required.</p>\n<p></p>\n<p><strong>Artifacts:</strong> None required (synthesis content)</p>\n<p></p>\n<p>---</p>\n<p></p>\n<h1>WEEK 3: ISHTAR / 8-POINTED STAR</h1>\n<p></p>\n<h2>Grade 4</h2>\n<p></p>\n<p>---</p>\n<p></p>\n<h2>DAY A: METAPHOR</h2>\n<p></p>\n<p><strong>A2: SEL + Metaphor (Connection)</strong></p>\n<p></p>\n<p>Apparent contradictions can coexist in unified systems. Light exhibits properties of both waves and particles. Water exists as solid, liquid, and gas while remaining H₂O. A single person can be simultaneously a parent, a child, a professional, and a friend—different roles unified in one individual.</p>\n<p></p>\n<p>Ishtar was the Mesopotamian goddess of both love and war—domains that appear opposite but coexisted in her unified divinity. She governed sexual desire, fertility, and interpersonal bonds. She also governed combat, destruction, and battlefield carnage. Mesopotamian worshippers saw no contradiction; both aspects belonged to the same divine power.</p>\n<p></p>\n<p>The eight-pointed star represents this unity geometrically. Eight rays extend from a single center point, each pointing in a different direction. Every direction receives equal treatment—same ray length, same angular spacing (45 degrees between adjacent rays). The multiplicity of directions emerges from singular origin. Difference is organized around unity.</p>\n<p></p>\n<p>Venus, Ishtar&#x27;s celestial manifestation, demonstrated this principle astronomically. Venus appears as the morning star (visible in the east before dawn) and the evening star (visible in the west after sunset). Ancient observers initially thought these were two different celestial bodies. The recognition that both appearances belonged to one planet reinforced the theological concept: apparent opposites unified in single source.</p>\n<p></p>\n<p><strong>Artifacts:</strong> None required (conceptual content)</p>\n<p></p>\n<p>---</p>"}];
+</script>
+<script>
+function qs(sel, el=document){ return el.querySelector(sel); }
+function qsa(sel, el=document){ return Array.from(el.querySelectorAll(sel)); }
+function escapeHtml(s){ return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+
+const DATA = window.LESSONS || [];
+let current = null;
+
+function renderSidebar(){
+  const q = (qs("#q").value||"").trim().toLowerCase();
+  const list = qs("#list");
+  list.innerHTML = "";
+  const filtered = DATA.filter(l=>{
+    if(!q) return true;
+    const hay = (l.title + " " + (l.nav||[]).join(" ")).toLowerCase();
+    return hay.includes(q);
+  });
+  for(const lesson of filtered){
+    const el = document.createElement("div");
+    el.className = "node";
+    el.innerHTML = `
+      <button data-id="${lesson.id}">
+        <span>${escapeHtml(lesson.title)}</span>
+        <span style="color:var(--muted); font-size:12px">→</span>
+      </button>
+      <div class="path">${escapeHtml((lesson.nav||[]).join(" › "))}</div>
+    `;
+    el.querySelector("button").addEventListener("click", ()=>{
+      loadLesson(lesson.id);
+    });
+    list.appendChild(el);
+  }
+}
+
+function loadLesson(id){
+  const lesson = DATA.find(x=>x.id===id);
+  if(!lesson) return;
+  current = lesson;
+  qs("#title").textContent = lesson.title;
+  qs("#meta").textContent = (lesson.nav||[]).join(" › ");
+  const imgs = qs("#images");
+  imgs.innerHTML = "";
+  for(const name of (lesson.images||[])){
+    const d = document.createElement("div");
+    d.className = "imgph";
+    d.innerHTML = `
+      <div style="font-weight:700">Image needed: ${escapeHtml(name)}</div>
+      <div style="color:var(--muted); font-size:12px; margin-top:6px">
+        Replace this placeholder with <code>assets/images/${escapeHtml(name)}.jpg</code> (or similar), plus caption + attribution.
+      </div>
+    `;
+    imgs.appendChild(d);
+  }
+  qs("#content").innerHTML = lesson.content_html || "<p>(No content)</p>";
+  // update hash
+  location.hash = encodeURIComponent(id);
+}
+
+function boot(){
+  qs("#q").addEventListener("input", renderSidebar);
+  renderSidebar();
+  const fromHash = decodeURIComponent((location.hash||"").slice(1));
+  if(fromHash && DATA.some(x=>x.id===fromHash)) loadLesson(fromHash);
+  else if(DATA[0]) loadLesson(DATA[0].id);
+}
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,485 @@
+## Project Euclid Workspace Blueprint
+
+### The Big Idea
+
+You’re building a **spatial desktop** for curriculum-making—**not** a website with pages.
+
+- **Graph = the living spine** (relationships decide what appears)
+    
+- **Canvas = the room** (everything happens here)
+    
+- **Panels = drawers** (summonable tools, never permanent walls)
+    
+- **Cards/Windows = objects** (content exists as manipulable things, not “sections on a page”)
+    
+- **Prism Lens = meaning filter** (rotate what you’re looking at without changing the underlying graph)
+    
+
+This blueprint turns “file cabinet” into “studio desk + instrument panel.”
+
+---
+
+# 1) Layout Zones
+
+## A) Center Canvas (70–90% of screen)
+
+**Purpose:** maximum space for your 3D graph + reading + building.
+
+**Default state:**
+
+- Graph node (3D) lives here
+    
+- No fixed headers/sidebars stealing pixels
+    
+- Subtle vignette/gradient so it doesn’t feel like “white space”
+    
+
+**Canvas behaviors**
+
+- Scroll = zoom
+    
+- Drag = pan
+    
+- (Graph mode) click = select node; drag node; rotate graph
+    
+- Spacebar (or key) = quick “hand tool” pan
+    
+
+---
+
+## B) Dock (bottom; hover-expand)
+
+**Purpose:** primary navigation without a static sidebar.
+
+**Always present but minimal.**  
+Appears on hover, expands, shows labels/tooltips.
+
+**Dock items (suggested):**
+
+1. 🕸️ Graph (camera + lens control)
+    
+2. 📥 Ingest
+    
+3. 📝 Lesson Builder
+    
+4. 🗃️ Repository
+    
+5. 🎭 The Face (teacher-facing output)
+    
+6. 🎞️ Presentation Builder
+    
+7. ⚙️ Settings (light/dark/theme)
+    
+
+**Rule:** Dock launches **windows**, not page navigations.
+
+---
+
+## C) Edge Drawers (left/right hot zones)
+
+**Purpose:** tools that are needed often but shouldn’t steal canvas space.
+
+### Left Drawer: Ingest Hub
+
+- Thin “tab” on left edge
+    
+- Opens on hover or click
+    
+- Auto-collapses when focus returns to canvas
+    
+
+Contents:
+
+- drop zone / watch folder status
+    
+- ingestion queue
+    
+- quick tagging + classification
+    
+- “send to graph” button
+    
+- “create object” button
+    
+
+### Right Drawer: Inspector
+
+Context-sensitive “properties panel,” but not constant.
+
+Shows when:
+
+- something is selected (node/window/card)
+    
+- or user explicitly opens it
+    
+
+Contents:
+
+- selected item metadata
+    
+- linked objects
+    
+- state (draft/review/published)
+    
+- actions (pin, export, open in builder, etc.)
+    
+
+**Rule:** drawers are “drawers,” not “walls.”
+
+---
+
+# 2) Core Interaction Model
+
+## Everything is an **Object**
+
+You will have these visible object types:
+
+### 1) Graph Nodes (relationship anchors)
+
+- deity, element, artifact, lesson, standard, prompt, etc.
+    
+- selecting a node **summons related objects**
+    
+
+### 2) Cards (lightweight objects)
+
+- quick view
+    
+- stackable
+    
+- pinnable
+    
+- expandable into windows
+    
+
+### 3) Windows (heavyweight objects)
+
+- full lesson editor
+    
+- image curator
+    
+- repository detail view
+    
+- slide builder
+    
+- annotations view
+    
+- dockable, resizable, tabbed
+    
+
+### 4) Notes (post-its)
+
+- sticky notes
+    
+- can attach to a node or a lesson
+    
+- can float, pin, group
+    
+
+**Rule:** Nothing forces navigation away from the canvas.
+
+---
+
+# 3) The Prism Lens System (Rubik / rotating prism)
+
+This is the “I don’t want to see everything all at once” solution.
+
+### Lens Modes (horizontal rotation)
+
+- **Lessons**
+    
+- **Artifacts**
+    
+- **Activities**
+    
+- **Assessments**  
+    (optional: **Standards**, **Research**)
+    
+
+### What changes when lens rotates
+
+The _same_ selection yields different “summoned objects.”
+
+Example: Click node “Shamash”
+
+- **Lessons lens:** shows lesson drafts, Day A/B bridge, scripts, timing cards
+    
+- **Artifacts lens:** shows museum objects, image sets, provenance cards
+    
+- **Activities lens:** shows construction tasks, art prompts, station cards
+    
+- **Assessments lens:** shows exit tickets, rubrics, misconceptions
+    
+
+### UI control
+
+- Lens toggle in HUD (top floating pill) OR dock gesture
+    
+- Rotation animation (subtle) so it feels like turning a prism
+    
+- Lens state persists across sessions
+    
+
+**Rule:** Prism changes projection, not data.
+
+---
+
+# 4) Content Object Model (how you avoid folder hell)
+
+Instead of organizing by folders first, everything becomes a **Content Object** with metadata.
+
+### Content Object Fields (minimum viable)
+
+- **id**
+    
+- **type**: raw | summary | annotation | adaptation | draftLesson | finalLesson | slideDeck | note | imageSet
+    
+- **state**: inbox → processing → in-progress → review → approved → published
+    
+- **links**: [nodeIds…] (graph references)
+    
+- **title**
+    
+- **createdAt / updatedAt**
+    
+- **source** (URL/file/path)
+    
+- **tags** (grade, week, dayA/dayB, standards)
+    
+
+### Visual representation
+
+- Objects appear as cards with:
+    
+    - type badge
+        
+    - state badge
+        
+    - linked nodes count
+        
+    - “open” / “pin” / “export” actions
+        
+
+**Rule:** “Find by relationship” beats “find by location.”
+
+---
+
+# 5) Summoning Rules (the magic)
+
+When user clicks a node, the system runs:
+
+### Summon Query
+
+> “Give me the objects linked to this node filtered by current lens.”
+
+Results appear as:
+
+- a ring / cluster around the selected node (cards)
+    
+- or a tray (bottom/side) that can be pulled into the canvas
+    
+- user can pin, stack, expand into windows
+    
+
+### Recommended defaults
+
+- Summon **top 6** objects by relevance
+    
+- Show “+ more” to open a larger panel view
+    
+- Prefer **recent + approved** unless user toggles “show drafts”
+    
+
+---
+
+# 6) Lesson Builder Window System
+
+Lesson Builder is a **window set**, not a single page.
+
+### Required panes/windows
+
+- **Lesson Outline** (structured)
+    
+- **Section Editor** (A1–A7, B1–B8)
+    
+- **Image Pairing** (your Section Studio logic)
+    
+- **Standards & Skills**
+    
+- **Notes Layer** (post-its attach to sections)
+    
+
+### Window behaviors
+
+- Snap left/right/bottom
+    
+- Tab stacks (VS Code style)
+    
+- Pop-out allowed, but not mandatory
+    
+- “Focus Mode” expands one window to near-full canvas
+    
+
+**Rule:** You should be able to build a lesson without ever leaving the canvas.
+
+---
+
+# 7) Presentation Builder + The Face (outputs)
+
+## The Face (teacher-facing showcase)
+
+This is **light mode**, welcoming, museum-label vibes.
+
+- Clean
+    
+- readable
+    
+- printable
+    
+- “deliverable-first”
+    
+
+Uses:
+
+- published lessons
+    
+- curated artifact galleries
+    
+- student-facing visuals
+    
+
+## Presentation Builder
+
+Lives as a tool window.
+
+- Design slide deck from lesson objects
+    
+- Export using PptxGenJS
+    
+- Optional: Reveal.js preview mode
+    
+
+**Rule:** Output tools pull from the same objects, not separate content copies.
+
+---
+
+# 8) Theme System (one palette, three moods)
+
+You asked for **one connected scheme** with different applications. Here’s the structure:
+
+## Shared accents across all apps
+
+- **Gold** = divine / primary action / “selected”
+    
+- **Cyan** = geometry / info / links
+    
+- **Violet** = creative / notes / drafts
+    
+- **Green** = ready / approved / success
+    
+
+(Your current files already lean into gold + dark gradients, so this keeps continuity.)
+
+### A) The Face — Light
+
+- background: warm parchment / ivory
+    
+- text: charcoal
+    
+- accents: gold + cyan (softened)
+    
+- shadows: gentle, airy
+    
+
+### B) Research — Darkest
+
+- near-black gradient, cosmic
+    
+- strong glow language (gold edges)
+    
+- graph lives here “at home”
+    
+
+### C) Lesson Builder — Blue-ish mid-dark
+
+- slate/indigo background
+    
+- less intense glow than research
+    
+- more “workbench,” less “observatory”
+    
+
+**Rule:** same colors, different lighting conditions.
+
+---
+
+# 9) Minimum Viable Build Order (so this becomes real)
+
+### Phase 1 — Shell & Window Manager
+
+- canvas + dock + drawers
+    
+- window manager (open/drag/snap/minimize)
+    
+- iframe your existing pages inside windows (fast integration)
+    
+
+### Phase 2 — Object Model + Summoning
+
+- define content object schema
+    
+- basic storage (local JSON or Supabase later)
+    
+- clicking graph node summons cards based on lens
+    
+
+### Phase 3 — Prism Lens
+
+- lens state stored
+    
+- lens changes summon filters + default views
+    
+- subtle rotation animation
+    
+
+### Phase 4 — Replace iframes with native components
+
+- Graph becomes first-class canvas
+    
+- Section Studio becomes pane in Lesson Builder
+    
+- Repository becomes object browser window
+    
+
+---
+
+# 10) Success Criteria (how we’ll know it’s “right”)
+
+You will feel it’s correct when:
+
+- you can work for 20 minutes **without noticing UI**
+    
+- you never feel “boxed in”
+    
+- you can open 4–6 objects and they feel like they’re **on your desk**
+    
+- the graph feels like it’s _calling things up_, not just displaying them
+    
+- you can build a lesson while keeping the graph visible or quickly reachable
+    
+
+---
+
+If you want, next I can turn this blueprint into a **one-page “interaction rules spec”** (like a mini design doc) with:
+
+- exact dock items + tooltips
+    
+- exact drawer contents
+    
+- exact card types + badges
+    
+- summon algorithm priorities
+    
+- keyboard shortcuts (pro-grade “desktop” feel)
+    
+
+Just say: **“Spec it”**.

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Mesopotamia Pilot — Process Overview</title>
+  <link rel="stylesheet" href="common.css"/>
+  <style>
+    .cardlike{border:1px solid var(--border); background:rgba(15,26,48,.55); border-radius:18px; padding:16px; margin:14px 0;}
+    ol{line-height:1.55}
+    code{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">🧭 Mesopotamia Pilot — Process Overview</div>
+    <div class="pill">Generated 2026-02-11</div>
+  </header>
+
+  <main>
+    <div class="nav">
+      <a href="index.html">Overview</a>
+      <a href="grade3.html">Grade 3 Kanban</a>
+      <a href="grade4.html">Grade 4 Kanban</a>
+      <a href="grade5.html">Grade 5 Kanban</a>
+      <a href="../lesson_shell_demo/index.html">Lesson shell demo</a>
+    </div>
+
+    <div class="cardlike">
+      <h2 style="margin:0 0 8px 0;">What this is</h2>
+      <div class="small">
+        This folder is a lightweight “don’t-miss-a-step” process tracker for converting the 2‑month Grade 3/4/5 Mesopotamia pilot markdown into complete, image-rich, navigable lesson files.
+        Each grade board is pre-populated with cards for sections that include an <b>Artifacts</b> block (cards: Grade 3 = 78, Grade 4 = 91, Grade 5 = 38).
+      </div>
+    </div>
+
+    <div class="cardlike">
+      <h2 style="margin:0 0 8px 0;">Core pipeline (the “golden path”)</h2>
+      <ol>
+        <li><b>Normalize the markdown</b>: consistent headings for Week / Day / Section, and consistent artifact formatting.</li>
+        <li><b>Chunk to lesson units</b>: decide your output granularity (one HTML per grade, or per week, or per day).</li>
+        <li><b>Artifact QA</b>: ensure every artifact has (a) a clear name, (b) source, (c) specs, (d) where it appears.</li>
+        <li><b>Assets + rights</b>: pull images, write captions and attributions, store locally in an <code>assets/</code> folder.</li>
+        <li><b>Build</b>: convert MD → structured JSON → render into the HTML shell.</li>
+        <li><b>QA + publish</b>: run link checks, image loading, keyboard navigation, and alt text review.</li>
+      </ol>
+    </div>
+
+    <div class="cardlike">
+      <h2 style="margin:0 0 8px 0;">How to use the Kanban</h2>
+      <ul style="line-height:1.55">
+        <li>Open a grade board and drag cards across columns as you complete work.</li>
+        <li>Use the per-card checklist to make sure you don’t skip “assets + alt text + render checks”.</li>
+        <li>Filters (Week/Day/Search) help you focus on one slice at a time.</li>
+        <li>Everything saves locally in your browser.</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      Want this to become a “real” tracker (Airtable/Notion/Jira)? This HTML is basically a prototype of the data model you’d migrate.
+    </div>
+  </main>
+</body>
+</html>

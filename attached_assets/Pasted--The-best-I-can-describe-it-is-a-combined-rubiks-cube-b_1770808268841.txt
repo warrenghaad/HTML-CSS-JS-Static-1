@@ -1,0 +1,369 @@
+"The best I can describe it is a combined rubiks cube/bike lock cubic prison"
+
+The fact that you’re picturing a _Rubik’s-cube / bike-lock prism_ UI is actually a super coherent product direction. Let me describe your “ideal interface” like I’m writing the blueprint your CODEX CLI can implement. 😄
+
+---
+
+## Your ideal interface (what it “feels” like)
+
+### It’s **a desktop**, not a website
+
+- **No static header. No static left nav.**
+    
+- **No giant white margins.**
+    
+- The app is a **workspace**: panes, drawers, floating windows, cards, pins, stacks.
+    
+
+### The center is sacred (maximum canvas)
+
+- Your **3D graph** gets priority and can go **full-bleed** whenever you want.
+    
+- Everything else either:
+    
+    - collapses into a **hover dock**, or
+        
+    - becomes a **thin side rail**, or
+        
+    - floats as **movable windows** over the graph.
+        
+
+---
+
+## Layout: “3-zone + dock” model
+
+### 1) **Center Stage (Main Canvas)**
+
+This is a _mode switchable_ canvas:
+
+**Canvas modes (tabs or hotkeys):**
+
+- **Graph Mode** (3D node graph, presets, filters)
+    
+- **Reader Mode** (full lesson content / eTextbook page)
+    
+- **Gallery Mode** (images, artifacts, comparisons, AI drafts)
+    
+- **Board Mode** (post-its + pinned cards + kanban-ish stacks)
+    
+
+**Key behavior:**  
+The main canvas is always **one thing at a time**, full size.
+
+---
+
+### 2) **Left: Ingest Hub (thin rail + expandable drawer)**
+
+You said it: ingest should be at the side.
+
+**Collapsed (rail):**
+
+- Icons only: 📥 Ingest, 🧾 Sources, 🧪 Extracts, ⚙️ Jobs
+    
+
+**Expand on hover / click:**
+
+- Drag-in dropzone
+    
+- “Watch folder / new files” queue
+    
+- Parsing status
+    
+- Quick actions: “summarize”, “extract artifacts”, “make cards”, “link to lesson”
+    
+
+**Important:** it should be _easy to hide_, because center space matters.
+
+---
+
+### 3) **Right: Lesson Builder (stackable windows)**
+
+Not “only popups”. Instead:
+
+**Window system:**
+
+- Snap-left / snap-right / quarter-tiling
+    
+- Float + resize + collapse-to-tab
+    
+- “Pin to edge” (becomes a little vertical tab)
+    
+
+**Lesson Builder windows:**
+
+- **Outline** (sections A/B, reorder, templates)
+    
+- **Artifacts** (registry, images, AI prompts)
+    
+- **Activities** (construction cards, teacher notes)
+    
+- **Export** (Reveal.js / PptxGenJS / PDF)
+    
+
+---
+
+### 4) Bottom “Mac Dock” (your hover nav dream)
+
+This is how you kill static navigation _and_ remove whitespace.
+
+**Dock items:**
+
+- 🧠 Graph
+    
+- 📚 Reader
+    
+- 🧱 Lesson Builder
+    
+- 🖼️ Visual Repository
+    
+- 🎬 Storyboard / Myth Studio
+    
+- 🔎 Research Assistant
+    
+- 🗂️ Cabinet (versions + drafts + notes)
+    
+
+**Behavior:**
+
+- Hidden by default
+    
+- Appears on hover near bottom edge
+    
+- Icons magnify like macOS
+    
+- Each opens as:
+    
+    - full canvas mode **or**
+        
+    - floating panel (your choice per tool)
+        
+
+---
+
+## The Rubik’s Cube / Prism interaction (your signature move)
+
+This is the “wow” that makes it feel _3D and not boxy_.
+
+### “Cube View” = the context switcher
+
+Think of a **rotating cube** (or rectangular prism) where each face is a _workspace lens_:
+
+- Face 1: **This Lesson**
+    
+- Face 2: **All Lessons**
+    
+- Face 3: **Artifacts**
+    
+- Face 4: **Activities**
+    
+- Face 5: **Assessments/Proof**
+    
+- Face 6: **Sources/Notes**
+    
+
+**What changes when you rotate:**
+
+- the **filters**, not your entire app
+    
+- what’s shown in the card grid
+    
+- which panes auto-open
+    
+
+**Controls:**
+
+- click-drag to rotate
+    
+- keyboard: `⌘/Ctrl + ← →`
+    
+- “snap” rotations (90° steps) so it feels intentional
+    
+
+This is _exactly_ the “bike lock / Rubik’s prism” thing you described.
+
+---
+
+## UI components (buttons + interactivity you’ll want)
+
+### Card Grid (middle when not full reader/graph)
+
+Cards are your universal object:
+
+- Lesson section cards
+    
+- Artifact cards (with image + metadata)
+    
+- Source cards (pdf/url/snippet)
+    
+- Prompt cards (AI image instructions)
+    
+- Version cards (draft v12 vs final)
+    
+
+**Card actions (hover):**
+
+- Pin 📌
+    
+- Link 🔗 (to lesson / node / artifact)
+    
+- Compare ⇄ (2-up view)
+    
+- Export ⤓
+    
+- “Make AI image” ✨
+    
+
+### Post-it notes (playful but functional)
+
+- Sticky note tool on the canvas
+    
+- Attach to:
+    
+    - a node
+        
+    - a section
+        
+    - an artifact
+        
+- Can be **private** (your brain) vs **publishable** (teacher-facing)
+    
+
+### Comparison viewer (you asked for it)
+
+- 2-up or 3-up image compare
+    
+- slider compare
+    
+- show: “raw → cleaned → AI polished”
+    
+
+---
+
+## Color system (3 apps, same family)
+
+You asked for: light “face”, dark research, bluish builder. Here’s a clean token approach:
+
+### Global brand accents (shared everywhere)
+
+- Accent A: “electric sapphire”
+    
+- Accent B: “warm gold”
+    
+- Neutral: soft slate
+    
+
+### App themes
+
+**1) Teacher “Face” (light, inviting)**
+
+- Background: warm off-white (not pure white)
+    
+- Cards: soft elevation + rounded corners
+    
+- Accent: sapphire + gold sparingly
+    
+
+**2) Research / Graph (dark, high focus)**
+
+- Background: near-black charcoal
+    
+- Nodes pop with neon-ish accents
+    
+- Panels are translucent glass
+    
+
+**3) Lesson Builder (blue-dark, calmer than research)**
+
+- Background: deep blue-gray
+    
+- Cards: slightly lighter blue panels
+    
+- Highlights: sapphire
+    
+
+If you implement via CSS variables:
+
+- `--bg-0, --bg-1, --panel, --border, --text, --muted, --accent, --accent2`
+    
+
+…and just swap values per “mode”.
+
+---
+
+## “Spectrum 2” — what it is (and why it matters here)
+
+Spectrum 2 is Adobe’s _updated_ design system: modern, friendly, accessible, token-driven, and meant to scale across lots of product surfaces. That’s basically your situation: many tools, one ecosystem. ([Spectrum 2](https://s2.spectrum.adobe.com/?as_campaign=adobe-designtaxi&as_channel=affiliate&as_source=partnerize&clickref=1011ly5huwWJ&mv=affiliate&mv2=pz&utm_source=chatgpt.com "Spectrum 2 - Adobe Inc."))
+
+**How you’d use it (practically):**
+
+- Steal the **token mindset** (not necessarily the exact look)
+    
+- Use its approach to:
+    
+    - consistent spacing/typography
+        
+    - component states
+        
+    - accessibility
+        
+    - theming across multiple “apps” inside one platform
+        
+
+---
+
+## How to “map by testing functionality” (the fastest build order)
+
+Here’s the shortest path to a working prototype that proves your concept:
+
+### Phase 1 — Workspace Skeleton
+
+- Main canvas (Graph / Reader / Gallery / Board)
+    
+- Left ingest rail (collapsible)
+    
+- Bottom hover dock
+    
+- Right floating windows system (drag + resize)
+    
+
+### Phase 2 — Core objects
+
+- Card model + card grid
+    
+- Pinned items tray
+    
+- Post-its
+    
+- Compare viewer
+    
+
+### Phase 3 — The Prism
+
+- Cube rotation UI that flips _filters + context_
+    
+- Save “presets” per cube face
+    
+
+---
+
+## CODEX CLI: prompts that will actually work for your build
+
+Use Codex like a **feature implementer**, not a “write me an app” genie.
+
+### Prompt 1: enforce the architecture
+
+> Implement a desktop-like workspace UI in React. Requirements: no static header, no static sidebars. Add a hidden bottom dock that appears on hover. Add a left rail that expands to a drawer. Add a right window manager with draggable, resizable panels that can snap to edges or float. The center canvas supports modes: Graph, Reader, Gallery, Board. Use a theme token system to support 3 themes: face(light), research(dark), builder(blue-dark). Provide clean component boundaries and state management.
+
+### Prompt 2: window manager
+
+> Add a window manager: createWindow(type), closeWindow(id), togglePin(id), snapWindow(id, position), setZIndex(id). Windows must be draggable/resizable and persist layout in localStorage.
+
+### Prompt 3: cube/prism switcher
+
+> Create a cube context switcher UI. Each face corresponds to a filter preset and which tool windows are open. Rotating the cube swaps the active preset and updates the card grid query + open panels. Provide keyboard shortcuts and smooth snapping rotation.
+
+### Prompt 4: card system + pins
+
+> Implement a CardGrid that can render multiple card types (LessonSection, Artifact, Source, Prompt, Version). Add hover actions: Pin, Link, Compare, Export, AI Image. Add a pinned tray.
+
+---
