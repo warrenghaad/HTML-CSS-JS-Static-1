@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Variables Spreadsheet - Geo-Arts Production</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <style>
+    .spreadsheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .spreadsheet-header h2 {
+      margin: 0;
+      color: var(--accent);
+    }
+
+    .spreadsheet-header p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin: 0.25rem 0 0;
+    }
+
+    .controls-bar {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .controls-bar input[type="text"] {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+      width: 200px;
+    }
+
+    .controls-bar input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .controls-bar select {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .controls-bar select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .fill-summary {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .fill-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .fill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .fill-dot.full { background: var(--healthy); }
+    .fill-dot.partial { background: var(--warning); }
+    .fill-dot.empty { background: var(--error); }
+
+    .spreadsheet-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-card);
+    }
+
+    .spreadsheet-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      min-width: 1400px;
+    }
+
+    .spreadsheet-table thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .spreadsheet-table th {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.6rem 0.5rem;
+      text-align: left;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+      font-size: 0.7rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .spreadsheet-table th:hover {
+      color: var(--accent);
+    }
+
+    .spreadsheet-table th.col-num { width: 40px; text-align: center; }
+    .spreadsheet-table th.col-title { width: 180px; }
+    .spreadsheet-table th.col-unit { width: 130px; }
+    .spreadsheet-table th.col-var { min-width: 130px; }
+
+    .spreadsheet-table td {
+      padding: 0.35rem 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: top;
+      position: relative;
+    }
+
+    .spreadsheet-table tr:hover td {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .spreadsheet-table tr.unit-break td {
+      border-top: 2px solid var(--accent);
+    }
+
+    .cell-num {
+      text-align: center;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+
+    .cell-title {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 0.8rem;
+    }
+
+    .cell-unit {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .unit-badge {
+      display: inline-block;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .cell-editable {
+      cursor: pointer;
+      min-height: 1.4em;
+      padding: 0.2rem 0.3rem;
+      border-radius: 3px;
+      transition: background 0.15s;
+      font-size: 0.78rem;
+      line-height: 1.3;
+      color: var(--text);
+    }
+
+    .cell-editable:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    .cell-editable.empty {
+      color: rgba(255,255,255,0.2);
+      font-style: italic;
+    }
+
+    .cell-editable.editing {
+      padding: 0;
+    }
+
+    .cell-editable input,
+    .cell-editable textarea {
+      width: 100%;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--accent);
+      border-radius: 3px;
+      color: var(--text);
+      font-size: 0.78rem;
+      padding: 0.25rem 0.3rem;
+      font-family: inherit;
+      line-height: 1.3;
+      resize: vertical;
+    }
+
+    .cell-editable input:focus,
+    .cell-editable textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(212,175,55,0.15);
+    }
+
+    .save-indicator {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--healthy);
+      color: #000;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius);
+      font-size: 0.8rem;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .save-indicator.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .var-col-header {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .var-icon {
+      font-size: 0.85rem;
+    }
+
+    .export-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .export-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+    }
+
+    .back-link:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+      .spreadsheet-header { flex-direction: column; align-items: flex-start; }
+      .controls-bar { width: 100%; }
+      .controls-bar input[type="text"] { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="logo">Geo-Arts Curriculum System</div>
+    <div class="nav-links">
+      <a href="../index.html">Home</a>
+      <a href="production-dashboard.html">Dashboard</a>
+      <a href="governance.html">Governance</a>
+      <a href="playground.html">Playground</a>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+
+  <div class="container" style="max-width: 1600px;">
+    <a href="production-dashboard.html" class="back-link">&larr; Back to Dashboard</a>
+
+    <div class="spreadsheet-header">
+      <div>
+        <h2>Variables Spreadsheet</h2>
+        <p>Section 2: Define the key variables for each of the 48 Mesopotamia lessons. Click any cell to edit.</p>
+      </div>
+      <div class="controls-bar">
+        <input type="text" id="searchInput" placeholder="Search lessons...">
+        <select id="unitFilter">
+          <option value="">All Units</option>
+        </select>
+        <select id="columnFilter">
+          <option value="">All Columns</option>
+          <option value="god">God</option>
+          <option value="artifact">Artifact</option>
+          <option value="math_concept">Math Concept</option>
+          <option value="activity">Activity</option>
+          <option value="location">Location</option>
+          <option value="geometric_theme">Geometric Theme</option>
+          <option value="myth_theme">Myth Theme</option>
+          <option value="image_notes">Image Notes</option>
+        </select>
+        <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+      </div>
+    </div>
+
+    <div id="fillSummary" class="fill-summary"></div>
+
+    <div class="spreadsheet-wrap">
+      <table class="spreadsheet-table">
+        <thead>
+          <tr>
+            <th class="col-num">#</th>
+            <th class="col-title">Lesson Title</th>
+            <th class="col-unit">Unit</th>
+            <th class="col-var" data-col="god"><span class="var-col-header"><span class="var-icon">&#9734;</span> God</span></th>
+            <th class="col-var" data-col="artifact"><span class="var-col-header"><span class="var-icon">&#9881;</span> Artifact</span></th>
+            <th class="col-var" data-col="math_concept"><span class="var-col-header"><span class="var-icon">&#916;</span> Math Concept</span></th>
+            <th class="col-var" data-col="activity"><span class="var-col-header"><span class="var-icon">&#9998;</span> Activity</span></th>
+            <th class="col-var" data-col="location"><span class="var-col-header"><span class="var-icon">&#9673;</span> Location</span></th>
+            <th class="col-var" data-col="geometric_theme"><span class="var-col-header"><span class="var-icon">&#9651;</span> Geometry</span></th>
+            <th class="col-var" data-col="myth_theme"><span class="var-col-header"><span class="var-icon">&#9733;</span> Myth Theme</span></th>
+            <th class="col-var" data-col="image_notes"><span class="var-col-header"><span class="var-icon">&#128247;</span> Image Notes</span></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="save-indicator" id="saveIndicator">Saved</div>
+
+  <script src="../scripts/main.js"></script>
+  <script>
+    let lessons = [];
+    let editingCell = null;
+    const varCols = ['god','artifact','math_concept','activity','location','geometric_theme','myth_theme','image_notes'];
+    const colLabels = {
+      god: 'God', artifact: 'Artifact', math_concept: 'Math Concept',
+      activity: 'Activity', location: 'Location', geometric_theme: 'Geometry',
+      myth_theme: 'Myth Theme', image_notes: 'Image Notes'
+    };
+
+    const unitColors = {
+      'Origins & Creation': '#4fc3f7',
+      'Gods & Mythology': '#ba68c8',
+      'City-States & Architecture': '#ff8a65',
+      'Writing & Mathematics': '#81c784',
+      'Art & Craftsmanship': '#f06292',
+      'Trade & Economy': '#ffd54f',
+      'Law & Governance': '#7986cb',
+      'Legacy & Connections': '#4db6ac',
+    };
+
+    async function loadData() {
+      const res = await fetch('/api/production/variables');
+      lessons = await res.json();
+      populateUnitFilter();
+      renderTable();
+      renderFillSummary();
+    }
+
+    function populateUnitFilter() {
+      const sel = document.getElementById('unitFilter');
+      const units = [...new Set(lessons.map(l => l.unit))];
+      units.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u;
+        opt.textContent = u;
+        sel.appendChild(opt);
+      });
+    }
+
+    function getFilteredLessons() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const unit = document.getElementById('unitFilter').value;
+      return lessons.filter(l => {
+        if (unit && l.unit !== unit) return false;
+        if (search) {
+          const searchable = [l.title, l.unit, ...varCols.map(c => l[c] || '')].join(' ').toLowerCase();
+          if (!searchable.includes(search)) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      const filtered = getFilteredLessons();
+      const colFilter = document.getElementById('columnFilter').value;
+      let prevUnit = '';
+      let html = '';
+
+      filtered.forEach(l => {
+        const unitBreak = l.unit !== prevUnit;
+        prevUnit = l.unit;
+        const color = unitColors[l.unit] || '#888';
+
+        html += `<tr class="${unitBreak ? 'unit-break' : ''}" data-id="${l.id}">`;
+        html += `<td class="cell-num">${l.lesson_number}</td>`;
+        html += `<td class="cell-title">${l.title}</td>`;
+        html += `<td class="cell-unit"><span class="unit-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${l.unit}</span></td>`;
+
+        varCols.forEach(col => {
+          if (colFilter && col !== colFilter) return;
+          const val = l[col] || '';
+          const isEmpty = !val.trim();
+          html += `<td><div class="cell-editable ${isEmpty ? 'empty' : ''}" data-id="${l.id}" data-col="${col}" onclick="startEdit(this)">${isEmpty ? 'click to add' : escHtml(val)}</div></td>`;
+        });
+
+        html += '</tr>';
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function escHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    function startEdit(el) {
+      if (editingCell && editingCell !== el) {
+        finishEdit(editingCell);
+      }
+      if (el.classList.contains('editing')) return;
+
+      const id = parseInt(el.dataset.id);
+      const col = el.dataset.col;
+      const lesson = lessons.find(l => l.id === id);
+      const val = lesson ? (lesson[col] || '') : '';
+
+      el.classList.add('editing');
+      el.classList.remove('empty');
+
+      if (col === 'activity' || col === 'image_notes') {
+        el.innerHTML = `<textarea rows="2">${escHtml(val)}</textarea>`;
+      } else {
+        el.innerHTML = `<input type="text" value="${escHtml(val)}">`;
+      }
+
+      const input = el.querySelector('input, textarea');
+      input.focus();
+      input.addEventListener('blur', () => finishEdit(el));
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          finishEdit(el);
+        }
+        if (e.key === 'Escape') {
+          cancelEdit(el);
+        }
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          finishEdit(el);
+          const nextCell = findNextCell(el, e.shiftKey);
+          if (nextCell) startEdit(nextCell);
+        }
+      });
+      editingCell = el;
+    }
+
+    function findNextCell(currentEl, reverse) {
+      const allCells = Array.from(document.querySelectorAll('.cell-editable'));
+      const idx = allCells.indexOf(currentEl);
+      if (idx === -1) return null;
+      const nextIdx = reverse ? idx - 1 : idx + 1;
+      if (nextIdx >= 0 && nextIdx < allCells.length) return allCells[nextIdx];
+      return null;
+    }
+
+    async function finishEdit(el) {
+      const input = el.querySelector('input, textarea');
+      if (!input) return;
+
+      const id = parseInt(el.dataset.id);
+      const col = el.dataset.col;
+      const newVal = input.value.trim();
+
+      const lesson = lessons.find(l => l.id === id);
+      if (lesson) {
+        const oldVal = lesson[col] || '';
+        if (newVal !== oldVal) {
+          lesson[col] = newVal;
+          await saveVariable(id, col, newVal);
+        }
+      }
+
+      el.classList.remove('editing');
+      if (!newVal) {
+        el.classList.add('empty');
+        el.textContent = 'click to add';
+      } else {
+        el.classList.remove('empty');
+        el.textContent = newVal;
+      }
+      editingCell = null;
+      renderFillSummary();
+    }
+
+    function cancelEdit(el) {
+      const id = parseInt(el.dataset.id);
+      const col = el.dataset.col;
+      const lesson = lessons.find(l => l.id === id);
+      const val = lesson ? (lesson[col] || '') : '';
+
+      el.classList.remove('editing');
+      if (!val) {
+        el.classList.add('empty');
+        el.textContent = 'click to add';
+      } else {
+        el.classList.remove('empty');
+        el.textContent = val;
+      }
+      editingCell = null;
+    }
+
+    async function saveVariable(lessonId, col, value) {
+      const body = {};
+      body[col] = value;
+      await fetch(`/api/production/variables/${lessonId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      showSaveIndicator();
+    }
+
+    function showSaveIndicator() {
+      const el = document.getElementById('saveIndicator');
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 1500);
+    }
+
+    function renderFillSummary() {
+      const container = document.getElementById('fillSummary');
+      let html = '';
+      varCols.forEach(col => {
+        const filled = lessons.filter(l => l[col] && l[col].trim()).length;
+        const total = lessons.length;
+        const pct = Math.round(filled / total * 100);
+        let dotClass = 'empty';
+        if (pct === 100) dotClass = 'full';
+        else if (pct > 0) dotClass = 'partial';
+        html += `<div class="fill-chip"><span class="fill-dot ${dotClass}"></span>${colLabels[col]}: ${filled}/${total} (${pct}%)</div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function exportCSV() {
+      const filtered = getFilteredLessons();
+      const headers = ['#', 'Title', 'Unit', ...varCols.map(c => colLabels[c])];
+      let csv = headers.join(',') + '\n';
+      filtered.forEach(l => {
+        const row = [
+          l.lesson_number,
+          '"' + (l.title || '').replace(/"/g, '""') + '"',
+          '"' + (l.unit || '').replace(/"/g, '""') + '"',
+          ...varCols.map(c => '"' + (l[c] || '').replace(/"/g, '""') + '"')
+        ];
+        csv += row.join(',') + '\n';
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'lesson_variables.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', renderTable);
+    document.getElementById('unitFilter').addEventListener('change', renderTable);
+    document.getElementById('columnFilter').addEventListener('change', renderTable);
+
+    loadData();
+  </script>
+</body>
+</html>

@@ -74,6 +74,20 @@ def init_db():
             updated_at TIMESTAMP DEFAULT NOW()
         )
     ''')
+    for col_def in [
+        "activity TEXT DEFAULT ''",
+        "location VARCHAR(255) DEFAULT ''",
+        "geometric_theme VARCHAR(255) DEFAULT ''",
+        "myth_theme VARCHAR(255) DEFAULT ''",
+        "image_notes TEXT DEFAULT ''",
+    ]:
+        col_name = col_def.split()[0]
+        cur.execute("""
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name='production_lessons' AND column_name=%s
+        """, (col_name,))
+        if not cur.fetchone():
+            cur.execute(f"ALTER TABLE production_lessons ADD COLUMN {col_def}")
     cur.execute('''
         CREATE TABLE IF NOT EXISTS production_teams (
             id SERIAL PRIMARY KEY,
@@ -100,11 +114,76 @@ def init_db():
     cur.close()
     conn.close()
 
+def seed_lesson_variables(cur):
+    cur.execute("SELECT id, title, god FROM production_lessons WHERE god IS NULL OR god = '' ORDER BY lesson_number")
+    empty_lessons = cur.fetchall()
+    if not empty_lessons:
+        return
+
+    var_lookup = {
+        'The Fertile Crescent': ('Enki', 'Standard of Ur', 'Geometric shapes in maps', 'Map drawing, clay tablet', 'Southern Iraq', 'River curves & circles', 'Waters of creation', 'Satellite vs ancient maps'),
+        'Sumerian Creation Myths': ('Nammu', 'Weld-Blundell Prism', 'Symmetry in creation', 'Creation story illustration', 'Eridu', 'Bilateral symmetry', 'Primordial ocean', 'Chaos-to-order visuals'),
+        'The First Settlements': ('Enlil', 'Tell Brak Eye Idols', 'Area & perimeter of dwellings', 'Settlement layout design', 'Tell Brak', 'Rectangular grids', 'Taming the wild', 'Aerial settlement views'),
+        'Birth of Agriculture': ('Ashnan', 'Seed Plow Model', 'Measurement & ratios', 'Planting grid activity', 'Girsu', 'Parallel lines, rows', 'Gift of grain', 'Farm tool close-ups'),
+        'Early River Civilizations': ('Ea', 'Gudea Cylinders', 'Scale & proportion', 'River map overlay', 'Lagash', 'Meander curves', 'River journeys', 'Tigris/Euphrates imagery'),
+        'Foundations of Society': ('Utu', 'Law Code Stele', 'Organizational charts', 'Society pyramid build', 'Nippur', 'Hierarchical triangles', 'Order from chaos', 'Social structure diagrams'),
+        'The Sumerian Pantheon': ('An', 'Votive Statues', 'Angles of worship', 'Pantheon family tree', 'Uruk', 'Star polygons', 'Assembly of gods', 'Temple statue groupings'),
+        'Enlil: Lord of the Wind': ('Enlil', 'Enlil Temple Model', 'Wind force vectors', 'Wind direction compass', 'Nippur', 'Directional arrows', 'Storm & calm', 'Wind pattern diagrams'),
+        'Inanna: Queen of Heaven': ('Inanna', 'Inanna Vase', 'Rotational symmetry', 'Star of Inanna drawing', 'Uruk', 'Eight-pointed star', 'Descent & return', 'Venus star imagery'),
+        'The Epic of Gilgamesh': ('Gilgamesh', 'Gilgamesh Tablet', 'Distance & journey math', 'Epic timeline map', 'Uruk', 'Spiral journey path', 'Quest for immortality', 'Hero journey scenes'),
+        'Myths of the Underworld': ('Ereshkigal', 'Queen of Night Relief', 'Negative numbers & depth', 'Underworld layer diagram', 'Kur', 'Concentric circles down', 'Seven gates', 'Dark realm imagery'),
+        'Rituals and Offerings': ('Ninhursag', 'Ram in Thicket', 'Fractions in offerings', 'Offering proportion chart', 'Ur', 'Division & fractions', 'Sacred giving', 'Ritual scene details'),
+        'Rise of Ur and Uruk': ('Nanna', 'Royal Game of Ur', 'Grid coordinates', 'City plan grid overlay', 'Ur', 'Rectangular planning', 'City founding', 'Aerial city ruins'),
+        'Ziggurats: Stairways to Heaven': ('Marduk', 'Ziggurat Model', 'Volume of stepped pyramids', '3D ziggurat construction', 'Babylon', 'Stacked rectangles', 'Climbing to heaven', 'Ziggurat cross-sections'),
+        'City Walls and Gates': ('Adad', 'Ishtar Gate Tiles', 'Perimeter & fortification', 'Wall defense blueprint', 'Babylon', 'Rectangular perimeters', 'Protection & power', 'Ishtar Gate details'),
+        'Palaces of Mesopotamia': ('Shamash', 'Balawat Gates', 'Floor plan geometry', 'Palace room layout', 'Nimrud', 'Complex floor plans', 'Royal grandeur', 'Palace relief carvings'),
+        'Irrigation and Engineering': ('Enki', 'Canal Map Tablet', 'Water flow rates', 'Canal system design', 'Girsu', 'Channel networks', 'Taming the waters', 'Irrigation channel photos'),
+        'Life in a City-State': ('Ningal', 'Marketplace Seal', 'Population statistics', 'Daily life diorama', 'Ur', 'Neighborhood grids', 'Community living', 'Market scene images'),
+        'Cuneiform Writing System': ('Nabu', 'Cuneiform Tablet', 'Angles in wedge marks', 'Clay tablet pressing', 'Nippur', 'Wedge angles', 'Gift of writing', 'Cuneiform close-ups'),
+        'Scribes and Schools': ('Nisaba', 'School Tablet', 'Counting systems base-60', 'Scribal practice exercise', 'Nippur', 'Ordered rows/columns', 'Knowledge keepers', 'School tablet replicas'),
+        'Early Number Systems': ('Nabu', 'Counting Tokens', 'Base-60 number system', 'Number conversion activity', 'Susa', 'Positional notation', 'Counting the stars', 'Token & tablet photos'),
+        'Babylonian Mathematics': ('Shamash', 'Plimpton 322', 'Pythagorean triples', 'Triangle construction', 'Larsa', 'Right triangles', 'Measuring the world', 'Plimpton 322 close-up'),
+        'Astronomical Records': ('Sin', 'Venus Tablet', 'Circular measurement', 'Star chart plotting', 'Babylon', 'Circles & degrees', 'Reading the heavens', 'Star chart imagery'),
+        'Libraries of Clay': ('Nabu', 'Library Catalog Tablet', 'Sorting & classification', 'Library catalog system', 'Nineveh', 'Organizational grids', 'Preserving knowledge', 'Ashurbanipal library'),
+        'Cylinder Seals and Impressions': ('Ea', 'Cylinder Seal', 'Circumference & rotation', 'Seal rolling activity', 'Ur', 'Cylinders & circles', 'Identity marks', 'Seal impression details'),
+        'Metalwork and Jewelry': ('Inanna', 'Gold Helmet of Meskalamdug', 'Weight & measurement', 'Jewelry design template', 'Ur', 'Circular forms', 'Adornment of gods', 'Royal jewelry photos'),
+        'Pottery and Ceramics': ('Ninhursag', 'Ubaid Pottery', 'Volume of vessels', 'Pot shape design', 'Eridu', 'Cross-sections, curves', 'Shaping the earth', 'Painted pottery patterns'),
+        'Textile Arts of Sumer': ('Uttu', 'Textile Fragment', 'Pattern tessellation', 'Weaving pattern grid', 'Ur', 'Repeating patterns', 'Weaving fate', 'Textile pattern close-ups'),
+        'Musical Instruments': ('Inanna', 'Bull-Headed Lyre', 'Sound wave frequencies', 'String length experiment', 'Ur', 'Harmonic ratios', 'Music of the gods', 'Lyre reconstruction photos'),
+        'Sculpture and Relief': ('Ningirsu', 'Stele of Vultures', 'Proportion in figures', 'Figure proportion grid', 'Girsu', 'Human proportions', 'Stories in stone', 'Relief carving details'),
+        'Trade Routes of Mesopotamia': ('Shamash', 'Trade Record Tablet', 'Distance & rate problems', 'Trade route mapping', 'Dilmun', 'Network paths', 'Merchant journeys', 'Ancient route maps'),
+        'Weights and Measures': ('Utu', 'Stone Weight Set', 'Unit conversion', 'Weight comparison lab', 'Ur', 'Balance & equality', 'Fair measure', 'Standard weight photos'),
+        'Markets and Merchants': ('Shamash', 'Merchant Seal', 'Profit & loss calculation', 'Market price simulation', 'Sippar', 'Exchange ratios', 'Marketplace tales', 'Market scene seals'),
+        'Resources and Raw Materials': ('Enki', 'Lapis Lazuli Artifacts', 'Supply & distribution', 'Resource allocation map', 'Badakhshan', 'Distribution networks', 'Gifts of the earth', 'Raw material samples'),
+        'Maritime Trade': ('Enki', 'Model Boat', 'Speed & distance on water', 'Boat design challenge', 'Persian Gulf', 'Curved hull shapes', 'Sea voyages', 'Ancient boat models'),
+        'Economic Tablets': ('Nabu', 'Drehem Tablet', 'Data tables & records', 'Spreadsheet recreation', 'Drehem', 'Data organization', 'Counting wealth', 'Economic tablet photos'),
+        'The Code of Hammurabi': ('Shamash', 'Code of Hammurabi Stele', 'Logic & if-then statements', 'Law code writing activity', 'Babylon', 'Hierarchical structure', 'Divine justice', 'Hammurabi stele details'),
+        'Kings and Dynasties': ('Enlil', 'Sumerian King List', 'Timeline & number lines', 'Dynasty timeline builder', 'Ur', 'Linear sequences', 'Rise & fall of kings', 'King list prism photos'),
+        'Justice and Punishment': ('Utu', 'Court Record Tablet', 'Proportional reasoning', 'Justice scenario cards', 'Sippar', 'Balance & proportion', 'Scales of justice', 'Court scene imagery'),
+        'Land Ownership': ('Enlil', 'Kudurru Boundary Stone', 'Area calculation', 'Land survey activity', 'Babylon', 'Boundary polygons', 'Marking the earth', 'Boundary stone symbols'),
+        'Diplomacy and Treaties': ('Ea', 'Amarna Letters', 'Venn diagrams & sets', 'Treaty negotiation game', 'Amarna', 'Overlapping circles', 'Words of peace', 'Letter tablet photos'),
+        'Military Organization': ('Nergal', 'Siege Scene Relief', 'Formation geometry', 'Battle formation design', 'Nineveh', 'Grid formations', 'Art of war', 'Battle relief details'),
+        'Mesopotamia and Egypt': ('Shamash', 'Comparative Artifacts', 'Comparing geometric styles', 'Civilization comparison chart', 'Memphis', 'Contrasting shapes', 'Meeting of cultures', 'Side-by-side artifacts'),
+        'Influence on Greek Thought': ('Nabu', 'Mathematical Tablet', 'Theorem comparison', 'Math history timeline', 'Athens', 'Proof structures', 'Seeds of philosophy', 'Greek/Babylonian math'),
+        'Modern Archaeology': ('Nabu', 'Excavation Photo Set', 'Grid reference systems', 'Dig site grid activity', 'Nineveh', 'Coordinate grids', 'Uncovering the past', 'Excavation site photos'),
+        'Preserving Ancient Sites': ('Ninhursag', 'Restoration Photos', 'Decay & rate of change', 'Preservation plan design', 'Babylon', 'Structural geometry', 'Saving heritage', 'Before/after restoration'),
+        'Mathematics Through the Ages': ('Nabu', 'Math Evolution Chart', 'Number system evolution', 'Math timeline collage', 'Global', 'Evolving notation', 'Eternal numbers', 'Math system comparison'),
+        'Mesopotamia in the Modern World': ('Enki', 'Modern Iraq Map', 'Statistical analysis', 'Legacy infographic design', 'Baghdad', 'Data visualization', 'Living legacy', 'Modern/ancient overlays'),
+    }
+    for lesson in empty_lessons:
+        v = var_lookup.get(lesson['title'])
+        if v:
+            cur.execute('''
+                UPDATE production_lessons SET god=%s, artifact=%s, math_concept=%s, activity=%s,
+                location=%s, geometric_theme=%s, myth_theme=%s, image_notes=%s WHERE id=%s
+            ''', (*v, lesson['id']))
+
 def seed_production_data():
     conn = get_db()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute('SELECT COUNT(*) as cnt FROM production_teams')
     if cur.fetchone()['cnt'] > 0:
+        seed_lesson_variables(cur)
         cur.close()
         conn.close()
         return
@@ -204,13 +283,65 @@ def seed_production_data():
         'Legacy & Connections',
     ]
 
+    lesson_variables = {
+        'The Fertile Crescent': ('Enki', 'Standard of Ur', 'Geometric shapes in maps', 'Map drawing, clay tablet', 'Southern Iraq', 'River curves & circles', 'Waters of creation', 'Satellite vs ancient maps'),
+        'Sumerian Creation Myths': ('Nammu', 'Weld-Blundell Prism', 'Symmetry in creation', 'Creation story illustration', 'Eridu', 'Bilateral symmetry', 'Primordial ocean', 'Chaos-to-order visuals'),
+        'The First Settlements': ('Enlil', 'Tell Brak Eye Idols', 'Area & perimeter of dwellings', 'Settlement layout design', 'Tell Brak', 'Rectangular grids', 'Taming the wild', 'Aerial settlement views'),
+        'Birth of Agriculture': ('Ashnan', 'Seed Plow Model', 'Measurement & ratios', 'Planting grid activity', 'Girsu', 'Parallel lines, rows', 'Gift of grain', 'Farm tool close-ups'),
+        'Early River Civilizations': ('Ea', 'Gudea Cylinders', 'Scale & proportion', 'River map overlay', 'Lagash', 'Meander curves', 'River journeys', 'Tigris/Euphrates imagery'),
+        'Foundations of Society': ('Utu', 'Law Code Stele', 'Organizational charts', 'Society pyramid build', 'Nippur', 'Hierarchical triangles', 'Order from chaos', 'Social structure diagrams'),
+        'The Sumerian Pantheon': ('An', 'Votive Statues', 'Angles of worship', 'Pantheon family tree', 'Uruk', 'Star polygons', 'Assembly of gods', 'Temple statue groupings'),
+        'Enlil: Lord of the Wind': ('Enlil', 'Enlil Temple Model', 'Wind force vectors', 'Wind direction compass', 'Nippur', 'Directional arrows', 'Storm & calm', 'Wind pattern diagrams'),
+        'Inanna: Queen of Heaven': ('Inanna', 'Inanna Vase', 'Rotational symmetry', 'Star of Inanna drawing', 'Uruk', 'Eight-pointed star', 'Descent & return', 'Venus star imagery'),
+        'The Epic of Gilgamesh': ('Gilgamesh', 'Gilgamesh Tablet', 'Distance & journey math', 'Epic timeline map', 'Uruk', 'Spiral journey path', 'Quest for immortality', 'Hero journey scenes'),
+        'Myths of the Underworld': ('Ereshkigal', 'Queen of Night Relief', 'Negative numbers & depth', 'Underworld layer diagram', 'Kur', 'Concentric circles down', 'Seven gates', 'Dark realm imagery'),
+        'Rituals and Offerings': ('Ninhursag', 'Ram in Thicket', 'Fractions in offerings', 'Offering proportion chart', 'Ur', 'Division & fractions', 'Sacred giving', 'Ritual scene details'),
+        'Rise of Ur and Uruk': ('Nanna', 'Royal Game of Ur', 'Grid coordinates', 'City plan grid overlay', 'Ur', 'Rectangular planning', 'City founding', 'Aerial city ruins'),
+        'Ziggurats: Stairways to Heaven': ('Marduk', 'Ziggurat Model', 'Volume of stepped pyramids', '3D ziggurat construction', 'Babylon', 'Stacked rectangles', 'Climbing to heaven', 'Ziggurat cross-sections'),
+        'City Walls and Gates': ('Adad', 'Ishtar Gate Tiles', 'Perimeter & fortification', 'Wall defense blueprint', 'Babylon', 'Rectangular perimeters', 'Protection & power', 'Ishtar Gate details'),
+        'Palaces of Mesopotamia': ('Shamash', 'Balawat Gates', 'Floor plan geometry', 'Palace room layout', 'Nimrud', 'Complex floor plans', 'Royal grandeur', 'Palace relief carvings'),
+        'Irrigation and Engineering': ('Enki', 'Canal Map Tablet', 'Water flow rates', 'Canal system design', 'Girsu', 'Channel networks', 'Taming the waters', 'Irrigation channel photos'),
+        'Life in a City-State': ('Ningal', 'Marketplace Seal', 'Population statistics', 'Daily life diorama', 'Ur', 'Neighborhood grids', 'Community living', 'Market scene images'),
+        'Cuneiform Writing System': ('Nabu', 'Cuneiform Tablet', 'Angles in wedge marks', 'Clay tablet pressing', 'Nippur', 'Wedge angles', 'Gift of writing', 'Cuneiform close-ups'),
+        'Scribes and Schools': ('Nisaba', 'School Tablet', 'Counting systems base-60', 'Scribal practice exercise', 'Nippur', 'Ordered rows/columns', 'Knowledge keepers', 'School tablet replicas'),
+        'Early Number Systems': ('Nabu', 'Counting Tokens', 'Base-60 number system', 'Number conversion activity', 'Susa', 'Positional notation', 'Counting the stars', 'Token & tablet photos'),
+        'Babylonian Mathematics': ('Shamash', 'Plimpton 322', 'Pythagorean triples', 'Triangle construction', 'Larsa', 'Right triangles', 'Measuring the world', 'Plimpton 322 close-up'),
+        'Astronomical Records': ('Sin', 'Venus Tablet', 'Circular measurement', 'Star chart plotting', 'Babylon', 'Circles & degrees', 'Reading the heavens', 'Star chart imagery'),
+        'Libraries of Clay': ('Nabu', 'Library Catalog Tablet', 'Sorting & classification', 'Library catalog system', 'Nineveh', 'Organizational grids', 'Preserving knowledge', 'Ashurbanipal library'),
+        'Cylinder Seals and Impressions': ('Ea', 'Cylinder Seal', 'Circumference & rotation', 'Seal rolling activity', 'Ur', 'Cylinders & circles', 'Identity marks', 'Seal impression details'),
+        'Metalwork and Jewelry': ('Inanna', 'Gold Helmet of Meskalamdug', 'Weight & measurement', 'Jewelry design template', 'Ur', 'Circular forms', 'Adornment of gods', 'Royal jewelry photos'),
+        'Pottery and Ceramics': ('Ninhursag', 'Ubaid Pottery', 'Volume of vessels', 'Pot shape design', 'Eridu', 'Cross-sections, curves', 'Shaping the earth', 'Painted pottery patterns'),
+        'Textile Arts of Sumer': ('Uttu', 'Textile Fragment', 'Pattern tessellation', 'Weaving pattern grid', 'Ur', 'Repeating patterns', 'Weaving fate', 'Textile pattern close-ups'),
+        'Musical Instruments': ('Inanna', 'Bull-Headed Lyre', 'Sound wave frequencies', 'String length experiment', 'Ur', 'Harmonic ratios', 'Music of the gods', 'Lyre reconstruction photos'),
+        'Sculpture and Relief': ('Ningirsu', 'Stele of Vultures', 'Proportion in figures', 'Figure proportion grid', 'Girsu', 'Human proportions', 'Stories in stone', 'Relief carving details'),
+        'Trade Routes of Mesopotamia': ('Shamash', 'Trade Record Tablet', 'Distance & rate problems', 'Trade route mapping', 'Dilmun', 'Network paths', 'Merchant journeys', 'Ancient route maps'),
+        'Weights and Measures': ('Utu', 'Stone Weight Set', 'Unit conversion', 'Weight comparison lab', 'Ur', 'Balance & equality', 'Fair measure', 'Standard weight photos'),
+        'Markets and Merchants': ('Shamash', 'Merchant Seal', 'Profit & loss calculation', 'Market price simulation', 'Sippar', 'Exchange ratios', 'Marketplace tales', 'Market scene seals'),
+        'Resources and Raw Materials': ('Enki', 'Lapis Lazuli Artifacts', 'Supply & distribution', 'Resource allocation map', 'Badakhshan', 'Distribution networks', 'Gifts of the earth', 'Raw material samples'),
+        'Maritime Trade': ('Enki', 'Model Boat', 'Speed & distance on water', 'Boat design challenge', 'Persian Gulf', 'Curved hull shapes', 'Sea voyages', 'Ancient boat models'),
+        'Economic Tablets': ('Nabu', 'Drehem Tablet', 'Data tables & records', 'Spreadsheet recreation', 'Drehem', 'Data organization', 'Counting wealth', 'Economic tablet photos'),
+        'The Code of Hammurabi': ('Shamash', 'Code of Hammurabi Stele', 'Logic & if-then statements', 'Law code writing activity', 'Babylon', 'Hierarchical structure', 'Divine justice', 'Hammurabi stele details'),
+        'Kings and Dynasties': ('Enlil', 'Sumerian King List', 'Timeline & number lines', 'Dynasty timeline builder', 'Ur', 'Linear sequences', 'Rise & fall of kings', 'King list prism photos'),
+        'Justice and Punishment': ('Utu', 'Court Record Tablet', 'Proportional reasoning', 'Justice scenario cards', 'Sippar', 'Balance & proportion', 'Scales of justice', 'Court scene imagery'),
+        'Land Ownership': ('Enlil', 'Kudurru Boundary Stone', 'Area calculation', 'Land survey activity', 'Babylon', 'Boundary polygons', 'Marking the earth', 'Boundary stone symbols'),
+        'Diplomacy and Treaties': ('Ea', 'Amarna Letters', 'Venn diagrams & sets', 'Treaty negotiation game', 'Amarna', 'Overlapping circles', 'Words of peace', 'Letter tablet photos'),
+        'Military Organization': ('Nergal', 'Siege Scene Relief', 'Formation geometry', 'Battle formation design', 'Nineveh', 'Grid formations', 'Art of war', 'Battle relief details'),
+        'Mesopotamia and Egypt': ('Shamash', 'Comparative Artifacts', 'Comparing geometric styles', 'Civilization comparison chart', 'Memphis', 'Contrasting shapes', 'Meeting of cultures', 'Side-by-side artifacts'),
+        'Influence on Greek Thought': ('Nabu', 'Mathematical Tablet', 'Theorem comparison', 'Math history timeline', 'Athens', 'Proof structures', 'Seeds of philosophy', 'Greek/Babylonian math'),
+        'Modern Archaeology': ('Nabu', 'Excavation Photo Set', 'Grid reference systems', 'Dig site grid activity', 'Nineveh', 'Coordinate grids', 'Uncovering the past', 'Excavation site photos'),
+        'Preserving Ancient Sites': ('Ninhursag', 'Restoration Photos', 'Decay & rate of change', 'Preservation plan design', 'Babylon', 'Structural geometry', 'Saving heritage', 'Before/after restoration'),
+        'Mathematics Through the Ages': ('Nabu', 'Math Evolution Chart', 'Number system evolution', 'Math timeline collage', 'Global', 'Evolving notation', 'Eternal numbers', 'Math system comparison'),
+        'Mesopotamia in the Modern World': ('Enki', 'Modern Iraq Map', 'Statistical analysis', 'Legacy infographic design', 'Baghdad', 'Data visualization', 'Living legacy', 'Modern/ancient overlays'),
+    }
+
     lesson_num = 1
     for unit_name in unit_order:
         for title in lessons_by_unit[unit_name]:
+            vars_data = lesson_variables.get(title, ('', '', '', '', '', '', '', ''))
             cur.execute('''
-                INSERT INTO production_lessons (lesson_number, title, unit)
-                VALUES (%s, %s, %s)
-            ''', (lesson_num, title, unit_name))
+                INSERT INTO production_lessons (lesson_number, title, unit, god, artifact, math_concept, activity, location, geometric_theme, myth_theme, image_notes)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ''', (lesson_num, title, unit_name, vars_data[0], vars_data[1], vars_data[2], vars_data[3], vars_data[4], vars_data[5], vars_data[6], vars_data[7]))
             lesson_num += 1
 
     cur.execute('SELECT id FROM production_lessons ORDER BY lesson_number')
@@ -703,6 +834,51 @@ def update_production_lesson(lesson_id):
         return jsonify({'error': 'Lesson not found'}), 404
     lesson['created_at'] = lesson['created_at'].isoformat() if lesson['created_at'] else None
     lesson['updated_at'] = lesson['updated_at'].isoformat() if lesson['updated_at'] else None
+    return jsonify(dict(lesson))
+
+VARIABLE_COLS = ['god', 'artifact', 'math_concept', 'activity', 'location', 'geometric_theme', 'myth_theme', 'image_notes']
+
+@app.route('/api/production/variables', methods=['GET'])
+def production_variables():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        SELECT id, lesson_number, title, unit, god, artifact, math_concept,
+               activity, location, geometric_theme, myth_theme, image_notes
+        FROM production_lessons ORDER BY lesson_number
+    ''')
+    lessons = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify(lessons)
+
+@app.route('/api/production/variables/<int:lesson_id>', methods=['PUT'])
+def update_lesson_variables(lesson_id):
+    data = request.get_json()
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    set_parts = []
+    values = []
+    for col in VARIABLE_COLS:
+        if col in data:
+            set_parts.append(f"{col} = %s")
+            values.append(data[col])
+    if not set_parts:
+        cur.close()
+        conn.close()
+        return jsonify({'error': 'No fields to update'}), 400
+    set_parts.append("updated_at = NOW()")
+    values.append(lesson_id)
+    cur.execute(f'''
+        UPDATE production_lessons SET {', '.join(set_parts)}
+        WHERE id = %s RETURNING id, lesson_number, title, unit, god, artifact,
+        math_concept, activity, location, geometric_theme, myth_theme, image_notes
+    ''', values)
+    lesson = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not lesson:
+        return jsonify({'error': 'Lesson not found'}), 404
     return jsonify(dict(lesson))
 
 with app.app_context():

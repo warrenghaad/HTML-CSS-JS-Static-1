@@ -4,7 +4,7 @@
 A learning-focused project management documentation space that serves as both a tutorial for web development (HTML/CSS/JS) and a visual diagram of the Geo-Arts educational curriculum backend system.
 
 **Created:** February 4, 2026  
-**Updated:** February 10, 2026  
+**Updated:** February 11, 2026  
 **Status:** Complete end-goal example with lessons + production dashboard
 
 ## Purpose
@@ -25,7 +25,8 @@ This project has two goals:
 │   ├── teacher-student.html      - Teacher/Student facing interface
 │   ├── lessons.html              - Web development lessons
 │   ├── playground.html           - Code sandbox with AI review
-│   └── production-dashboard.html - 48-lesson production workflow tracker
+│   ├── production-dashboard.html - 48-lesson production workflow tracker
+│   └── variables-spreadsheet.html - Editable lesson variables (Section 2)
 ├── styles/
 │   └── main.css                  - Shared stylesheet (1800+ lines)
 ├── scripts/
@@ -168,8 +169,21 @@ The Production Dashboard (`pages/production-dashboard.html`) tracks the 48 Mesop
 - `GET /api/production/tasks/by-lesson/<lesson_id>/<team_number>` - Lookup task by lesson/team
 - `PUT /api/production/lessons/<id>` - Update lesson status
 
+## Variables Spreadsheet (Section 2)
+
+The Variables Spreadsheet (`pages/variables-spreadsheet.html`) defines key variables for each of the 48 lessons:
+- **8 Variable Columns** - God, Artifact, Math Concept, Activity, Location, Geometric Theme, Myth Theme, Image Notes
+- **Inline Editing** - Click any cell to edit, Tab to move between cells, Escape to cancel
+- **Fill Summary** - Shows completion percentage for each variable column
+- **Search & Filter** - Search across all fields, filter by unit or specific column
+- **CSV Export** - Download filtered data as a CSV file
+- **Auto-save** - Changes save immediately to the database
+
+### Variables API Endpoints
+- `GET /api/production/variables` - All lessons with variable data
+- `PUT /api/production/variables/<id>` - Update variable fields for a lesson
+
 ### Planned Sections (Not Yet Built)
-- Section 2: Variables Spreadsheet
 - Section 3: Asset Manager
 - Section 4: Content Pipeline
 - Section 5: Lesson Assembly
