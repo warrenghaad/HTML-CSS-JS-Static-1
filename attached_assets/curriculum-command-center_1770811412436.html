@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Euclid | Image Command Center</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-dark: #0d1117;
+            --bg-panel: #161b22;
+            --bg-card: #21262d;
+            --bg-hover: #30363d;
+            --border: #30363d;
+            --accent: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-gold: #d29922;
+            --accent-red: #f85149;
+            --text: #c9d1d9;
+            --text-dim: #8b949e;
+            --text-bright: #f0f6fc;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            display: grid;
+            grid-template-rows: 48px 1fr 56px;
+            grid-template-columns: 260px 1fr 340px;
+            grid-template-areas: "header header header" "nav main sidebar" "footer footer footer";
+            height: 100vh;
+        }
+        .header {
+            grid-area: header;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+        }
+        .logo { font-weight: 600; font-size: 15px; color: var(--text-bright); }
+        .logo span { color: var(--accent-gold); }
+        .search-bar { flex: 1; max-width: 400px; }
+        .search-bar input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 12px;
+            color: var(--text);
+            font-size: 14px;
+        }
+        .header-actions { display: flex; gap: 8px; margin-left: auto; }
+        .header-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .header-btn:hover { background: var(--bg-hover); }
+        .header-btn.primary { background: var(--accent-green); border-color: var(--accent-green); color: #000; }
+        .nav {
+            grid-area: nav;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            padding: 12px 0;
+        }
+        .nav-section { padding: 0 12px; margin-bottom: 16px; }
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 8px 4px;
+        }
+        .lesson-tree { list-style: none; }
+        .tree-item {
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        .tree-item:hover { background: var(--bg-hover); }
+        .tree-item.active { background: var(--bg-card); color: var(--text-bright); }
+        .tree-item .badge {
+            margin-left: auto;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: var(--bg-dark);
+        }
+        .tree-item .badge.complete { background: var(--accent-green); color: #000; }
+        .tree-item .badge.partial { background: var(--accent-gold); color: #000; }
+        .tree-item .badge.empty { background: var(--accent-red); color: #fff; }
+        .tree-children { list-style: none; padding-left: 20px; display: none; }
+        .tree-item.expanded + .tree-children { display: block; }
+        .main {
+            grid-area: main;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .lesson-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .lesson-title { font-size: 20px; font-weight: 600; color: var(--text-bright); }
+        .lesson-meta { font-size: 13px; color: var(--text-dim); }
+        .lesson-tags { display: flex; gap: 6px; margin-left: auto; }
+        .tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+        }
+        .tag.deity { border-color: var(--accent-gold); color: var(--accent-gold); }
+        .tag.element { border-color: var(--accent); color: var(--accent); }
+        .sections-grid { display: flex; flex-direction: column; gap: 12px; }
+        .section-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .section-card.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+        .section-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .section-checkbox { width: 16px; height: 16px; margin-right: 10px; accent-color: var(--accent); }
+        .section-code { font-weight: 600; font-size: 13px; color: var(--accent); margin-right: 10px; min-width: 28px; }
+        .section-name { font-size: 13px; color: var(--text-bright); }
+        .section-status { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+        .status-indicator { width: 10px; height: 10px; border-radius: 50%; }
+        .status-indicator.has-image { background: var(--accent-green); }
+        .status-indicator.needs-image { background: var(--accent-red); }
+        .status-indicator.has-suggestion { background: var(--accent-gold); }
+        .section-body {
+            display: grid;
+            grid-template-columns: 1fr 180px;
+            gap: 14px;
+            padding: 14px;
+        }
+        .section-content { font-size: 13px; line-height: 1.5; color: var(--text); }
+        .section-content p { margin-bottom: 6px; }
+        .image-slot {
+            background: var(--bg-dark);
+            border: 2px dashed var(--border);
+            border-radius: 6px;
+            aspect-ratio: 4/3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .image-slot:hover { border-color: var(--accent); }
+        .image-slot.has-image { border-style: solid; border-color: var(--accent-green); }
+        .image-slot img { width: 100%; height: 100%; object-fit: cover; }
+        .image-slot .placeholder { text-align: center; padding: 10px; }
+        .image-slot .placeholder-icon { font-size: 28px; margin-bottom: 6px; opacity: 0.5; }
+        .image-slot .placeholder-text { font-size: 11px; color: var(--text-dim); }
+        .image-slot .remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--accent-red);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: none;
+            font-size: 14px;
+        }
+        .image-slot.has-image:hover .remove-btn { display: flex; align-items: center; justify-content: center; }
+        .sidebar {
+            grid-area: sidebar;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border); }
+        .sidebar-tab {
+            flex: 1;
+            padding: 10px 6px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-dim);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .sidebar-tab:hover { color: var(--text); }
+        .sidebar-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
+        .image-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+        .image-candidate {
+            aspect-ratio: 1;
+            background: var(--bg-card);
+            border: 2px solid transparent;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+        }
+        .image-candidate:hover { border-color: var(--accent); }
+        .image-candidate.selected { border-color: var(--accent-green); }
+        .image-candidate img { width: 100%; height: 100%; object-fit: cover; }
+        .image-candidate .match-score {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: rgba(0,0,0,0.85);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 9px;
+            color: var(--accent-green);
+        }
+        .tool-panel {
+            background: var(--bg-card);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .tool-panel-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .tool-btn {
+            width: 100%;
+            padding: 8px 10px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text);
+            font-size: 12px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tool-btn:hover { background: var(--bg-dark); border-color: var(--accent); }
+        .tool-btn .shortcut { margin-left: auto; font-size: 10px; color: var(--text-dim); }
+        .footer {
+            grid-area: footer;
+            background: var(--bg-panel);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+        }
+        .selection-info { font-size: 12px; color: var(--text-dim); }
+        .selection-info strong { color: var(--text-bright); }
+        .progress-bar { height: 4px; background: var(--bg-dark); border-radius: 2px; overflow: hidden; width: 160px; }
+        .progress-bar .fill { height: 100%; background: var(--accent-green); transition: width 0.3s; }
+        .footer-actions { display: flex; gap: 8px; margin-left: auto; }
+        .action-btn {
+            padding: 7px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text);
+        }
+        .action-btn:hover { background: var(--bg-hover); }
+        .action-btn.primary { background: var(--accent); border-color: var(--accent); color: #000; }
+        .action-btn.success { background: var(--accent-green); border-color: var(--accent-green); color: #000; }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+        .modal-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+        }
+        .modal-title { font-size: 15px; font-weight: 600; }
+        .modal-close { margin-left: auto; background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer; }
+        .modal-body { padding: 18px; overflow-y: auto; }
+        .modal-footer { padding: 14px 18px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo">Project <span>Euclid</span></div>
+            <div class="search-bar">
+                <input type="text" placeholder="Search lessons, sections, tags... (⌘K)" id="globalSearch">
+            </div>
+            <div class="header-actions">
+                <button class="header-btn" onclick="loadLessonsFromFolder()">📂 Load Folder</button>
+                <button class="header-btn" onclick="showStats()">📊</button>
+                <button class="header-btn primary" onclick="saveAll()">💾 Save All</button>
+            </div>
+        </header>
+
+        <nav class="nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Mesopotamia Pilot</div>
+                <ul class="lesson-tree" id="lessonTree">
+                    <li>
+                        <div class="tree-item expanded" onclick="toggleTree(this)">
+                            <span>📁</span><span>Grade 3</span>
+                            <span class="badge partial">24/48</span>
+                        </div>
+                        <ul class="tree-children">
+                            <li>
+                                <div class="tree-item expanded" onclick="toggleTree(this)">
+                                    <span>📅</span><span>Week 1: Shamash</span>
+                                </div>
+                                <ul class="tree-children">
+                                    <li><div class="tree-item active" onclick="loadLesson('G3-1A')"><span>☀️</span><span>Day A</span><span class="badge complete">7/7</span></div></li>
+                                    <li><div class="tree-item" onclick="loadLesson('G3-1B')"><span>🔧</span><span>Day B</span><span class="badge partial">5/8</span></div></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="tree-item" onclick="toggleTree(this)">
+                                    <span>📅</span><span>Week 2: Ishtar</span>
+                                </div>
+                                <ul class="tree-children">
+                                    <li><div class="tree-item" onclick="loadLesson('G3-2A')"><span>⭐</span><span>Day A</span><span class="badge empty">0/7</span></div></li>
+                                    <li><div class="tree-item" onclick="loadLesson('G3-2B')"><span>🔧</span><span>Day B</span><span class="badge empty">0/8</span></div></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><div class="tree-item" onclick="toggleTree(this)"><span>📁</span><span>Grade 4</span><span class="badge empty">0/48</span></div><ul class="tree-children"></ul></li>
+                    <li><div class="tree-item" onclick="toggleTree(this)"><span>📁</span><span>Grade 5</span><span class="badge empty">0/48</span></div><ul class="tree-children"></ul></li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Quick Filters</div>
+                <ul class="lesson-tree">
+                    <li><div class="tree-item" onclick="filterBy('needs-image')"><span>🔴</span><span>Needs Images</span><span class="badge empty">127</span></div></li>
+                    <li><div class="tree-item" onclick="filterBy('has-suggestion')"><span>🟡</span><span>Has Suggestions</span><span class="badge partial">43</span></div></li>
+                    <li><div class="tree-item" onclick="filterBy('complete')"><span>🟢</span><span>Complete</span><span class="badge complete">171</span></div></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="main">
+            <div class="lesson-header">
+                <h1 class="lesson-title">G3-1A: Shamash & The Circle</h1>
+                <span class="lesson-meta">Day A • Metaphor</span>
+                <div class="lesson-tags">
+                    <span class="tag deity">☀️ Shamash</span>
+                    <span class="tag element">◯ Circle</span>
+                </div>
+            </div>
+            <div class="sections-grid" id="sectionsContainer">
+                <div class="section-card">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <input type="checkbox" class="section-checkbox">
+                        <span class="section-code">A1</span>
+                        <span class="section-name">Anticipatory Set</span>
+                        <div class="section-status"><span style="font-size:10px;color:var(--text-dim)">artifact</span><div class="status-indicator has-suggestion"></div></div>
+                    </div>
+                    <div class="section-body">
+                        <div class="section-content">
+                            <p><strong>Teacher shows artifact.</strong></p>
+                            <p>"Look at this stone from 4,000 years ago. What shapes do you see?"</p>
+                        </div>
+                        <div class="image-slot" onclick="openImagePicker(this, 'A1')">
+                            <div class="placeholder"><div class="placeholder-icon">🖼️</div><div class="placeholder-text">artifact photo</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <input type="checkbox" class="section-checkbox">
+                        <span class="section-code">A2</span>
+                        <span class="section-name">Myth Scene 1</span>
+                        <div class="section-status"><div class="status-indicator needs-image"></div></div>
+                    </div>
+                    <div class="section-body">
+                        <div class="section-content">
+                            <p>"Every morning, Shamash opens the gates of heaven and rides across the sky."</p>
+                        </div>
+                        <div class="image-slot" onclick="openImagePicker(this, 'A2')">
+                            <div class="placeholder"><div class="placeholder-icon">🌅</div><div class="placeholder-text">Shamash emerging</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-card selected">
+                    <div class="section-header">
+                        <input type="checkbox" class="section-checkbox" checked>
+                        <span class="section-code">A3</span>
+                        <span class="section-name">Myth Scene 2</span>
+                        <div class="section-status"><div class="status-indicator has-image"></div></div>
+                    </div>
+                    <div class="section-body">
+                        <div class="section-content">
+                            <p>"From the sky, Shamash sees everything. He became the god of justice because he sees all equally."</p>
+                        </div>
+                        <div class="image-slot has-image" onclick="openImagePicker(this, 'A3')">
+                            <img src="https://images.metmuseum.org/CRDImages/an/original/DP-14715-001.jpg" alt="">
+                            <button class="remove-btn" onclick="event.stopPropagation(); removeImage(this)">×</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="section-header">
+                        <input type="checkbox" class="section-checkbox">
+                        <span class="section-code">A5</span>
+                        <span class="section-name">Geometric Element</span>
+                        <div class="section-status"><span style="font-size:10px;color:var(--text-dim)">diagram</span><div class="status-indicator has-suggestion"></div></div>
+                    </div>
+                    <div class="section-body">
+                        <div class="section-content">
+                            <p><strong>The Circle:</strong> Every point is the same distance from the center. This is called the radius.</p>
+                        </div>
+                        <div class="image-slot" onclick="openImagePicker(this, 'A5')">
+                            <div class="placeholder"><div class="placeholder-icon">◯</div><div class="placeholder-text">Circle diagram<br><small>STEM Studio</small></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="sidebar">
+            <div class="sidebar-tabs">
+                <div class="sidebar-tab active" onclick="switchTab(this, 'suggested')">Suggested</div>
+                <div class="sidebar-tab" onclick="switchTab(this, 'library')">Library</div>
+                <div class="sidebar-tab" onclick="switchTab(this, 'tools')">Tools</div>
+            </div>
+            <div class="sidebar-content">
+                <div class="tab-pane active" data-tab="suggested">
+                    <div class="tool-panel">
+                        <div class="tool-panel-title">🎯 Matches for current section</div>
+                    </div>
+                    <div class="image-grid">
+                        <div class="image-candidate" onclick="selectImage(this)" draggable="true"><img src="https://images.metmuseum.org/CRDImages/an/original/DP-14715-001.jpg"><span class="match-score">94%</span></div>
+                        <div class="image-candidate" onclick="selectImage(this)" draggable="true"><img src="https://images.metmuseum.org/CRDImages/an/original/DT847.jpg"><span class="match-score">87%</span></div>
+                        <div class="image-candidate" onclick="selectImage(this)" draggable="true"><img src="https://images.metmuseum.org/CRDImages/an/original/DP132634.jpg"><span class="match-score">82%</span></div>
+                        <div class="image-candidate" onclick="selectImage(this)" draggable="true"><img src="https://images.metmuseum.org/CRDImages/an/original/DP-17801-001.jpg"><span class="match-score">78%</span></div>
+                    </div>
+                </div>
+                <div class="tab-pane" data-tab="library">
+                    <div class="tool-panel"><div class="tool-panel-title">📚 Your Image Library</div></div>
+                    <p style="font-size:12px;color:var(--text-dim);padding:10px;">Connect to your artifact folder to browse saved images.</p>
+                    <button class="tool-btn" onclick="loadLibrary()">📂 Load from folder...</button>
+                </div>
+                <div class="tab-pane" data-tab="tools">
+                    <div class="tool-panel">
+                        <div class="tool-panel-title">🔬 STEM Studio</div>
+                        <button class="tool-btn" onclick="openStemStudio()"><span>◯</span> Generate Diagram <span class="shortcut">⌘G</span></button>
+                    </div>
+                    <div class="tool-panel">
+                        <div class="tool-panel-title">🎨 Image Analyzer</div>
+                        <button class="tool-btn" onclick="openAnalyzer()"><span>🔍</span> Decompose Artifact <span class="shortcut">⌘D</span></button>
+                    </div>
+                    <div class="tool-panel">
+                        <div class="tool-panel-title">🌐 Museum Search</div>
+                        <button class="tool-btn" onclick="searchMuseum('met')">🏛️ Metropolitan Museum</button>
+                        <button class="tool-btn" onclick="searchMuseum('british')">🏛️ British Museum</button>
+                    </div>
+                    <div class="tool-panel">
+                        <div class="tool-panel-title">⚡ Batch</div>
+                        <button class="tool-btn" onclick="autoMatchAll()">🤖 Auto-Match All Empty</button>
+                        <button class="tool-btn" onclick="approveAllSuggestions()">✓ Approve All Suggestions</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <footer class="footer">
+            <div class="selection-info"><strong id="selectedCount">0</strong> selected</div>
+            <div class="progress-bar"><div class="fill" id="progressFill" style="width:34%"></div></div>
+            <span style="font-size:11px;color:var(--text-dim)"><span id="progressText">34%</span> complete</span>
+            <div class="footer-actions">
+                <button class="action-btn" onclick="selectAllEmpty()">Select Empty</button>
+                <button class="action-btn" onclick="autoMatchSelected()">🤖 Auto-Match</button>
+                <button class="action-btn success" onclick="exportLesson()">📤 Export</button>
+            </div>
+        </footer>
+    </div>
+
+    <div class="modal-overlay" id="imagePickerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Select Image for <span id="modalSectionName">A1</span></h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="display:flex;gap:10px;margin-bottom:14px;">
+                    <input type="text" id="modalSearch" placeholder="Search..." style="flex:1;padding:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:5px;color:var(--text);">
+                    <button class="action-btn primary" onclick="searchImages()">Search</button>
+                </div>
+                <div class="image-grid" id="modalImageGrid" style="grid-template-columns:repeat(4,1fr);"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn" onclick="closeModal()">Cancel</button>
+                <button class="action-btn" onclick="openStemStudio()">Generate</button>
+                <button class="action-btn success" onclick="confirmImageSelection()">Use Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let state = { currentSlot: null, selectedImage: null };
+
+        function toggleTree(el) { el.classList.toggle('expanded'); }
+        
+        function loadLesson(id) {
+            document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('active'));
+            event.target.closest('.tree-item').classList.add('active');
+            console.log('Load lesson:', id);
+        }
+
+        function toggleSection(header) {
+            const card = header.closest('.section-card');
+            const cb = card.querySelector('.section-checkbox');
+            if (event.target !== cb) {
+                card.classList.toggle('selected');
+                cb.checked = card.classList.contains('selected');
+            }
+            updateCount();
+        }
+
+        function updateCount() {
+            document.getElementById('selectedCount').textContent = document.querySelectorAll('.section-card.selected').length;
+        }
+
+        function switchTab(tab, name) {
+            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+        }
+
+        function openImagePicker(slot, code) {
+            state.currentSlot = slot;
+            document.getElementById('modalSectionName').textContent = code;
+            document.getElementById('imagePickerModal').classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('imagePickerModal').classList.remove('active'); }
+
+        function selectImage(el) {
+            document.querySelectorAll('.image-candidate').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            state.selectedImage = el.querySelector('img').src;
+        }
+
+        function confirmImageSelection() {
+            if (state.selectedImage && state.currentSlot) {
+                state.currentSlot.innerHTML = `<img src="${state.selectedImage}"><button class="remove-btn" onclick="event.stopPropagation();removeImage(this)">×</button>`;
+                state.currentSlot.classList.add('has-image');
+                state.currentSlot.closest('.section-card').querySelector('.status-indicator').className = 'status-indicator has-image';
+                closeModal();
+            }
+        }
+
+        function removeImage(btn) {
+            const slot = btn.closest('.image-slot');
+            slot.classList.remove('has-image');
+            slot.innerHTML = '<div class="placeholder"><div class="placeholder-icon">🖼️</div><div class="placeholder-text">Click to add</div></div>';
+            slot.closest('.section-card').querySelector('.status-indicator').className = 'status-indicator needs-image';
+        }
+
+        function selectAllEmpty() {
+            document.querySelectorAll('.section-card').forEach(c => {
+                if (c.querySelector('.status-indicator.needs-image')) {
+                    c.classList.add('selected');
+                    c.querySelector('.section-checkbox').checked = true;
+                }
+            });
+            updateCount();
+        }
+
+        function autoMatchAll() { alert('Auto-matching all empty sections with AI...'); }
+        function autoMatchSelected() { alert('Auto-matching selected sections...'); }
+        function approveAllSuggestions() { 
+            document.querySelectorAll('.status-indicator.has-suggestion').forEach(i => i.className = 'status-indicator has-image');
+        }
+        function exportLesson() { alert('Exporting lesson as HTML with images...'); }
+        function saveAll() { alert('Saved!'); }
+        function showStats() { alert('Total: 341 lessons\\nComplete: 116 (34%)\\nNeeds images: 127'); }
+        function loadLessonsFromFolder() { alert('Select your lessons folder...\\n\\nPath hint: /Users/samimajeed/Documents/Obsidian - Main Vault/PILOT - Mesapotamia Curriculum/system_pipeline/UI_FULL-V1/UI-SYS_FULL-V1_LESSONS - Drafts'); }
+        function openStemStudio() { alert('Opening STEM Studio for diagram generation...'); }
+        function openAnalyzer() { alert('Opening Image Analyzer...'); }
+        function searchMuseum(m) { window.open(m === 'met' ? 'https://www.metmuseum.org/art/collection/search' : 'https://www.britishmuseum.org/collection', '_blank'); }
+        function loadLibrary() { alert('Select your artifacts folder...'); }
+        function filterBy(f) { console.log('Filter:', f); }
+
+        // Drag and drop
+        document.querySelectorAll('.image-candidate').forEach(c => {
+            c.addEventListener('dragstart', e => e.dataTransfer.setData('text', c.querySelector('img').src));
+        });
+        document.querySelectorAll('.image-slot').forEach(s => {
+            s.addEventListener('dragover', e => { e.preventDefault(); s.style.borderColor = 'var(--accent)'; });
+            s.addEventListener('dragleave', () => s.style.borderColor = '');
+            s.addEventListener('drop', e => {
+                e.preventDefault();
+                s.innerHTML = `<img src="${e.dataTransfer.getData('text')}"><button class="remove-btn" onclick="event.stopPropagation();removeImage(this)">×</button>`;
+                s.classList.add('has-image');
+                s.style.borderColor = '';
+                s.closest('.section-card').querySelector('.status-indicator').className = 'status-indicator has-image';
+            });
+        });
+
+        document.addEventListener('keydown', e => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); document.getElementById('globalSearch').focus(); }
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Grade 4</title>
+  <link rel="stylesheet" href="common.css"/>
+</head>
+<body>
+  <header>
+    <div class="title">Mesopotamia Pilot - Process Kanban</div>
+    <div class="pill">Grade 4</div>
+    <div class="pill">Drag cards / Filters / Saved in browser</div>
+  </header>
+  <main>
+    <div class="nav">
+      <a href="index.html">Overview</a>
+      <a href="grade3.html">Grade 3</a>
+      <a href="grade4.html">Grade 4</a>
+      <a href="grade5.html">Grade 5</a>
+      <a href="../lesson-shell/index.html">Lesson Shell Demo</a>
+      <a href="../day-b-lessons.html">Day B Lessons</a>
+      <a href="../../index.html">Main Site</a>
+    </div>
+    <div class="controls">
+      <input id="q" placeholder="Search (e.g., sickle, stylus, arch, Ishtar Gate)..."/>
+      <select id="week"></select>
+      <select id="day"></select>
+      <button class="btn" id="reset">Reset board state</button>
+    </div>
+    <div class="grid" id="board"></div>
+    <div class="footer">
+      Board state is saved via <span class="kbd">localStorage</span> on this device/browser.
+    </div>
+  </main>
+<script src="grade4_cards.js"></script>
+<script src="common.js"></script>
+<script>renderBoard(window.CARDS);</script>
+</body>
+</html>

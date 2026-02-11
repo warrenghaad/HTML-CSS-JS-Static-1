@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Lesson Shell Demo</title>
+  <style>
+:root{
+  --bg:#0b1220; --panel:#0f1a30; --card:#0e162a; --text:#e8eefc; --muted:#a9b7d6; --border:#22304f; --accent:#7aa2ff;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  background:linear-gradient(180deg, var(--bg), #070b14);
+  color:var(--text);
+}
+header{
+  height:56px;
+  display:flex; align-items:center; gap:14px;
+  padding:0 16px;
+  border-bottom:1px solid var(--border);
+  background:rgba(11,18,32,.92); backdrop-filter: blur(10px);
+}
+header .title{font-weight:850}
+header .hint{color:var(--muted); font-size:12px}
+.wrap{display:grid; grid-template-columns: 360px 1fr; height: calc(100% - 56px);}
+@media (max-width: 980px){ .wrap{grid-template-columns: 1fr;} .sidebar{height:auto; border-right:none; border-bottom:1px solid var(--border);} }
+.sidebar{
+  border-right:1px solid var(--border);
+  background:rgba(15,26,48,.55);
+  padding:12px;
+  overflow:auto;
+}
+.sidebar input{
+  width:100%;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:rgba(15,26,48,.75);
+  color:var(--text);
+}
+.node{
+  margin-top:10px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:rgba(14,22,42,.7);
+  overflow:hidden;
+}
+.node button{
+  width:100%;
+  text-align:left;
+  background:none;
+  border:none;
+  color:var(--text);
+  padding:10px 12px;
+  cursor:pointer;
+  display:flex; justify-content:space-between; align-items:center;
+  font-weight:650;
+}
+.node button:hover{background:rgba(122,162,255,.08)}
+.node .path{color:var(--muted); font-size:12px; padding:0 12px 10px 12px}
+.main-area{
+  padding:18px 22px;
+  overflow:auto;
+}
+.main-area h1{margin:8px 0 10px 0}
+.main-area .meta{color:var(--muted); font-size:12px; margin-bottom:14px}
+.card{
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:rgba(15,26,48,.55);
+  padding:14px;
+  margin:14px 0;
+}
+.imgph{
+  border:1px dashed rgba(122,162,255,.5);
+  border-radius:16px;
+  padding:12px;
+  background:rgba(122,162,255,.06);
+  margin:10px 0;
+}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+.nav-links{display:flex; gap:8px; flex-wrap:wrap; margin:12px 0;}
+.nav-links a{
+  border:1px solid var(--border); border-radius:999px; padding:6px 10px;
+  background:rgba(15,26,48,.6); font-size:12px;
+}
+</style>
+</head>
+<body>
+  <header>
+    <div class="title">Lesson Shell Demo</div>
+    <div class="hint">Sidebar navigation / Hash URLs / Image placeholders</div>
+    <div class="hint"><a href="../kanban/index.html">Kanban</a> | <a href="../day-b-lessons.html">Day B</a> | <a href="../../index.html">Main Site</a></div>
+  </header>
+
+  <div class="wrap">
+    <aside class="sidebar">
+      <input id="q" placeholder="Search lessons..."/>
+      <div class="card" style="margin:12px 0; color:var(--muted); font-size:12px; line-height:1.5">
+        This demo shows the <b>shell pattern</b>: a left nav that jumps between lesson chunks, and a main content area with images, artifacts, etc.
+      </div>
+      <div id="list"></div>
+    </aside>
+
+    <main class="main-area">
+      <h1 id="title"></h1>
+      <div class="meta" id="meta"></div>
+      <section id="images"></section>
+      <section class="card">
+        <div style="color:var(--muted); font-size:12px; margin-bottom:10px">Content:</div>
+        <div id="content"></div>
+      </section>
+    </main>
+  </div>
+
+<script src="lessons_data.js"></script>
+<script>
+function qs(sel, el=document){ return el.querySelector(sel); }
+function escapeHtml(s){ return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+
+const DATA = window.LESSONS || [];
+let current = null;
+
+function renderSidebar(){
+  const q = (qs("#q").value||"").trim().toLowerCase();
+  const list = qs("#list");
+  list.innerHTML = "";
+  const filtered = DATA.filter(l=>{
+    if(!q) return true;
+    const hay = (l.title + " " + (l.nav||[]).join(" ")).toLowerCase();
+    return hay.includes(q);
+  });
+  for(const lesson of filtered){
+    const el = document.createElement("div");
+    el.className = "node";
+    el.innerHTML = `
+      <button data-id="${lesson.id}">
+        <span>${escapeHtml(lesson.title)}</span>
+        <span style="color:var(--muted); font-size:12px">&rarr;</span>
+      </button>
+      <div class="path">${escapeHtml((lesson.nav||[]).join(" > "))}</div>
+    `;
+    el.querySelector("button").addEventListener("click", ()=>{
+      loadLesson(lesson.id);
+    });
+    list.appendChild(el);
+  }
+}
+
+function loadLesson(id){
+  const lesson = DATA.find(x=>x.id===id);
+  if(!lesson) return;
+  current = lesson;
+  qs("#title").textContent = lesson.title;
+  qs("#meta").textContent = (lesson.nav||[]).join(" > ");
+  const imgs = qs("#images");
+  imgs.innerHTML = "";
+  for(const name of (lesson.images||[])){
+    const d = document.createElement("div");
+    d.className = "imgph";
+    d.innerHTML = `
+      <div style="font-weight:700">Image needed: ${escapeHtml(name)}</div>
+      <div style="color:var(--muted); font-size:12px; margin-top:6px">
+        Replace this placeholder with <code>assets/images/${escapeHtml(name)}.jpg</code> (or similar), plus caption + attribution.
+      </div>
+    `;
+    imgs.appendChild(d);
+  }
+  qs("#content").innerHTML = lesson.content_html || "<p>(No content)</p>";
+  location.hash = encodeURIComponent(id);
+}
+
+function boot(){
+  qs("#q").addEventListener("input", renderSidebar);
+  renderSidebar();
+  const fromHash = decodeURIComponent((location.hash||"").slice(1));
+  if(fromHash && DATA.some(x=>x.id===fromHash)) loadLesson(fromHash);
+  else if(DATA[0]) loadLesson(DATA[0].id);
+}
+boot();
+</script>
+</body>
+</html>

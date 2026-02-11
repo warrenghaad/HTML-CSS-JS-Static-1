@@ -176,6 +176,63 @@ def init_db():
         )
     ''')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_qa_lesson ON qa_reviews(lesson_id)')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS day_b_elements (
+            id SERIAL PRIMARY KEY,
+            element_id VARCHAR(30) UNIQUE NOT NULL,
+            name VARCHAR(100) NOT NULL,
+            category VARCHAR(30) NOT NULL,
+            deity_name VARCHAR(100) NOT NULL,
+            deity_id VARCHAR(50) NOT NULL,
+            core_property_name VARCHAR(100) NOT NULL,
+            core_property_definition TEXT NOT NULL,
+            core_property_proof TEXT NOT NULL,
+            key_metaphor VARCHAR(100) NOT NULL,
+            key_function VARCHAR(100) NOT NULL,
+            week_number INTEGER UNIQUE NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW()
+        )
+    ''')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS day_b_lessons (
+            id SERIAL PRIMARY KEY,
+            element_id INTEGER REFERENCES day_b_elements(id),
+            grade INTEGER NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            week_number INTEGER NOT NULL,
+            status VARCHAR(30) DEFAULT 'not_started',
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        )
+    ''')
+    cur.execute('CREATE INDEX IF NOT EXISTS idx_dayb_lessons_grade ON day_b_lessons(grade)')
+    cur.execute('CREATE INDEX IF NOT EXISTS idx_dayb_lessons_element ON day_b_lessons(element_id)')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS day_b_sections (
+            id SERIAL PRIMARY KEY,
+            lesson_id INTEGER REFERENCES day_b_lessons(id),
+            section_code VARCHAR(5) NOT NULL,
+            section_name VARCHAR(100) NOT NULL,
+            purpose TEXT NOT NULL DEFAULT '',
+            duration VARCHAR(20) NOT NULL DEFAULT '',
+            primary_drivers VARCHAR(50) NOT NULL DEFAULT '',
+            lo_template TEXT NOT NULL DEFAULT '',
+            lo_text TEXT DEFAULT '',
+            content TEXT DEFAULT '',
+            image_type VARCHAR(100) DEFAULT '',
+            image_url TEXT DEFAULT '',
+            carrier VARCHAR(255) DEFAULT '',
+            ecd_claim TEXT DEFAULT '',
+            ecd_evidence TEXT DEFAULT '',
+            ecd_task TEXT DEFAULT '',
+            b5_prior_refs JSONB DEFAULT '[]',
+            status VARCHAR(30) DEFAULT 'not_started',
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        )
+    ''')
+    cur.execute('CREATE INDEX IF NOT EXISTS idx_dayb_sections_lesson ON day_b_sections(lesson_id)')
+    cur.execute('CREATE INDEX IF NOT EXISTS idx_dayb_sections_code ON day_b_sections(section_code)')
     cur.close()
     conn.close()
 
@@ -1588,9 +1645,834 @@ def update_qa(item_id):
     item['updated_at'] = item['updated_at'].isoformat() if item.get('updated_at') else None
     return jsonify(dict(item))
 
+DAYB_SECTION_DEFS = [
+    ('B1', 'Bridge Review', 'Answer A7 question - reveal function', '5-7 min', 'drv.G',
+     '[Civic object] uses [element] for [function] - now you see why it is there.',
+     'Same artifact as A7, now with function labeled/arrows'),
+    ('B2', 'Math Proof', 'Verify property through measurement/demonstration', '7-10 min', 'drv.M',
+     '[Finding] confirms [property] because [rule] defines it.',
+     'Measurement/verification diagram'),
+    ('B3', 'Transformation', 'Element in operation - what the math property enables', '7-10 min', 'drv.M',
+     '[Element] can [operation verb] because [B2 principle] enables it.',
+     'Transformation/vector diagram, motion illustration'),
+    ('B4', 'Mechanics', 'What the transformation produces - mechanical result', '5-7 min', 'drv.M',
+     '[Operation] produces [result] because [property in motion].',
+     'Force/motion diagram, mechanical illustration'),
+    ('B5', 'STEM History (Cumulative)', 'Cumulative B2+B3+B4 convergence - where elements sit in STEM timeline', '5-7 min', 'drv.C,drv.I',
+     '[Element] contributed to [field] because [property] enabled [advancement].',
+     'Historical artifact, timeline diagram, scientific instrument'),
+    ('B6', 'The Moment (Invention)', 'Specific discovery/innovation/invention for this lesson', '7-10 min', 'drv.M,drv.C',
+     '[Civilization] [discovered/invented] [thing] because [element property] solved [specific problem].',
+     'Invention artifact, reconstruction, historical illustration'),
+    ('B7', 'Activity', 'Student builds/tests using engineering method', '15-20 min', 'drv.M,drv.C',
+     '[Element] can be [built/tested] as [model] because [construction method] applies [principle].',
+     'Build instructions, materials list, test setup'),
+    ('B8', 'Exit Ticket', 'Synthesize metaphor + function - same property enables both', '5-7 min', 'drv.G',
+     '[Element] unites [metaphor meaning] and [function] because [same property] enables both.',
+     'Comparison visual, split image (metaphor artifact and function artifact)'),
+]
+
+DAYB_LO_TEXTS = {
+    'elem.circle': {
+        'B1': 'Chariot wheel uses circle for rotation - now you see why the symbol is there',
+        'B2': 'Identical radius measurements confirm circularity because equidistance defines circles',
+        'B3': 'Circle can rotate uniformly because equidistance maintains constant axle contact',
+        'B4': 'Uniform rotation produces smooth motion because constant contact eliminates wobble',
+        'B5': 'Circles contributed to astronomy because equidistance enabled celestial tracking',
+        'B6': 'Mesopotamians invented the wheel (~3500 BCE) because circular rotation solved transport friction',
+        'B7': 'Circle can be tested as wheel model because axle-hole alignment applies equidistance',
+        'B8': 'Circle unites Shamash\'s justice and wheel rotation because equidistant radii enable both',
+    },
+    'elem.star8': {
+        'B1': 'Ishtar Gate uses 8-pointed stars for directional orientation - now you see why they mark the entrance',
+        'B2': 'Equal 45-degree angles confirm radial symmetry because 360 divided by 8 equals 45 defines the division',
+        'B3': '8-pointed star can project directional vectors because equal angles create uniform coverage',
+        'B4': 'Directional projection produces orientation reference because known angles create predictable positions',
+        'B5': '8-pointed geometry contributed to navigation because radial division enabled star-based wayfinding. Prior: Circle\'s equidistance enabled celestial tracking (B2-B4).',
+        'B6': 'Mesopotamians developed the compass rose because 8-point division solved directional disorientation',
+        'B7': '8-pointed star can be tested as compass tool because aligned angles indicate cardinal directions',
+        'B8': '8-pointed star unites Ishtar\'s protection and compass navigation because equal radial angles enable both',
+    },
+    'elem.triangle': {
+        'B1': 'Ziggurat steps use triangles for structural support - now you see why temples stand tall',
+        'B2': 'Fixed angles confirm rigidity because three sides with locked vertices cannot deform',
+        'B3': 'Triangle can resist lateral force because structural rigidity prevents deformation under load',
+        'B4': 'Resistance to deformation produces stable structures because locked angles distribute force to foundation',
+        'B5': 'Triangles contributed to architecture and engineering because rigidity enabled load-bearing structures. Prior: Circle enabled rotation, Star enabled navigation (B2-B4).',
+        'B6': 'Mesopotamians engineered the truss (~3000 BCE) because triangular rigidity solved roof-span collapse',
+        'B7': 'Triangle can be tested as bridge truss because three-sided frame applies structural rigidity',
+        'B8': 'Triangle unites Enlil\'s authority (stable, immovable) and structural engineering because rigidity enables both',
+    },
+    'elem.square': {
+        'B1': 'Clay tablets use rectangles for organized writing - now you see why scribes chose this shape',
+        'B2': 'Right-angle measurements confirm regularity because four 90-degree corners with parallel sides define squares',
+        'B3': 'Square can tessellate without gaps because right angles and equal sides enable perfect tiling',
+        'B4': 'Tessellation produces complete coverage because aligned edges leave no wasted space',
+        'B5': 'Squares contributed to urban planning and writing because regularity enabled grid systems and standardized records. Prior: Circle enabled rotation, Star enabled navigation, Triangle enabled structures (B2-B4).',
+        'B6': 'Mesopotamians invented the standardized brick (~4000 BCE) because rectangular regularity solved construction alignment',
+        'B7': 'Square can be tested as city grid model because right-angle layout applies regularity and tessellation',
+        'B8': 'Square unites Nabu\'s wisdom (ordered knowledge) and city planning because right-angle regularity enables both',
+    },
+    'elem.spiral': {
+        'B1': 'Scroll cylinder uses spiral for compact information storage - now you see why scribes used this form',
+        'B2': 'Increasing radius measurements confirm spiral because progressive expansion defines the outward curve',
+        'B3': 'Spiral can compress long lengths into small space because progressive expansion enables compact winding',
+        'B4': 'Compact winding produces efficient storage because coiling maximizes length in minimal area',
+        'B5': 'Spirals contributed to mechanics and hydraulics because progressive expansion enabled springs and water flow. Prior: Circle enabled rotation, Star enabled navigation, Triangle enabled structures, Square enabled planning (B2-B4).',
+        'B6': 'Mesopotamians developed irrigation channels (~5000 BCE) because spiral water flow solved efficient drainage',
+        'B7': 'Spiral can be tested as spring model because coiled wire applies progressive expansion under tension',
+        'B8': 'Spiral unites Tiamat\'s primordial chaos (swirling waters) and spring mechanics because progressive expansion enables both',
+    },
+    'elem.arc': {
+        'B1': 'City gate archway uses arc for spanning openings - now you see why gates have curved tops',
+        'B2': 'Equal radii to arc points confirm curvature because constant radius from center defines the arc segment',
+        'B3': 'Arc can distribute weight to both sides because continuous curvature redirects downward force laterally',
+        'B4': 'Lateral force distribution produces stable spans because compression along the curve eliminates central support need',
+        'B5': 'Arcs contributed to civil engineering because load distribution enabled monumental gateways and bridges. Prior: Circle, Star, Triangle, Square, Spiral properties enabled rotation, navigation, structures, planning, and mechanics (B2-B4).',
+        'B6': 'Mesopotamians engineered the true arch (~2000 BCE) because curved load distribution solved wide-span entry construction',
+        'B7': 'Arc can be tested as bridge model because curved block alignment applies load distribution',
+        'B8': 'Arc unites Anu\'s sky vault (heavens arching overhead) and architectural spanning because continuous curvature enables both',
+    },
+    'elem.hexagon': {
+        'B1': 'Grain storage vessels use hexagonal packing for efficiency - now you see why nature chose this shape',
+        'B2': 'Six equal 120-degree angles confirm hexagonal regularity because equal sides tessellating with no gaps define hexagons',
+        'B3': 'Hexagon can tile surfaces completely because optimal angles create seamless coverage with zero waste',
+        'B4': 'Complete tiling produces maximum storage efficiency because each cell shares walls with six neighbors',
+        'B5': 'Hexagons contributed to materials science and resource management because optimal packing enabled efficient storage and distribution. Prior: Circle, Star, Triangle, Square, Spiral, Arc properties enabled rotation, navigation, structures, planning, mechanics, and spanning (B2-B4).',
+        'B6': 'Mesopotamians optimized grain storage (~4500 BCE) because hexagonal vessel arrangement solved warehouse space limitations',
+        'B7': 'Hexagon can be tested as storage optimization model because honeycomb tiling applies optimal packing',
+        'B8': 'Hexagon unites Nisaba\'s wisdom (efficient record-keeping) and storage engineering because optimal packing enables both',
+    },
+    'elem.pyramid': {
+        'B1': 'Ziggurats use pyramid form for monumental stability - now you see why temples reach toward heaven',
+        'B2': 'Wide base and converging faces confirm stability because mass distributed below center of gravity resists toppling',
+        'B3': 'Pyramid can channel weight downward because convergent faces direct all force toward the broad base',
+        'B4': 'Downward force channeling produces permanent monuments because gravitational alignment prevents structural failure',
+        'B5': 'Pyramids contributed to monumental architecture and astronomy because convergent stability enabled tall aligned structures. CUMULATIVE SYNTHESIS: All 8 elements\' B2-B4 chains - Circle\'s rotation, Star\'s navigation, Triangle\'s rigidity, Square\'s tessellation, Spiral\'s compression, Arc\'s spanning, Hexagon\'s packing - converge to show how geometry enabled civilization.',
+        'B6': 'Mesopotamians built the Great Ziggurat of Ur (~2100 BCE) because pyramidal convergent stability solved multi-story temple construction',
+        'B7': 'Pyramid can be tested as ziggurat model because stacked layers apply convergent stability and weight distribution',
+        'B8': 'Pyramid unites Marduk\'s cosmic authority (hierarchy of heavens) and monumental engineering because convergent stability enables both',
+    },
+}
+
+DAYB_CONTENT_TEMPLATES = {
+    'B1': 'Students revisit the artifact from Day A\'s exit ticket. The teacher reveals the functional purpose of the {element_name} in the {carrier} - connecting the symbolic meaning explored on Day A to the real-world engineering function that the geometric property enables.',
+    'B2': 'Students conduct hands-on measurement to verify the core property of {element_name}: {core_property}. Through direct observation and measurement, students confirm that {core_definition} - building mathematical proof through empirical evidence.',
+    'B3': 'Students explore how the verified property of {element_name} enables transformation. Because {core_property} has been proven, students can now see how {element_name} performs its key operation, connecting static property to dynamic behavior.',
+    'B4': 'Students examine the mechanical result produced by {element_name}\'s transformation. The chain from proof (B2) through transformation (B3) to mechanism (B4) shows how geometric properties produce real-world engineering outcomes.',
+    'B5': 'Students place {element_name} in the STEM timeline, examining how {core_property} contributed to historical advancement. This cumulative section connects current element knowledge to all previously studied elements, building a coherent picture of how geometry enabled civilization.',
+    'B6': 'Students learn about a specific moment of invention where {element_name}\'s property of {core_property} solved a real engineering problem. This grounds abstract geometric knowledge in concrete historical achievement by {deity_name}\'s civilization.',
+    'B7': 'Students engage in hands-on engineering activity, building and testing a model that applies {element_name}\'s property of {core_property}. Through construction and experimentation, students experience how geometric principles translate into functional designs.',
+    'B8': 'Students synthesize the entire Day B arc by connecting {deity_name}\'s metaphorical meaning to {element_name}\'s functional application. The exit ticket reveals that the same geometric property enables both the cultural symbol and the engineering function.',
+}
+
+DAYB_CARRIERS = {
+    'elem.circle': {'B1': 'Chariot wheel', 'B2': 'Compass and string', 'B3': 'Rotating disk', 'B4': 'Wheel and axle model', 'B5': 'Astronomical instruments', 'B6': 'Mesopotamian wheel artifact', 'B7': 'Wheel construction kit', 'B8': 'Shamash sun disk / wheel'},
+    'elem.star8': {'B1': 'Ishtar Gate', 'B2': 'Protractor and compass', 'B3': 'Directional star model', 'B4': 'Compass rose', 'B5': 'Navigation instruments', 'B6': 'Ancient compass rose', 'B7': 'Star compass tool', 'B8': 'Ishtar star / compass'},
+    'elem.triangle': {'B1': 'Ziggurat', 'B2': 'Stick triangle model', 'B3': 'Truss frame', 'B4': 'Load-bearing structure', 'B5': 'Architectural timeline', 'B6': 'Mesopotamian truss', 'B7': 'Bridge truss kit', 'B8': 'Enlil / structural truss'},
+    'elem.square': {'B1': 'Clay tablet', 'B2': 'Right-angle measuring tools', 'B3': 'Tiling grid', 'B4': 'Brick wall model', 'B5': 'Urban planning maps', 'B6': 'Standardized brick', 'B7': 'City grid model', 'B8': 'Nabu tablet / city grid'},
+    'elem.spiral': {'B1': 'Scroll cylinder', 'B2': 'Spiral measuring tools', 'B3': 'Coiled rope model', 'B4': 'Spring mechanism', 'B5': 'Hydraulic timeline', 'B6': 'Irrigation channel model', 'B7': 'Spring construction kit', 'B8': 'Tiamat waters / spring'},
+    'elem.arc': {'B1': 'City gate archway', 'B2': 'Arc measuring tools', 'B3': 'Arch load model', 'B4': 'Bridge span model', 'B5': 'Engineering timeline', 'B6': 'True arch model', 'B7': 'Arch bridge kit', 'B8': 'Anu sky vault / arch'},
+    'elem.hexagon': {'B1': 'Grain storage vessel', 'B2': 'Hexagon measuring tools', 'B3': 'Honeycomb tiling model', 'B4': 'Storage efficiency model', 'B5': 'Materials science timeline', 'B6': 'Grain storage arrangement', 'B7': 'Honeycomb construction kit', 'B8': 'Nisaba grain / honeycomb'},
+    'elem.pyramid': {'B1': 'Ziggurat of Ur', 'B2': 'Pyramid measuring tools', 'B3': 'Weight channel model', 'B4': 'Monument stability model', 'B5': 'Architecture timeline', 'B6': 'Great Ziggurat of Ur', 'B7': 'Ziggurat construction kit', 'B8': 'Marduk / ziggurat'},
+}
+
+DAYB_ECD = {
+    'elem.circle': {
+        'B1': {
+            3: ('Student knows that wheels use circles to roll smoothly', 'Student can point to the circle shape in a wheel', 'Identify the circle in a chariot wheel picture'),
+            4: ('Student understands that circular shape enables wheel rotation', 'Student can explain why a wheel needs to be round', 'Compare round vs square wheel and explain difference'),
+            5: ('Student can reason that equidistance is the property enabling smooth rotation', 'Student can analyze how changing radius affects wheel function', 'Design an experiment testing wheel smoothness with different shapes'),
+        },
+        'B2': {
+            3: ('Student knows that all radii of a circle are the same length', 'Student can measure radii and confirm they match', 'Measure 4 radii of a drawn circle with a ruler'),
+            4: ('Student understands that equal radii define what makes a shape a circle', 'Student can demonstrate equidistance using string and pin', 'Use string-pivot method to draw circle and verify radii'),
+            5: ('Student can reason that equidistance is the defining property separating circles from other curves', 'Student can evaluate whether irregular shapes meet circle criteria', 'Test 3 shapes and prove which are true circles using measurement'),
+        },
+        'B3': {
+            3: ('Student knows that circles can spin around their center', 'Student can rotate a circular object on a pencil', 'Spin a cardboard circle on a pencil point'),
+            4: ('Student understands that equidistance allows uniform rotation', 'Student can demonstrate and explain smooth vs bumpy rotation', 'Compare spinning a circle vs oval on an axle'),
+            5: ('Student can reason that constant radius ensures consistent contact during rotation', 'Student can predict rotation behavior from radius measurements', 'Calculate contact points during one full rotation'),
+        },
+        'B4': {
+            3: ('Student knows that smooth spinning makes things move without bumps', 'Student can observe smooth motion in a wheel demo', 'Roll circular vs non-circular objects and describe motion'),
+            4: ('Student understands that constant contact produces smooth mechanical motion', 'Student can connect radius consistency to motion quality', 'Build simple wheel and test load-carrying smoothness'),
+            5: ('Student can reason that eliminating wobble requires geometric perfection of equidistance', 'Student can evaluate wheel designs for mechanical efficiency', 'Design optimal wheel and justify dimensions mathematically'),
+        },
+        'B5': {
+            3: ('Student knows that ancient people used circles to watch the sky', 'Student can identify circular tools used in astronomy', 'Match circular instruments to their sky-watching purpose'),
+            4: ('Student understands that circular measurement enabled tracking celestial objects', 'Student can explain how circle properties help track stars', 'Plot star positions on a circular chart'),
+            5: ('Student can reason that equidistance enabled precise angular measurement for astronomy', 'Student can analyze how circular instruments improved celestial prediction', 'Design a simple astrolabe and explain geometric principles'),
+        },
+        'B6': {
+            3: ('Student knows that Mesopotamians made the first wheels', 'Student can describe what the first wheel looked like', 'Draw and label a Mesopotamian wheel'),
+            4: ('Student understands that circular rotation solved the problem of moving heavy loads', 'Student can explain why the wheel was revolutionary', 'Compare dragging vs rolling and measure force difference'),
+            5: ('Student can reason that the wheel invention required understanding equidistance to function', 'Student can evaluate the engineering challenges of early wheel design', 'Design a wheel-and-axle system and explain geometric requirements'),
+        },
+        'B7': {
+            3: ('Student knows that a wheel needs a hole in the center for an axle', 'Student can build a simple wheel from cardboard', 'Build a wheel from a cardboard circle and test rolling'),
+            4: ('Student understands that axle placement must be at the center for smooth rotation', 'Student can test different axle positions and compare results', 'Build wheels with center vs off-center axles and compare'),
+            5: ('Student can reason that axle-hole alignment demonstrates equidistance in engineering', 'Student can optimize wheel design through iterative testing', 'Design, build, and test a wheel system measuring smoothness quantitatively'),
+        },
+        'B8': {
+            3: ('Student knows that circles mean fairness (Shamash) and also make wheels turn', 'Student can name both meanings of circles', 'Draw two pictures: circle as fairness and circle as wheel'),
+            4: ('Student understands that the same property (equidistance) enables both justice symbolism and wheel function', 'Student can explain the connection between fairness and rotation', 'Write a paragraph connecting Shamash justice to wheel mechanics'),
+            5: ('Student can reason that equidistance simultaneously enables metaphorical and functional applications', 'Student can synthesize cultural and engineering perspectives on circles', 'Create a presentation uniting Shamash symbolism with wheel engineering'),
+        },
+    },
+    'elem.star8': {
+        'B1': {
+            3: ('Student knows that the Ishtar Gate has star patterns', 'Student can find 8-pointed stars on the gate', 'Circle all 8-pointed stars in an Ishtar Gate image'),
+            4: ('Student understands that 8-pointed stars mark directions on the gate', 'Student can explain why stars help with orientation', 'Label compass directions on an 8-pointed star'),
+            5: ('Student can reason that radial symmetry provides directional information', 'Student can analyze how star placement creates navigational cues', 'Map the directional logic of stars on the Ishtar Gate'),
+        },
+        'B2': {
+            3: ('Student knows that an 8-pointed star has 8 equal spaces between points', 'Student can count the points and spaces', 'Count points and measure spaces between them'),
+            4: ('Student understands that 45-degree angles create 8-fold symmetry', 'Student can measure angles between star points', 'Use a protractor to verify 45-degree angles'),
+            5: ('Student can reason that 360/8=45 defines the mathematical basis for 8-fold symmetry', 'Student can prove symmetry through angular measurement', 'Construct an 8-pointed star using only compass and straightedge'),
+        },
+        'B3': {
+            3: ('Student knows that star points can show directions', 'Student can match star points to directions', 'Point to N, S, E, W on an 8-pointed star'),
+            4: ('Student understands that equal angles create uniform directional coverage', 'Student can demonstrate how star points map to compass directions', 'Align an 8-pointed star with a compass and verify directions'),
+            5: ('Student can reason that uniform angular distribution enables comprehensive directional projection', 'Student can calculate intercardinal positions from angular division', 'Derive all 8 compass directions from angular division of 360'),
+        },
+        'B4': {
+            3: ('Student knows that knowing directions helps people find their way', 'Student can use star points to identify directions', 'Navigate a simple maze using 8-point directions'),
+            4: ('Student understands that predictable angles create reliable orientation systems', 'Student can explain why consistent angles matter for navigation', 'Create a direction-finding tool from an 8-pointed star'),
+            5: ('Student can reason that fixed angular references produce reliable navigation systems', 'Student can evaluate the precision of star-based orientation', 'Calculate bearing errors from imprecise angular division'),
+        },
+        'B5': {
+            3: ('Student knows that ancient people used stars to find their way', 'Student can describe how stars helped travelers', 'Draw a picture of a traveler using stars for directions'),
+            4: ('Student understands that 8-point geometry enabled systematic navigation', 'Student can connect star geometry to navigation history', 'Create a timeline of navigation tools using star geometry'),
+            5: ('Student can reason that radial division was foundational to navigation science', 'Student can analyze the cumulative role of circle and star geometry in navigation', 'Write an analysis connecting equidistance and radial symmetry in navigation history'),
+        },
+        'B6': {
+            3: ('Student knows that the compass rose shows 8 directions', 'Student can identify parts of a compass rose', 'Label all 8 points on a compass rose'),
+            4: ('Student understands that 8-point division solved the problem of getting lost', 'Student can explain why 8 directions are better than 4', 'Compare 4-point vs 8-point compass and list advantages'),
+            5: ('Student can reason that systematic angular division was a breakthrough in spatial reasoning', 'Student can evaluate the mathematical elegance of the compass rose', 'Design an improved compass rose and justify the geometry'),
+        },
+        'B7': {
+            3: ('Student knows that you can make a compass from a star shape', 'Student can build a simple star compass', 'Cut out an 8-pointed star and use it to find directions'),
+            4: ('Student understands that aligned angles indicate real directions', 'Student can calibrate a star compass to true north', 'Build and calibrate an 8-pointed star compass'),
+            5: ('Student can reason that angular precision determines navigational accuracy', 'Student can test compass accuracy through multiple trials', 'Build, calibrate, and test a star compass measuring angular error'),
+        },
+        'B8': {
+            3: ('Student knows that the star means protection (Ishtar) and also helps navigation', 'Student can name both meanings of the 8-pointed star', 'Draw the star as protection symbol and as compass'),
+            4: ('Student understands that radial symmetry enables both divine symbolism and practical navigation', 'Student can explain the dual purpose of star geometry', 'Write comparing Ishtar protection to compass navigation'),
+            5: ('Student can reason that equal angular division simultaneously enables symbolic and functional applications', 'Student can synthesize mythological and scientific perspectives', 'Create a presentation uniting Ishtar symbolism with navigation science'),
+        },
+    },
+    'elem.triangle': {
+        'B1': {
+            3: ('Student knows that ziggurats use triangle shapes to stay strong', 'Student can find triangles in ziggurat pictures', 'Circle all triangle shapes in a ziggurat image'),
+            4: ('Student understands that triangles provide structural support in buildings', 'Student can explain why triangles make buildings stronger', 'Compare triangle vs rectangle strength in a structure model'),
+            5: ('Student can reason that structural rigidity from fixed angles enables monumental architecture', 'Student can analyze how triangular elements distribute force', 'Diagram force distribution through triangular supports in a ziggurat'),
+        },
+        'B2': {
+            3: ('Student knows that triangles cannot be pushed out of shape', 'Student can push on a triangle and see it stays rigid', 'Build a triangle from sticks and try to change its shape'),
+            4: ('Student understands that three fixed sides create locked angles', 'Student can demonstrate rigidity vs flexibility in shapes', 'Compare triangle vs square stick models under pressure'),
+            5: ('Student can reason that three sides uniquely constrain all angles, creating inherent rigidity', 'Student can prove that triangles are the only rigid polygon', 'Test rigidity of 3, 4, 5, 6-sided shapes and explain results mathematically'),
+        },
+        'B3': {
+            3: ('Student knows that triangles can hold up heavy things', 'Student can place weight on a triangle structure', 'Stack books on triangle vs rectangle frames'),
+            4: ('Student understands that rigidity prevents collapse under lateral force', 'Student can demonstrate force resistance in triangular frames', 'Apply sideways force to triangle and rectangle frames, measure deflection'),
+            5: ('Student can reason that geometric rigidity translates directly to structural load resistance', 'Student can predict failure points in non-triangulated structures', 'Design a structure and predict where it needs triangulation'),
+        },
+        'B4': {
+            3: ('Student knows that strong triangles help build tall buildings', 'Student can explain why triangle shapes are in bridges', 'Build tallest possible tower using triangle supports'),
+            4: ('Student understands that locked angles distribute force to foundations', 'Student can trace force paths through triangular structures', 'Draw force arrows through a truss showing load distribution'),
+            5: ('Student can reason that force distribution through rigid angles enables load-bearing architecture', 'Student can evaluate structural designs for force distribution efficiency', 'Calculate load distribution in a simple truss system'),
+        },
+        'B5': {
+            3: ('Student knows that ancient builders used triangles in their buildings', 'Student can identify triangles in ancient structures', 'Find triangles in pictures of ancient buildings'),
+            4: ('Student understands that triangular rigidity advanced architecture and engineering', 'Student can connect triangle properties to engineering history', 'Create a timeline of triangle use in architecture'),
+            5: ('Student can reason that rigidity was foundational to architectural engineering across civilizations', 'Student can analyze cumulative geometric contributions to engineering', 'Write analysis connecting circle, star, and triangle contributions to civilization'),
+        },
+        'B6': {
+            3: ('Student knows that Mesopotamians used triangles in roof supports', 'Student can describe what a truss looks like', 'Draw a simple roof truss with triangles'),
+            4: ('Student understands that triangular trusses solved the problem of spanning wide spaces', 'Student can explain why triangles work better than beams for roofs', 'Build a truss model and test its span capability'),
+            5: ('Student can reason that triangular rigidity was the key insight enabling truss engineering', 'Student can evaluate different truss designs for efficiency', 'Design and compare multiple truss configurations mathematically'),
+        },
+        'B7': {
+            3: ('Student knows that you can build a strong bridge with triangles', 'Student can build a triangle bridge from craft sticks', 'Build a bridge using triangle shapes and test with weight'),
+            4: ('Student understands that three-sided frames create structural rigidity', 'Student can optimize a bridge design using triangulation', 'Build two bridges (with/without triangles) and compare strength'),
+            5: ('Student can reason that systematic triangulation maximizes structural integrity', 'Student can iterate bridge designs based on load testing data', 'Design, build, test, and improve a truss bridge measuring load capacity'),
+        },
+        'B8': {
+            3: ('Student knows that triangles mean strength (Enlil) and also hold up buildings', 'Student can name both meanings of triangles', 'Draw triangles as Enlil power and as building support'),
+            4: ('Student understands that rigidity enables both divine authority symbolism and structural engineering', 'Student can explain the connection between stability and authority', 'Write comparing Enlil authority to structural engineering'),
+            5: ('Student can reason that structural rigidity simultaneously enables metaphorical and functional applications', 'Student can synthesize mythological and engineering perspectives', 'Create a presentation uniting Enlil authority with structural engineering'),
+        },
+    },
+    'elem.square': {
+        'B1': {
+            3: ('Student knows that clay tablets are rectangle-shaped for writing', 'Student can identify the rectangular shape of tablets', 'Find rectangles in clay tablet images'),
+            4: ('Student understands that rectangular shape organizes written information', 'Student can explain why scribes chose rectangular tablets', 'Compare writing on round vs rectangular surfaces'),
+            5: ('Student can reason that right-angle regularity enables systematic information organization', 'Student can analyze how shape influences writing systems', 'Design an optimal writing surface shape and justify geometrically'),
+        },
+        'B2': {
+            3: ('Student knows that squares have corners that are all the same', 'Student can check corners with a square corner tool', 'Test corners of shapes with a right-angle checker'),
+            4: ('Student understands that four 90-degree angles with parallel sides define squares', 'Student can measure and verify right angles', 'Measure all angles and sides of a square with tools'),
+            5: ('Student can reason that right-angle regularity uniquely enables tessellation and grid systems', 'Student can prove square properties through measurement', 'Prove that a quadrilateral is a square using angle and side measurements'),
+        },
+        'B3': {
+            3: ('Student knows that squares fit together without gaps', 'Student can tile squares on a surface', 'Cover a surface completely with square tiles'),
+            4: ('Student understands that right angles enable gap-free tessellation', 'Student can demonstrate why squares tessellate but other shapes may not', 'Compare tessellation of squares, triangles, and pentagons'),
+            5: ('Student can reason that 90-degree angles summing to 360 at vertices enables perfect tessellation', 'Student can prove tessellation mathematically', 'Calculate angle sums at tessellation vertices for different shapes'),
+        },
+        'B4': {
+            3: ('Student knows that fitting shapes together covers a whole area', 'Student can show complete coverage with square tiles', 'Fill a frame completely with square blocks'),
+            4: ('Student understands that aligned edges create efficient space coverage', 'Student can calculate area coverage using tessellation', 'Calculate how many tiles needed to cover a given area'),
+            5: ('Student can reason that tessellation produces mathematically complete coverage with zero waste', 'Student can evaluate different tessellation patterns for efficiency', 'Compare space efficiency of square vs hexagonal tessellation'),
+        },
+        'B5': {
+            3: ('Student knows that ancient cities were built using grid patterns', 'Student can identify grids in city maps', 'Find grid patterns in ancient city plan images'),
+            4: ('Student understands that rectangular regularity enabled urban planning and record-keeping', 'Student can connect square properties to urban development', 'Create a timeline of grid-based inventions'),
+            5: ('Student can reason that right-angle regularity was foundational to multiple civilizational advances', 'Student can analyze cumulative geometric contributions', 'Write analysis of how circle, star, triangle, and square advanced civilization'),
+        },
+        'B6': {
+            3: ('Student knows that Mesopotamians made bricks all the same size', 'Student can describe why same-size bricks are useful', 'Stack uniform vs random-sized blocks and compare results'),
+            4: ('Student understands that standardized bricks solved construction alignment problems', 'Student can explain why standardization was revolutionary', 'Build a wall with uniform vs varied bricks and compare stability'),
+            5: ('Student can reason that rectangular regularity enabled construction standardization', 'Student can evaluate the engineering impact of the standardized brick', 'Design a standardized building component and justify dimensions'),
+        },
+        'B7': {
+            3: ('Student knows that you can plan a city using a grid', 'Student can lay out a simple grid', 'Design a small city using a grid of squares'),
+            4: ('Student understands that right-angle layouts create organized spaces', 'Student can design and justify a city grid layout', 'Design a city grid with zones and explain layout choices'),
+            5: ('Student can reason that grid systems optimize spatial organization through regularity', 'Student can optimize a city design based on geometric principles', 'Design, test, and optimize a city grid measuring efficiency metrics'),
+        },
+        'B8': {
+            3: ('Student knows that squares mean order (Nabu) and also organize cities', 'Student can name both meanings of squares', 'Draw squares as Nabu wisdom and as city grid'),
+            4: ('Student understands that regularity enables both ordered knowledge and urban planning', 'Student can explain the connection between writing order and city order', 'Write comparing Nabu writing system to city grid planning'),
+            5: ('Student can reason that right-angle regularity simultaneously enables symbolic and functional organization', 'Student can synthesize cultural and engineering perspectives', 'Create a presentation uniting Nabu wisdom with urban engineering'),
+        },
+    },
+    'elem.spiral': {
+        'B1': {
+            3: ('Student knows that scroll shapes help store long things in small spaces', 'Student can roll paper into a spiral shape', 'Roll a long strip of paper into a spiral'),
+            4: ('Student understands that spiral form enables compact storage', 'Student can explain why scrolls use spiral winding', 'Compare flat vs rolled storage of a long message'),
+            5: ('Student can reason that progressive expansion enables efficient space utilization', 'Student can analyze how spiral geometry optimizes storage density', 'Calculate storage density of spiral vs flat arrangement'),
+        },
+        'B2': {
+            3: ('Student knows that spirals get bigger as they go outward', 'Student can trace a spiral and see it growing', 'Trace a spiral and measure width at different points'),
+            4: ('Student understands that increasing radius defines spiral expansion', 'Student can measure progressive expansion in a spiral', 'Measure distances from center at regular intervals in a spiral'),
+            5: ('Student can reason that progressive expansion is the defining mathematical property of spirals', 'Student can verify expansion rates through measurement', 'Graph radius vs angle measurements to prove progressive expansion'),
+        },
+        'B3': {
+            3: ('Student knows that spirals can hold long things in a small space', 'Student can coil rope into a small pile', 'Coil a long rope and measure how small it gets'),
+            4: ('Student understands that progressive winding compresses length into compact area', 'Student can demonstrate compact winding with different materials', 'Compare coiled vs uncoiled length-to-area ratios'),
+            5: ('Student can reason that progressive expansion enables maximum length storage in minimum area', 'Student can calculate compression ratios of spiral winding', 'Derive the relationship between coil tightness and storage efficiency'),
+        },
+        'B4': {
+            3: ('Student knows that coiling things saves space', 'Student can compare coiled vs uncoiled objects', 'Compare space used by coiled vs straight rope'),
+            4: ('Student understands that coiling maximizes storage by using area efficiently', 'Student can measure space saved by coiling', 'Calculate space savings from coiling a measured length'),
+            5: ('Student can reason that spiral mechanics produce optimal storage through geometric efficiency', 'Student can evaluate different coiling strategies', 'Design and compare multiple storage strategies measuring efficiency'),
+        },
+        'B5': {
+            3: ('Student knows that springs and water channels use spiral shapes', 'Student can identify spirals in machines', 'Find spiral shapes in pictures of machines and water systems'),
+            4: ('Student understands that progressive expansion enabled mechanical and hydraulic inventions', 'Student can connect spiral properties to mechanical history', 'Create a timeline of spiral-based inventions'),
+            5: ('Student can reason that progressive expansion was foundational to mechanics and hydraulics', 'Student can analyze cumulative geometric contributions', 'Write analysis connecting all five elements contributions to civilization'),
+        },
+        'B6': {
+            3: ('Student knows that Mesopotamians used spiral channels for water', 'Student can describe how water flows in a spiral', 'Draw a spiral water channel'),
+            4: ('Student understands that spiral flow solved drainage and irrigation problems', 'Student can explain why spirals work for water management', 'Build a spiral channel model and test water flow'),
+            5: ('Student can reason that progressive expansion enabled efficient water distribution', 'Student can evaluate spiral vs straight channel efficiency', 'Design an irrigation system comparing spiral and straight channels'),
+        },
+        'B7': {
+            3: ('Student knows that you can make a spring by coiling wire', 'Student can coil wire into a spring shape', 'Coil wire around a pencil to make a spring'),
+            4: ('Student understands that coiled wire applies progressive expansion under tension', 'Student can test spring behavior with different coil tightness', 'Build springs with different coil spacing and compare bounce'),
+            5: ('Student can reason that spring mechanics depend on progressive expansion geometry', 'Student can optimize spring design through testing', 'Design, build, and test springs measuring force vs compression'),
+        },
+        'B8': {
+            3: ('Student knows that spirals mean powerful water (Tiamat) and also make springs work', 'Student can name both meanings of spirals', 'Draw spiral as Tiamat chaos and as spring'),
+            4: ('Student understands that progressive expansion enables both chaos symbolism and spring mechanics', 'Student can explain the connection between water chaos and spring energy', 'Write comparing Tiamat chaos waters to spring mechanics'),
+            5: ('Student can reason that progressive expansion simultaneously enables metaphorical and functional applications', 'Student can synthesize mythological and engineering perspectives', 'Create a presentation uniting Tiamat symbolism with spiral mechanics'),
+        },
+    },
+    'elem.arc': {
+        'B1': {
+            3: ('Student knows that arched doorways are curved on top', 'Student can find arches in building pictures', 'Circle all arches in city gate images'),
+            4: ('Student understands that arcs enable wide openings without center support', 'Student can explain why arches curve upward', 'Compare arched vs flat-topped doorways for strength'),
+            5: ('Student can reason that continuous curvature enables load distribution across spans', 'Student can analyze how arch shape affects load bearing', 'Diagram force paths through an arch structure'),
+        },
+        'B2': {
+            3: ('Student knows that arcs are parts of circles', 'Student can find the center of an arc', 'Draw an arc and mark its center point'),
+            4: ('Student understands that constant radius from center defines arc curvature', 'Student can measure radii to verify arc properties', 'Measure multiple radii from center to arc points'),
+            5: ('Student can reason that constant curvature is the defining property of true arcs', 'Student can distinguish true arcs from irregular curves', 'Test curves and prove which are true arcs using radius measurement'),
+        },
+        'B3': {
+            3: ('Student knows that arches spread weight to both sides', 'Student can see how weight goes sideways in an arch', 'Place weight on arch model and observe side support'),
+            4: ('Student understands that curvature redirects downward force laterally', 'Student can demonstrate force redirection in arch models', 'Build arch from blocks and test weight distribution'),
+            5: ('Student can reason that continuous curvature systematically redirects force through compression', 'Student can predict force paths through arch geometry', 'Calculate force components in an arch under load'),
+        },
+        'B4': {
+            3: ('Student knows that arches can hold up heavy walls above openings', 'Student can describe why arches are strong', 'Build an arch from blocks and test how much weight it holds'),
+            4: ('Student understands that compression along the curve eliminates need for center support', 'Student can explain why arches span wider than beams', 'Compare maximum span of arch vs beam using same materials'),
+            5: ('Student can reason that lateral force distribution produces stable spans through geometric compression', 'Student can evaluate arch designs for span efficiency', 'Design arches with different curves and compare load capacity'),
+        },
+        'B5': {
+            3: ('Student knows that ancient people built arches for gates and bridges', 'Student can identify arches in ancient buildings', 'Find arches in pictures of ancient structures'),
+            4: ('Student understands that load distribution enabled monumental gateway construction', 'Student can connect arc properties to engineering history', 'Create a timeline of arch-based engineering achievements'),
+            5: ('Student can reason that arch geometry was foundational to civil engineering advancement', 'Student can analyze cumulative geometric contributions', 'Write analysis of six elements contributions to engineering'),
+        },
+        'B6': {
+            3: ('Student knows that Mesopotamians built real arches from bricks', 'Student can describe what a true arch looks like', 'Draw an arch showing how bricks are arranged'),
+            4: ('Student understands that curved load distribution solved wide-span construction', 'Student can explain the engineering breakthrough of the true arch', 'Build a model arch from shaped blocks'),
+            5: ('Student can reason that the true arch was a geometric engineering breakthrough', 'Student can evaluate arch construction techniques', 'Design an arch bridge specifying block angles mathematically'),
+        },
+        'B7': {
+            3: ('Student knows that you can build a bridge with an arch shape', 'Student can build a simple arch from blocks', 'Build an arch bridge from cardboard pieces'),
+            4: ('Student understands that curved block alignment distributes load', 'Student can test arch bridge strength', 'Build arch bridge and test maximum load before failure'),
+            5: ('Student can reason that geometric precision in block angles determines arch strength', 'Student can optimize arch design through testing', 'Design, build, and test arch bridges measuring load capacity vs curve angle'),
+        },
+        'B8': {
+            3: ('Student knows that arcs mean the sky (Anu) and also hold up buildings', 'Student can name both meanings of arcs', 'Draw arc as sky vault and as bridge arch'),
+            4: ('Student understands that continuous curvature enables both sky symbolism and architectural spanning', 'Student can explain the connection between sky dome and arch construction', 'Write comparing Anu sky vault to arch engineering'),
+            5: ('Student can reason that continuous curvature simultaneously enables metaphorical and functional applications', 'Student can synthesize mythological and engineering perspectives', 'Create a presentation uniting Anu sky vault with arch engineering'),
+        },
+    },
+    'elem.hexagon': {
+        'B1': {
+            3: ('Student knows that hexagon shapes pack together tightly', 'Student can fit hexagon tiles together', 'Fit hexagon tiles together with no gaps'),
+            4: ('Student understands that hexagonal packing maximizes storage efficiency', 'Student can explain why hexagons pack better than squares', 'Compare hexagonal vs square packing for storage'),
+            5: ('Student can reason that optimal packing geometry enables maximum efficiency', 'Student can analyze why hexagons appear in nature', 'Calculate area efficiency of hexagonal vs square packing'),
+        },
+        'B2': {
+            3: ('Student knows that hexagons have 6 equal sides and angles', 'Student can count sides and measure angles', 'Count sides and check angles of hexagon shapes'),
+            4: ('Student understands that 120-degree angles enable gap-free tessellation', 'Student can measure hexagon angles and verify regularity', 'Measure all angles of a hexagon with protractor'),
+            5: ('Student can reason that 120-degree angles summing to 360 at vertices enable perfect tessellation', 'Student can prove hexagonal tessellation mathematically', 'Prove hexagonal tessellation using angle calculations'),
+        },
+        'B3': {
+            3: ('Student knows that hexagons cover surfaces with no gaps', 'Student can tile a surface with hexagons', 'Cover a surface completely with hexagon tiles'),
+            4: ('Student understands that optimal angles create seamless coverage', 'Student can demonstrate zero-waste hexagonal tiling', 'Tile a surface and calculate coverage percentage'),
+            5: ('Student can reason that hexagonal tessellation produces mathematically optimal coverage', 'Student can compare hexagonal to other tessellation efficiencies', 'Calculate and compare coverage ratios of hexagonal vs other tessellations'),
+        },
+        'B4': {
+            3: ('Student knows that honeycomb cells save space by sharing walls', 'Student can describe why honeycomb is efficient', 'Count shared walls in a honeycomb pattern'),
+            4: ('Student understands that shared walls maximize storage with minimal material', 'Student can calculate material savings from wall sharing', 'Compare material used in hexagonal vs square storage grids'),
+            5: ('Student can reason that wall sharing produces maximum storage efficiency per unit of material', 'Student can evaluate storage designs for material efficiency', 'Design and compare storage systems measuring material-to-volume ratios'),
+        },
+        'B5': {
+            3: ('Student knows that nature uses hexagons in honeycombs and crystals', 'Student can find hexagons in nature pictures', 'Find hexagon shapes in nature photographs'),
+            4: ('Student understands that optimal packing enabled efficient resource management', 'Student can connect hexagonal geometry to materials science', 'Create a timeline of hexagonal discoveries in nature and technology'),
+            5: ('Student can reason that optimal packing principles connect mathematics to materials science', 'Student can analyze cumulative geometric contributions across all elements', 'Write comprehensive analysis of seven elements contributions to civilization'),
+        },
+        'B6': {
+            3: ('Student knows that Mesopotamians arranged storage jars efficiently', 'Student can describe how hexagonal packing saves space', 'Arrange circular jars in hexagonal pattern'),
+            4: ('Student understands that hexagonal arrangement solved storage space limitations', 'Student can demonstrate space savings from hexagonal packing', 'Compare hexagonal vs grid arrangement for circular objects'),
+            5: ('Student can reason that applying optimal packing geometry solved resource management challenges', 'Student can evaluate historical storage solutions', 'Design an optimal warehouse layout using hexagonal principles'),
+        },
+        'B7': {
+            3: ('Student knows that you can make a honeycomb pattern', 'Student can build a honeycomb from paper', 'Build a honeycomb structure from paper strips'),
+            4: ('Student understands that honeycomb tiling demonstrates optimal packing', 'Student can test honeycomb strength and efficiency', 'Build honeycomb and square grid structures, compare strength'),
+            5: ('Student can reason that honeycomb geometry optimizes both strength and space', 'Student can optimize storage design through testing', 'Design, build, and test storage structures measuring efficiency'),
+        },
+        'B8': {
+            3: ('Student knows that hexagons mean wisdom (Nisaba) and also save space in storage', 'Student can name both meanings of hexagons', 'Draw hexagon as Nisaba wisdom and as honeycomb storage'),
+            4: ('Student understands that optimal packing enables both efficient record-keeping and storage engineering', 'Student can explain the connection between wisdom and efficiency', 'Write comparing Nisaba record-keeping to storage engineering'),
+            5: ('Student can reason that optimal packing simultaneously enables metaphorical and functional applications', 'Student can synthesize cultural and engineering perspectives', 'Create a presentation uniting Nisaba wisdom with storage engineering'),
+        },
+    },
+    'elem.pyramid': {
+        'B1': {
+            3: ('Student knows that ziggurats are wide at the bottom and narrow at the top', 'Student can describe the shape of a ziggurat', 'Draw a ziggurat showing wide base and narrow top'),
+            4: ('Student understands that pyramidal form creates monumental stability', 'Student can explain why ziggurats are shaped like pyramids', 'Compare stability of pyramid vs box shapes'),
+            5: ('Student can reason that convergent geometry produces maximum structural stability', 'Student can analyze how pyramid proportions affect stability', 'Calculate center of gravity for different pyramid proportions'),
+        },
+        'B2': {
+            3: ('Student knows that pyramids are strong because they are wide at the bottom', 'Student can show that wide-based shapes are hard to push over', 'Push on pyramid vs tall rectangle and compare stability'),
+            4: ('Student understands that mass below center of gravity creates stability', 'Student can demonstrate how base width affects topple resistance', 'Build pyramids with different base widths and test stability'),
+            5: ('Student can reason that mass distribution below center of gravity is the defining stability principle', 'Student can calculate center of gravity for pyramid shapes', 'Prove stability through center of gravity calculations'),
+        },
+        'B3': {
+            3: ('Student knows that pyramid shapes push weight down to the ground', 'Student can describe how weight goes downward in a pyramid', 'Stack blocks in pyramid shape and describe weight flow'),
+            4: ('Student understands that convergent faces direct force toward the base', 'Student can demonstrate downward force channeling', 'Build a pyramid and trace weight paths from top to base'),
+            5: ('Student can reason that geometric convergence systematically channels force to the foundation', 'Student can predict force distribution in pyramidal structures', 'Calculate force vectors through convergent faces'),
+        },
+        'B4': {
+            3: ('Student knows that pyramids last a very long time because they are so stable', 'Student can explain why pyramids do not fall over', 'Compare how long different block arrangements stay standing'),
+            4: ('Student understands that gravitational alignment prevents structural failure', 'Student can connect stability to monument permanence', 'Test different monument shapes for long-term stability'),
+            5: ('Student can reason that convergent stability and gravitational alignment produce structural permanence', 'Student can evaluate monument designs for longevity', 'Design a monument optimizing stability and calculate failure conditions'),
+        },
+        'B5': {
+            3: ('Student knows that many ancient cultures built pyramids and ziggurats', 'Student can name places with pyramids', 'Match pyramid/ziggurat images to their civilizations'),
+            4: ('Student understands that convergent stability enabled monumental architecture worldwide', 'Student can connect pyramid geometry to architectural history', 'Create a comprehensive timeline of all 8 geometric contributions'),
+            5: ('Student can reason that all 8 geometric properties cumulatively enabled civilization', 'Student can synthesize all elements contributions into a coherent narrative', 'Write cumulative synthesis essay connecting all 8 elements to civilization'),
+        },
+        'B6': {
+            3: ('Student knows that the Ziggurat of Ur is a very old pyramid building', 'Student can describe the Ziggurat of Ur', 'Draw and label the Ziggurat of Ur'),
+            4: ('Student understands that pyramidal stability solved multi-story construction challenges', 'Student can explain the engineering of the ziggurat', 'Build a multi-story ziggurat model and test stability'),
+            5: ('Student can reason that convergent stability was the key engineering principle enabling tall structures', 'Student can evaluate ziggurat design decisions', 'Analyze the Ziggurat of Ur dimensions and calculate stability factors'),
+        },
+        'B7': {
+            3: ('Student knows that you can build a ziggurat from stacked layers', 'Student can build a simple ziggurat model', 'Build a ziggurat from cardboard layers'),
+            4: ('Student understands that stacked layers apply convergent stability', 'Student can optimize a ziggurat design for height', 'Build ziggurats with different proportions and test maximum height'),
+            5: ('Student can reason that layer proportions determine structural performance', 'Student can iterate ziggurat designs based on performance data', 'Design, build, and test ziggurat models optimizing height-to-stability ratio'),
+        },
+        'B8': {
+            3: ('Student knows that pyramids mean power (Marduk) and also make tall buildings stable', 'Student can name both meanings of pyramids', 'Draw pyramid as Marduk power and as stable building'),
+            4: ('Student understands that convergent stability enables both divine authority symbolism and monumental engineering', 'Student can explain the connection between hierarchy and stability', 'Write comparing Marduk cosmic authority to ziggurat engineering'),
+            5: ('Student can reason that convergent stability simultaneously enables metaphorical and functional applications', 'Student can synthesize all cultural and engineering perspectives across the curriculum', 'Create a final presentation synthesizing all 8 elements mythology and engineering'),
+        },
+    },
+}
+
+DAYB_ELEMENT_ORDER = ['elem.circle', 'elem.star8', 'elem.triangle', 'elem.square', 'elem.spiral', 'elem.arc', 'elem.hexagon', 'elem.pyramid']
+
+def seed_day_b_data():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('SELECT COUNT(*) as cnt FROM day_b_elements')
+    if cur.fetchone()['cnt'] > 0:
+        cur.close()
+        conn.close()
+        return
+
+    elements = [
+        ('elem.circle', 'Circle', '2D-curved', 'Shamash', 'deity.meso.shamash', 'Equidistance', 'All points equal distance from center', 'Measure multiple radii, confirm identical length', 'Justice/fairness', 'Rotation', 1),
+        ('elem.star8', '8-Pointed Star', '2D-angular', 'Ishtar', 'deity.meso.ishtar', 'Radial symmetry (8-fold)', '8 equal angles (45 degrees) from center; rotational symmetry at 45-degree intervals', 'Measure angles between rays, confirm 45 degrees each', 'Divine radiance', 'Navigation', 2),
+        ('elem.triangle', 'Triangle', '2D-angular', 'Enlil', 'deity.meso.enlil', 'Structural rigidity', 'Three sides create fixed angles; cannot deform without breaking', 'Build triangle from sticks, attempt to shift - cannot', 'Stability', 'Structural support', 3),
+        ('elem.square', 'Square/Rectangle', '2D-angular', 'Nabu', 'deity.meso.nabu', 'Right-angle regularity', 'Four sides with 90-degree corners; opposite sides parallel and equal', 'Measure angles (90 degrees), measure opposite sides (equal)', 'Order/civilization', 'Tessellation', 4),
+        ('elem.spiral', 'Spiral', '2D-curved', 'Tiamat', 'deity.meso.tiamat', 'Progressive expansion', 'Curve that winds outward from center at increasing distance', 'Measure distance from center at regular angle intervals, confirm growth', 'Growth/evolution', 'Compact storage', 5),
+        ('elem.arc', 'Arc/Curve', '2D-curved', 'Anu', 'deity.meso.anu', 'Continuous directional change', 'Segment of circle; constant curvature between two points', 'Identify center, measure radii to arc points, confirm equal', 'Heaven/sky', 'Load distribution', 6),
+        ('elem.hexagon', 'Hexagon', '2D-angular', 'Nisaba', 'deity.meso.nisaba', 'Optimal packing', '6 equal sides, 120-degree angles; tessellates with no gaps', 'Tile hexagons, observe complete coverage; measure angles', 'Natural wisdom', 'Space efficiency', 7),
+        ('elem.pyramid', 'Pyramid', '3D', 'Marduk', 'deity.meso.marduk', 'Convergent stability', 'Polygonal base with triangular faces meeting at apex', 'Identify base shape, count triangular faces, locate apex', 'Ascension', 'Weight distribution', 8),
+    ]
+
+    elem_db_ids = {}
+    for e in elements:
+        cur.execute('''
+            INSERT INTO day_b_elements (element_id, name, category, deity_name, deity_id,
+                core_property_name, core_property_definition, core_property_proof,
+                key_metaphor, key_function, week_number)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
+        ''', e)
+        elem_db_ids[e[0]] = cur.fetchone()['id']
+
+    for elem_data in elements:
+        eid = elem_data[0]
+        ename = elem_data[1]
+        deity = elem_data[3]
+        week = elem_data[10]
+        core_prop = elem_data[5]
+        core_def = elem_data[6]
+        db_eid = elem_db_ids[eid]
+
+        for grade in [3, 4, 5]:
+            title = f"Week {week}: {ename} / {deity} - Grade {grade} Day B"
+            cur.execute('''
+                INSERT INTO day_b_lessons (element_id, grade, title, week_number)
+                VALUES (%s, %s, %s, %s) RETURNING id
+            ''', (db_eid, grade, title, week))
+            lesson_id = cur.fetchone()['id']
+
+            prior_elems = DAYB_ELEMENT_ORDER[:DAYB_ELEMENT_ORDER.index(eid)]
+
+            for sdef in DAYB_SECTION_DEFS:
+                scode, sname, spurpose, sdur, sdrivers, slo_tmpl, simg_type = sdef
+                lo_text = DAYB_LO_TEXTS.get(eid, {}).get(scode, '')
+                carrier = DAYB_CARRIERS.get(eid, {}).get(scode, deity)
+
+                content = DAYB_CONTENT_TEMPLATES.get(scode, '').format(
+                    element_name=ename, deity_name=deity, carrier=carrier,
+                    core_property=core_prop, core_definition=core_def
+                )
+
+                ecd = DAYB_ECD.get(eid, {}).get(scode, {}).get(grade, ('', '', ''))
+                ecd_claim, ecd_evidence, ecd_task = ecd
+
+                b5_refs = []
+                if scode == 'B5':
+                    for pe in prior_elems:
+                        pe_idx = DAYB_ELEMENT_ORDER.index(pe)
+                        pe_data = elements[pe_idx]
+                        b5_refs.append({
+                            'element_id': pe,
+                            'element_name': pe_data[1],
+                            'week': pe_data[10],
+                            'sections': ['B2', 'B3', 'B4'],
+                            'core_property': pe_data[5],
+                        })
+
+                cur.execute('''
+                    INSERT INTO day_b_sections (lesson_id, section_code, section_name, purpose,
+                        duration, primary_drivers, lo_template, lo_text, content, image_type,
+                        carrier, ecd_claim, ecd_evidence, ecd_task, b5_prior_refs)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ''', (lesson_id, scode, sname, spurpose, sdur, sdrivers, slo_tmpl,
+                      lo_text, content, simg_type, carrier, ecd_claim, ecd_evidence,
+                      ecd_task, json.dumps(b5_refs)))
+
+    cur.close()
+    conn.close()
+
+
+def _dayb_dt(row, *fields):
+    for f in fields:
+        if f in row and row[f] is not None:
+            row[f] = row[f].isoformat()
+        elif f in row:
+            row[f] = None
+
+
+@app.route('/api/dayb/elements', methods=['GET'])
+def dayb_elements():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('SELECT * FROM day_b_elements ORDER BY week_number')
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    for r in rows:
+        _dayb_dt(r, 'created_at')
+    return jsonify(rows)
+
+
+@app.route('/api/dayb/lessons', methods=['GET'])
+def dayb_lessons():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    where_parts = []
+    params = []
+    grade = request.args.get('grade', '')
+    element_id = request.args.get('element_id', '')
+    status = request.args.get('status', '')
+    if grade:
+        where_parts.append('l.grade = %s')
+        params.append(int(grade))
+    if element_id:
+        where_parts.append('l.element_id = %s')
+        params.append(int(element_id))
+    if status:
+        where_parts.append('l.status = %s')
+        params.append(status)
+    where_clause = (' WHERE ' + ' AND '.join(where_parts)) if where_parts else ''
+    cur.execute(f'''
+        SELECT l.*, e.element_id as element_code, e.name as element_name,
+               e.deity_name, e.deity_id, e.core_property_name, e.key_metaphor, e.key_function
+        FROM day_b_lessons l
+        JOIN day_b_elements e ON l.element_id = e.id
+        {where_clause}
+        ORDER BY l.week_number, l.grade
+    ''', params)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    for r in rows:
+        _dayb_dt(r, 'created_at', 'updated_at')
+    return jsonify(rows)
+
+
+@app.route('/api/dayb/lessons/<int:lesson_id>', methods=['GET'])
+def dayb_lesson_detail(lesson_id):
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        SELECT l.*, e.element_id as element_code, e.name as element_name,
+               e.deity_name, e.deity_id, e.core_property_name, e.core_property_definition,
+               e.core_property_proof, e.key_metaphor, e.key_function, e.category
+        FROM day_b_lessons l
+        JOIN day_b_elements e ON l.element_id = e.id
+        WHERE l.id = %s
+    ''', (lesson_id,))
+    lesson = cur.fetchone()
+    if not lesson:
+        cur.close()
+        conn.close()
+        return jsonify({'error': 'Lesson not found'}), 404
+    _dayb_dt(lesson, 'created_at', 'updated_at')
+    cur.execute('''
+        SELECT * FROM day_b_sections WHERE lesson_id = %s ORDER BY section_code
+    ''', (lesson_id,))
+    sections = cur.fetchall()
+    cur.close()
+    conn.close()
+    for s in sections:
+        _dayb_dt(s, 'created_at', 'updated_at')
+    lesson['sections'] = sections
+    return jsonify(lesson)
+
+
+@app.route('/api/dayb/lessons/<int:lesson_id>', methods=['PUT'])
+def dayb_lesson_update(lesson_id):
+    data = request.get_json()
+    new_status = data.get('status', 'not_started')
+    if new_status not in ('not_started', 'in_progress', 'review', 'complete'):
+        return jsonify({'error': 'Invalid status'}), 400
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        UPDATE day_b_lessons SET status = %s, updated_at = NOW()
+        WHERE id = %s RETURNING *
+    ''', (new_status, lesson_id))
+    lesson = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not lesson:
+        return jsonify({'error': 'Lesson not found'}), 404
+    _dayb_dt(lesson, 'created_at', 'updated_at')
+    return jsonify(lesson)
+
+
+@app.route('/api/dayb/sections/<int:section_id>', methods=['GET'])
+def dayb_section_detail(section_id):
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        SELECT s.*, l.grade, l.title as lesson_title, l.week_number,
+               e.element_id as element_code, e.name as element_name,
+               e.deity_name, e.deity_id, e.core_property_name
+        FROM day_b_sections s
+        JOIN day_b_lessons l ON s.lesson_id = l.id
+        JOIN day_b_elements e ON l.element_id = e.id
+        WHERE s.id = %s
+    ''', (section_id,))
+    section = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not section:
+        return jsonify({'error': 'Section not found'}), 404
+    _dayb_dt(section, 'created_at', 'updated_at')
+    return jsonify(section)
+
+
+@app.route('/api/dayb/sections/<int:section_id>', methods=['PUT'])
+def dayb_section_update(section_id):
+    data = request.get_json()
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    allowed = ['lo_text', 'content', 'image_url', 'carrier', 'ecd_claim', 'ecd_evidence', 'ecd_task', 'status', 'b5_prior_refs']
+    set_parts = []
+    values = []
+    for col in allowed:
+        if col in data:
+            if col == 'status' and data[col] not in ('not_started', 'drafting', 'review', 'complete'):
+                cur.close()
+                conn.close()
+                return jsonify({'error': 'Invalid status'}), 400
+            if col == 'b5_prior_refs':
+                set_parts.append(f"{col} = %s")
+                values.append(json.dumps(data[col]))
+            else:
+                set_parts.append(f"{col} = %s")
+                values.append(data[col])
+    if not set_parts:
+        cur.close()
+        conn.close()
+        return jsonify({'error': 'No fields to update'}), 400
+    set_parts.append("updated_at = NOW()")
+    values.append(section_id)
+    cur.execute(f'''
+        UPDATE day_b_sections SET {', '.join(set_parts)}
+        WHERE id = %s RETURNING *
+    ''', values)
+    section = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not section:
+        return jsonify({'error': 'Section not found'}), 404
+    _dayb_dt(section, 'created_at', 'updated_at')
+    return jsonify(section)
+
+
+@app.route('/api/dayb/stats', methods=['GET'])
+def dayb_stats():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        SELECT COUNT(*) as total_lessons,
+            COUNT(*) FILTER (WHERE status = 'complete') as completed_lessons,
+            COUNT(*) FILTER (WHERE status = 'in_progress') as in_progress_lessons,
+            COUNT(*) FILTER (WHERE status = 'review') as review_lessons,
+            COUNT(*) FILTER (WHERE status = 'not_started') as not_started_lessons
+        FROM day_b_lessons
+    ''')
+    lesson_stats = cur.fetchone()
+    cur.execute('''
+        SELECT COUNT(*) as total_sections,
+            COUNT(*) FILTER (WHERE status = 'complete') as completed_sections,
+            COUNT(*) FILTER (WHERE status = 'drafting') as drafting_sections,
+            COUNT(*) FILTER (WHERE status = 'review') as review_sections,
+            COUNT(*) FILTER (WHERE status = 'not_started') as not_started_sections
+        FROM day_b_sections
+    ''')
+    section_stats = cur.fetchone()
+    cur.execute('''
+        SELECT l.grade,
+            COUNT(*) as total,
+            COUNT(*) FILTER (WHERE l.status = 'complete') as completed
+        FROM day_b_lessons l
+        GROUP BY l.grade ORDER BY l.grade
+    ''')
+    by_grade = cur.fetchall()
+    cur.execute('''
+        SELECT e.name as element_name, e.week_number,
+            COUNT(l.id) as total_lessons,
+            COUNT(l.id) FILTER (WHERE l.status = 'complete') as completed_lessons
+        FROM day_b_elements e
+        LEFT JOIN day_b_lessons l ON l.element_id = e.id
+        GROUP BY e.id, e.name, e.week_number
+        ORDER BY e.week_number
+    ''')
+    by_element = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify({
+        'lessons': dict(lesson_stats),
+        'sections': dict(section_stats),
+        'by_grade': by_grade,
+        'by_element': by_element,
+    })
+
+
+@app.route('/api/dayb/b5-chain/<int:lesson_id>', methods=['GET'])
+def dayb_b5_chain(lesson_id):
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        SELECT l.grade, l.week_number, e.id as elem_db_id, e.element_id as element_code,
+               e.name as element_name, e.week_number as elem_week
+        FROM day_b_lessons l
+        JOIN day_b_elements e ON l.element_id = e.id
+        WHERE l.id = %s
+    ''', (lesson_id,))
+    lesson = cur.fetchone()
+    if not lesson:
+        cur.close()
+        conn.close()
+        return jsonify({'error': 'Lesson not found'}), 404
+
+    grade = lesson['grade']
+    elem_week = lesson['elem_week']
+
+    cur.execute('''
+        SELECT s.*, l.week_number, e.element_id as element_code, e.name as element_name,
+               e.deity_name, e.core_property_name
+        FROM day_b_sections s
+        JOIN day_b_lessons l ON s.lesson_id = l.id
+        JOIN day_b_elements e ON l.element_id = e.id
+        WHERE l.grade = %s
+          AND e.week_number < %s
+          AND s.section_code IN ('B2', 'B3', 'B4')
+        ORDER BY e.week_number, s.section_code
+    ''', (grade, elem_week))
+    chain = cur.fetchall()
+    cur.close()
+    conn.close()
+    for s in chain:
+        _dayb_dt(s, 'created_at', 'updated_at')
+    return jsonify({
+        'lesson_id': lesson_id,
+        'grade': grade,
+        'current_element': lesson['element_name'],
+        'current_week': elem_week,
+        'chain': chain,
+    })
+
+
 with app.app_context():
     init_db()
     seed_production_data()
+    seed_day_b_data()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

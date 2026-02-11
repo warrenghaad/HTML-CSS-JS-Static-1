@@ -1,270 +1,7 @@
 # Geo-Arts Curriculum System
 
 ## Overview
-A learning-focused project management documentation space that serves as both a tutorial for web development (HTML/CSS/JS) and a visual diagram of the Geo-Arts educational curriculum backend system.
-
-**Created:** February 4, 2026  
-**Updated:** February 11, 2026  
-**Status:** Complete end-goal example with lessons + production dashboard
-
-## Purpose
-This project has two goals:
-1. **End Goal Example**: A fully developed visual diagram showing the complete curriculum system workflow
-2. **Learning Resource**: Step-by-step lessons teaching HTML, CSS, and JavaScript concepts
-
-## Project Structure
-
-```
-.
-├── index.html                    - System architecture diagram (home page)
-├── pages/
-│   ├── governance.html           - Governance & Context engine
-│   ├── knowledge-graph.html      - Knowledge Graph Engine
-│   ├── rwi-system.html           - RWI (Research/Writing/Image) System
-│   ├── lesson-builder.html       - Lesson Builder engine
-│   ├── teacher-student.html      - Teacher/Student facing interface
-│   ├── lessons.html              - Web development lessons
-│   ├── playground.html           - Code sandbox with AI review
-│   ├── production-dashboard.html - 48-lesson production workflow tracker
-│   ├── variables-spreadsheet.html - Editable lesson variables (Section 2)
-│   ├── asset-manager.html        - Visual asset tracking (Section 3)
-│   ├── content-pipeline.html     - Content drafts tracking (Section 4)
-│   ├── lesson-assembly.html      - Component readiness (Section 5)
-│   └── qa-review.html            - Quality assurance checks (Section 6)
-├── styles/
-│   └── main.css                  - Shared stylesheet (1800+ lines)
-├── scripts/
-│   └── main.js                   - Shared JavaScript
-└── replit.md                     - This documentation
-```
-
-## The 5 Engine Cards
-
-| Card | Purpose | Description |
-|------|---------|-------------|
-| **Governance & Context** | SSOTs, Presets, Standards | Provides overarching context, program info, 6+ knowledge graph presets/views |
-| **Knowledge Graph Engine** | Ingestion, Ontology, Tagging | 3D research graph, 30GB+ PDF ingestion, wiki node generation |
-| **RWI System** | Research, Writing, Images | Content drafting, image sourcing, Gemini/OpenAI API integration |
-| **Lesson Builder** | Canvas, Sections, Distillation | Drag-drop wiki canvas, lesson section assembly, eTextbook deliverables |
-| **Teacher/Student** | Deliverables, Progress | Final presentations, eTextbook viewer, performance analytics |
-
-## Data Flow (Color-Coded)
-
-```
-Governance (Cyan - overarching context)
-        ↓
-Knowledge Graph → (Blue) → RWI System → (Green) → Lesson Builder → (Purple) → Teacher/Student
-        ↑                                                                           ↓
-        └────────────────────── (Orange - Performance Feedback Loop) ───────────────┘
-```
-
-## Key System Features
-
-### Knowledge Graph Presets (6 Views)
-1. **Geometric Elements** - Original research on geometric fundamentals
-2. **Lesson Structure** - Geometric research → lesson creation
-3. **Standards & Curriculum** - Current mappings, cognitive domains
-4. **Child Development** - Cognitive domains & developmental stages
-5. **Student Performance** - Domains, standards, performance data
-6. **Standards Creation** - Building new standards from research
-
-### Visual-First Curriculum Philosophy
-- Story told with pictures, captioned by text
-- Every piece of content must have an image
-- Images sourced via search, or generated via:
-  - Gemini API (short videos, diagrams)
-  - OpenAI API (long videos, myths)
-
-### RWI System API Points
-- `GET /api/images/search` - Search existing images
-- `POST /api/gemini/generate` - Generate short videos/images
-- `POST /api/openai/generate` - Generate long videos/complex content
-
-### eTextbook Distillation
-- Complete lessons → Distillation process → Deliverables
-- Outputs: eTextbook chapters, presentation slides, worksheets, rubrics
-
-## Web Development Lessons (8 Lessons)
-
-| Lesson | Topic | Level |
-|--------|-------|-------|
-| 1 | HTML Structure: Building Cards | Beginner |
-| 2 | CSS Flexbox: Arranging Cards in Rows | Beginner |
-| 3 | CSS Variables: Theme Colors | Intermediate |
-| 4 | JavaScript Events: Theme Toggle | Intermediate |
-| 5 | CSS Transitions: Smooth Animations | Beginner |
-| 6 | JavaScript DOM: Finding and Changing Elements | Intermediate |
-| 7 | Responsive Design: Mobile-Friendly Layouts | Intermediate |
-| 8 | Multi-Page Apps: Navigation with Links | Beginner |
-
-## Technical Implementation
-
-### CSS Techniques Used
-- CSS custom properties (`:root` variables) for theming
-- CSS Grid for 4-column engine layout
-- Flexbox for card contents
-- Health status indicators with colored dots and shadows
-- Smooth transitions on hover
-- Media queries for responsive design
-- Dark/light theme support
-
-### JavaScript Features
-- Theme toggle with localStorage persistence
-- Flow arrow highlighting on card hover
-- Health status update functions (ready for backend)
-- DOM manipulation examples
-
-## Document Editor & Versioning
-
-The Governance page includes an in-page pop-out editor for the System Functionality Document:
-- Click "Edit This Document" to open the editor modal
-- Edit content in a full-screen text area
-- Save with version notes — every save creates a new version
-- Browse version history in the sidebar
-- View or restore any previous version
-
-### API Endpoints
-- `GET /api/documents/<doc_key>` - Load a document
-- `PUT /api/documents/<doc_key>` - Save document (creates new version)
-- `GET /api/documents/<doc_key>/versions` - List all versions
-- `GET /api/documents/<doc_key>/versions/<n>` - Get specific version
-- `POST /api/documents/<doc_key>/versions/<n>/restore` - Restore a version
-
-### Database Tables
-- `documents` - Current document state (doc_key, title, content)
-- `document_versions` - Version history (version_number, content, save_note, timestamp)
-- `playground_drafts` - Sandbox drafts (draft_key, title, html_content, css_content, status, review_feedback)
-
-## Playground & AI Review
-
-The Playground page (`pages/playground.html`) provides a sandbox for experimenting:
-- Write HTML/CSS in a code editor with tabs
-- Preview rendered output in an iframe
-- Submit drafts for AI review (OpenAI integration via Replit AI Integrations)
-- Save/load multiple drafts with status tracking
-- Quick templates for Engine Page, Lesson Card, and Dashboard Section
-
-### Playground API Endpoints
-- `GET /api/playground/drafts` - List all drafts
-- `GET /api/playground/drafts/<key>` - Load a draft
-- `PUT /api/playground/drafts/<key>` - Save a draft
-- `DELETE /api/playground/drafts/<key>` - Delete a draft
-- `POST /api/playground/review` - Submit draft for AI review
-
-## Production Dashboard (Section 1)
-
-The Production Dashboard (`pages/production-dashboard.html`) tracks the 48 Mesopotamia lesson production workflow:
-- **Overall Progress Bar** - Visual completion tracker across all 432 tasks
-- **Project Stats Grid** - Live counts (lessons, tasks, artifacts, images, myths, math, activities)
-- **9 Team Cards** - Each team with progress bar and task counts
-- **Lesson Pipeline Table** - All 48 lessons showing status across 9 stages (clickable to update)
-- **Unit Filters** - Filter pipeline by 8 curriculum units
-
-### Production Database Tables
-- `production_lessons` - 48 lessons (lesson_number, title, unit, status)
-- `production_teams` - 9 teams (team_number, name, description, color, category)
-- `production_tasks` - 432 tasks linking lessons to teams (lesson_id, team_id, task_type, status)
-
-### Production API Endpoints
-- `GET /api/production/stats` - Aggregated project statistics
-- `GET /api/production/teams` - Teams with computed progress
-- `GET /api/production/lessons` - All lessons with per-team stage status
-- `PUT /api/production/tasks/<id>` - Update task status
-- `GET /api/production/tasks/by-lesson/<lesson_id>/<team_number>` - Lookup task by lesson/team
-- `PUT /api/production/lessons/<id>` - Update lesson status
-
-## Variables Spreadsheet (Section 2)
-
-The Variables Spreadsheet (`pages/variables-spreadsheet.html`) defines key variables for each of the 48 lessons:
-- **8 Variable Columns** - God, Artifact, Math Concept, Activity, Location, Geometric Theme, Myth Theme, Image Notes
-- **Inline Editing** - Click any cell to edit, Tab to move between cells, Escape to cancel
-- **Fill Summary** - Shows completion percentage for each variable column
-- **Search & Filter** - Search across all fields, filter by unit or specific column
-- **CSV Export** - Download filtered data as a CSV file
-- **Auto-save** - Changes save immediately to the database
-
-### Variables API Endpoints
-- `GET /api/production/variables` - All lessons with variable data
-- `PUT /api/production/variables/<id>` - Update variable fields for a lesson
-
-## Asset Manager (Section 3)
-
-The Asset Manager (`pages/asset-manager.html`) tracks all visual assets across the 48 lessons:
-- **672 Seeded Assets** across 4 categories: Artifacts (144), Downloads (240), AI Generated (192), Overlays (96)
-- **Stats Overview** - Total count and ready percentage per asset type with progress bars
-- **Category Tabs** - Filter by artifact, download, generated, or overlay
-- **Grouped by Lesson** - Assets organized under lesson headers with number badges
-- **Status Cycling** - Click status chip to advance: planned → sourced → downloaded → ready
-- **Add/Edit/Delete** - Full CRUD via modal form with all asset metadata fields
-- **Search & Filter** - Filter by lesson, status, or keyword search
-
-### Asset Database Table
-- `production_assets` - Individual asset records (lesson_id, asset_type, title, description, source, source_url, license, status, filename)
-
-### Asset API Endpoints
-- `GET /api/production/assets/stats` - Aggregated counts by type and status
-- `GET /api/production/assets` - List assets with optional filters (?type=, ?lesson_id=, ?status=)
-- `POST /api/production/assets` - Create a new asset
-- `PUT /api/production/assets/<id>` - Update asset fields
-- `DELETE /api/production/assets/<id>` - Remove an asset
-
-## Content Pipeline (Section 4)
-
-The Content Pipeline (`pages/content-pipeline.html`) tracks content drafts across 48 lessons:
-- **192 Seeded Items** across 4 types: Myths (48), Math (48), Visual Stories (48), Activities (48)
-- **Stats Overview** - Total count and approved percentage per content type
-- **Type Tabs** - Filter by myth, math, visual_story, or activity
-- **Status Cycling** - Click status chip to advance: not_started → drafting → review → revision → approved
-- **Add/Edit/Delete** - Full CRUD via modal form with all content fields
-- **Search & Filter** - Filter by lesson, status, type, or keyword
-- **Assigned Writers** - Track who is writing each piece
-
-### Content Database Table
-- `content_items` - Content records (lesson_id, content_type, title, body, status, assigned_to, word_count, notes)
-
-### Content API Endpoints
-- `GET /api/production/content/stats` - Aggregated counts by type and status
-- `GET /api/production/content` - List items with optional filters (?type=, ?lesson_id=, ?status=)
-- `POST /api/production/content` - Create a new content item
-- `PUT /api/production/content/<id>` - Update content fields
-- `DELETE /api/production/content/<id>` - Remove a content item
-
-## Lesson Assembly (Section 5)
-
-The Lesson Assembly (`pages/lesson-assembly.html`) tracks component readiness for each lesson:
-- **288 Checklist Items** across 6 components per lesson
-- **Overall Progress Bar** - Visual completion tracker
-- **Component Stats** - Per-component completion rates
-- **Lesson Cards** - Each lesson shows 6 checklist items with clickable status
-- **Status Cycling** - Click to advance: pending → in_progress → complete → blocked
-- **Filter by Unit/Status** - Filter cards by curriculum unit or component status
-
-### Assembly Database Table
-- `assembly_checklists` - Checklist records (lesson_id, component, status, notes, completed_at)
-
-### Assembly API Endpoints
-- `GET /api/production/assembly/stats` - Stats with per-lesson completion
-- `GET /api/production/assembly` - List checklist items (?lesson_id=, ?status=)
-- `PUT /api/production/assembly/<id>` - Update status/notes
-
-## QA Review (Section 6)
-
-The QA Review (`pages/qa-review.html`) provides quality assurance checks:
-- **240 QA Checks** across 5 categories per lesson
-- **Overall Pass Rate** - Visual progress of passed checks
-- **Category Stats** - Per-category pass/fail/revision counts
-- **Review Table** - All 48 lessons with 5 category columns showing colored status dots
-- **Click to Cycle** - Status cycles: not_checked → pass → fail → needs_revision
-- **Unit Filters** - Filter by curriculum unit
-- **Summary Badges** - Color-coded counts for each status
-
-### QA Database Table
-- `qa_reviews` - Review records (lesson_id, category, status, reviewer_notes, reviewed_at)
-
-### QA API Endpoints
-- `GET /api/production/qa/stats` - Stats by category with per-lesson info
-- `GET /api/production/qa` - List QA items (?lesson_id=, ?status=, ?category=)
-- `PUT /api/production/qa/<id>` - Update status/reviewer_notes
+The Geo-Arts Curriculum System is a dual-purpose project: it serves as a comprehensive visual diagram of an educational curriculum backend and a step-by-step tutorial for web development using HTML, CSS, and JavaScript. Its primary goal is to demonstrate a fully developed curriculum system workflow while simultaneously providing learning resources for aspiring web developers. The project envisions streamlining curriculum development, enhancing learning experiences through visual content, and providing robust tools for content creation, management, and delivery within an educational framework.
 
 ## User Preferences
 
@@ -274,11 +11,90 @@ The QA Review (`pages/qa-review.html`) provides quality assurance checks:
 - **In-page editing**: Documents should be editable with versioning
 - **Sandbox workflow**: Experiment in playground, get AI review before promoting
 
-## Running the Project
+## System Architecture
 
-The project uses a Flask backend server:
-```bash
-python server.py
-```
+The system is built around five core "Engines": Governance & Context, Knowledge Graph, RWI (Research/Writing/Image) System, Lesson Builder, and Teacher/Student Interface. These engines manage the curriculum workflow from foundational context and knowledge ingestion to lesson assembly and final delivery.
 
-Access at `http://localhost:5000`
+**UI/UX Decisions:**
+- A visual-first philosophy dictates that all content is image-centric, with images sourced or AI-generated.
+- The UI uses CSS custom properties for theming, CSS Grid for layout, and Flexbox for component arrangement.
+- Responsive design with media queries ensures adaptability across devices.
+- Dark/light theme support is included.
+
+**Technical Implementations:**
+- **Core Structure**: The application uses a multi-page architecture with distinct HTML files for different sections (e.g., `index.html`, `pages/governance.html`, `pages/production-dashboard.html`).
+- **Styling**: `main.css` provides comprehensive styling, including health status indicators, smooth transitions, and thematic elements.
+- **Interactivity**: `main.js` handles client-side logic such as theme toggling with `localStorage` persistence, flow arrow highlighting, and DOM manipulation.
+- **Document Editor**: An in-page editor with versioning capabilities allows for editing system documentation, tracking changes, and restoring previous versions.
+- **Code Playground**: A sandbox environment (`pages/playground.html`) enables users to write and preview HTML/CSS, with an option for AI review.
+- **Production Dashboard**: Tracks the 48 Mesopotamia lesson production workflow, including overall progress, team performance, and lesson pipeline status.
+- **Variable Management**: A "Variables Spreadsheet" (`pages/variables-spreadsheet.html`) allows for inline editing and management of lesson-specific variables with auto-save functionality.
+- **Asset Management**: The "Asset Manager" (`pages/asset-manager.html`) tracks visual assets, supporting CRUD operations and status tracking.
+- **Content Pipeline**: The "Content Pipeline" (`pages/content-pipeline.html`) manages content drafts (Myths, Math, Visual Stories, Activities) through various stages.
+- **Lesson Assembly**: Tracks the readiness of components for each lesson using a checklist system.
+- **QA Review**: Facilitates quality assurance checks across different categories for each lesson.
+- **Database Schema**: Key database tables include `documents`, `document_versions`, `playground_drafts`, `production_lessons`, `production_teams`, `production_tasks`, `production_assets`, `content_items`, `assembly_checklists`, and `qa_reviews`.
+
+## Day B Geometry Curriculum System
+
+The Day B system delivers 24 geometry lessons (8 geometric elements x 3 grade levels) with 192 total sections following the ECD (Element + Carrier + Dimension) framework.
+
+### Element Sequence (SSOT-004)
+| Week | Element | Deity | Core Property |
+|------|---------|-------|---------------|
+| 1 | Circle | Shamash | Equidistance |
+| 2 | 8-Pointed Star | Ishtar | Radial symmetry (8-fold) |
+| 3 | Triangle | Enlil | Structural rigidity |
+| 4 | Square/Rectangle | Nabu | Right-angle regularity |
+| 5 | Spiral | Tiamat | Progressive expansion |
+| 6 | Arc/Curve | Anu | Continuous directional change |
+| 7 | Hexagon | Nisaba | Optimal packing |
+| 8 | Pyramid | Marduk | Convergent stability |
+
+### Section Structure (B1-B8)
+- B1: Bridge Review (connects to Day A)
+- B2: Math Proof
+- B3: STEM History
+- B4: Cultural Connection
+- B5: Cumulative Synthesis (references B2+B3+B4 from ALL prior elements)
+- B6: Engineering Activity
+- B7: Advanced Application
+- B8: Reflection/Assessment
+
+### MAGIC Drivers
+M=Math, A=Aesthetics, G=Geometry (emergent center), I=Ideology, C=Culture
+
+### Grade Differentiation
+- Grade 3: Concrete language, hands-on tasks
+- Grade 4: Connecting concepts, applied measurement
+- Grade 5: Abstract reasoning, mathematical proofs
+
+### Day B Database Tables
+- `day_b_elements` - 8 geometric elements with deity pairings
+- `day_b_lessons` - 24 lessons (element x grade)
+- `day_b_sections` - 192 sections with JSONB ECD fields and B5 cumulative references
+
+### Day B API Endpoints
+- `GET /api/dayb/stats` - Aggregated statistics
+- `GET /api/dayb/elements` - All 8 elements
+- `GET /api/dayb/lessons` - Lessons with optional grade filter
+- `GET /api/dayb/lessons/<id>/sections` - B1-B8 sections for a lesson
+- `PUT /api/dayb/sections/<id>` - Update section content/status
+- `GET /api/dayb/b5-chain/<lesson_id>` - Cumulative B5 prior element data
+
+### Kanban Process Tracker
+- 3 grade-specific boards (Grade 3: 78 cards, Grade 4: 91 cards, Grade 5: 38 cards)
+- 6 workflow columns: Intake, Chunk, Artifact QA, Assets, Build, QA
+- Drag-and-drop with localStorage persistence
+- Per-card checklists and filtering by week/day/search
+
+### Integrated Tools
+- **Myth Catalog**: Interactive Mesopotamian mythology reference with grade/shape/category filters
+- **Image Manager**: Museum API sourcing tool (Met, Yale, British Museum, Wikimedia, Smithsonian, CDLI)
+- **Lesson Shell Demo**: Sidebar navigation with hash-based routing for rendered lesson content
+
+## External Dependencies
+
+- **Gemini API**: Used for generating short videos and diagrams.
+- **OpenAI API**: Integrated for generating longer videos, complex content, and AI review in the Playground.
+- **Flask**: Python microframework used for the backend server (`server.py`) to handle API requests and serve HTML content.

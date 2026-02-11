@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day B Lessons - Geo-Arts Curriculum</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <style>
+        .dayb-header {
+            display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .dayb-header h1 { margin: 0; font-size: 1.6rem; }
+        .stats-bar {
+            display: flex; gap: 12px; flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .stat-chip {
+            background: var(--card-bg, #1a1a2e);
+            border: 1px solid var(--border-color, #333);
+            border-radius: 12px; padding: 10px 16px;
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+            min-width: 90px;
+        }
+        .stat-chip .val { font-size: 1.5rem; font-weight: 800; color: var(--accent-color, #7aa2ff); }
+        .stat-chip .lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.7; }
+
+        .grade-tabs {
+            display: flex; gap: 0; margin-bottom: 20px;
+            border: 1px solid var(--border-color, #333);
+            border-radius: 12px; overflow: hidden;
+        }
+        .grade-tab {
+            flex: 1; padding: 12px 20px; text-align: center;
+            cursor: pointer; font-weight: 700; font-size: 0.95rem;
+            background: var(--card-bg, #1a1a2e);
+            border-right: 1px solid var(--border-color, #333);
+            transition: all 0.2s;
+        }
+        .grade-tab:last-child { border-right: none; }
+        .grade-tab:hover { background: rgba(122,162,255,0.08); }
+        .grade-tab.active {
+            background: rgba(122,162,255,0.15);
+            color: var(--accent-color, #7aa2ff);
+            box-shadow: inset 0 -3px 0 var(--accent-color, #7aa2ff);
+        }
+
+        .elements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px; margin-bottom: 20px;
+        }
+        .element-card {
+            background: var(--card-bg, #1a1a2e);
+            border: 1px solid var(--border-color, #333);
+            border-radius: 16px; padding: 16px;
+            cursor: pointer; transition: all 0.2s;
+            position: relative; overflow: hidden;
+        }
+        .element-card:hover {
+            border-color: var(--accent-color, #7aa2ff);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        .element-card.active {
+            border-color: var(--accent-color, #7aa2ff);
+            box-shadow: 0 0 0 2px rgba(122,162,255,0.3);
+        }
+        .element-card .week-badge {
+            position: absolute; top: 12px; right: 12px;
+            background: rgba(122,162,255,0.15); color: var(--accent-color, #7aa2ff);
+            padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700;
+        }
+        .element-card .el-name { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
+        .element-card .el-deity { font-size: 0.85rem; opacity: 0.7; margin-bottom: 8px; }
+        .element-card .el-prop {
+            font-size: 0.75rem; opacity: 0.6;
+            border-left: 3px solid rgba(122,162,255,0.3); padding-left: 8px;
+            margin-bottom: 10px;
+        }
+        .element-card .el-progress {
+            height: 4px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;
+        }
+        .element-card .el-progress-fill {
+            height: 100%; background: var(--accent-color, #7aa2ff); border-radius: 4px;
+            transition: width 0.3s;
+        }
+        .element-card .el-status {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.7rem; opacity: 0.6; margin-top: 6px;
+        }
+
+        .lesson-detail {
+            display: none;
+            background: var(--card-bg, #1a1a2e);
+            border: 1px solid var(--border-color, #333);
+            border-radius: 16px; padding: 20px;
+            margin-bottom: 20px;
+        }
+        .lesson-detail.visible { display: block; }
+        .lesson-detail-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+        }
+        .lesson-detail-header h2 { margin: 0; font-size: 1.3rem; }
+        .lesson-meta {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+        }
+        .meta-badge {
+            padding: 4px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700;
+            border: 1px solid var(--border-color, #333);
+        }
+        .meta-badge.driver-M { background: rgba(103,58,183,0.2); color: #b39ddb; border-color: rgba(103,58,183,0.4); }
+        .meta-badge.driver-G { background: rgba(0,150,136,0.2); color: #80cbc4; border-color: rgba(0,150,136,0.4); }
+        .meta-badge.driver-C { background: rgba(255,152,0,0.2); color: #ffcc80; border-color: rgba(255,152,0,0.4); }
+        .meta-badge.driver-I { background: rgba(233,30,99,0.2); color: #f48fb1; border-color: rgba(233,30,99,0.4); }
+        .meta-badge.driver-A { background: rgba(0,188,212,0.2); color: #80deea; border-color: rgba(0,188,212,0.4); }
+
+        .close-btn {
+            background: rgba(255,255,255,0.08); border: 1px solid var(--border-color, #333);
+            border-radius: 8px; padding: 6px 14px; color: inherit; cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .close-btn:hover { background: rgba(255,107,107,0.15); }
+
+        .sections-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .section-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color, #333);
+            border-radius: 14px; padding: 14px;
+            transition: all 0.2s;
+        }
+        .section-card:hover { border-color: rgba(122,162,255,0.4); }
+        .section-card.b5-cumulative {
+            border-left: 4px solid #ff9800;
+            background: rgba(255,152,0,0.04);
+        }
+
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 8px; margin-bottom: 8px;
+        }
+        .section-header .code {
+            font-weight: 800; font-size: 1rem;
+            padding: 2px 10px; border-radius: 8px;
+            background: rgba(122,162,255,0.12);
+        }
+        .section-header .name { font-weight: 700; font-size: 0.9rem; }
+        .section-header .duration {
+            font-size: 0.7rem; opacity: 0.6;
+            padding: 3px 8px; border-radius: 999px;
+            border: 1px solid var(--border-color, #333);
+        }
+
+        .section-body { margin-top: 8px; }
+
+        .section-row {
+            display: grid; grid-template-columns: 100px 1fr; gap: 8px;
+            align-items: flex-start; margin-bottom: 6px; font-size: 0.82rem;
+        }
+        .section-row .label {
+            font-weight: 700; font-size: 0.7rem; text-transform: uppercase;
+            letter-spacing: 0.05em; opacity: 0.6; padding-top: 2px;
+        }
+        .section-row .value {
+            line-height: 1.4;
+        }
+
+        .lo-text {
+            background: rgba(122,162,255,0.06);
+            border: 1px solid rgba(122,162,255,0.15);
+            border-radius: 8px; padding: 8px 12px;
+            font-style: italic; font-size: 0.85rem;
+        }
+
+        .editable-field {
+            width: 100%; padding: 8px 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-color, #333);
+            border-radius: 8px; color: inherit; font-size: 0.82rem;
+            font-family: inherit; resize: vertical;
+        }
+        .editable-field:focus {
+            outline: none; border-color: var(--accent-color, #7aa2ff);
+            background: rgba(122,162,255,0.05);
+        }
+
+        .ecd-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            margin-top: 10px;
+        }
+        .ecd-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color, #333);
+            border-radius: 10px; padding: 10px;
+        }
+        .ecd-box .ecd-label {
+            font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; opacity: 0.5; margin-bottom: 4px;
+        }
+        .ecd-box textarea {
+            width: 100%; min-height: 50px; padding: 6px 8px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-color, #333);
+            border-radius: 6px; color: inherit; font-size: 0.78rem;
+            font-family: inherit; resize: vertical;
+        }
+        .ecd-box textarea:focus {
+            outline: none; border-color: var(--accent-color, #7aa2ff);
+        }
+
+        .status-chip {
+            display: inline-block;
+            padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700;
+            cursor: pointer; user-select: none; transition: all 0.15s;
+        }
+        .status-chip.not_started { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+        .status-chip.drafting { background: rgba(122,162,255,0.15); color: #7aa2ff; }
+        .status-chip.in_progress { background: rgba(122,162,255,0.15); color: #7aa2ff; }
+        .status-chip.review { background: rgba(255,207,90,0.15); color: #ffcf5a; }
+        .status-chip.complete { background: rgba(67,209,138,0.15); color: #43d18a; }
+
+        .b5-chain-container {
+            margin-top: 12px;
+            border: 1px solid rgba(255,152,0,0.25);
+            border-radius: 12px;
+            background: rgba(255,152,0,0.03);
+            padding: 12px;
+        }
+        .b5-chain-title {
+            font-size: 0.8rem; font-weight: 700; color: #ff9800;
+            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .b5-chain-element {
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px; padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.02);
+        }
+        .b5-chain-element .chain-el-name {
+            font-weight: 700; font-size: 0.8rem; margin-bottom: 6px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .b5-chain-element .chain-step {
+            font-size: 0.75rem; opacity: 0.8; margin-left: 12px;
+            padding: 2px 0; line-height: 1.4;
+        }
+        .b5-chain-element .chain-step .step-code {
+            font-weight: 700; color: var(--accent-color, #7aa2ff);
+            margin-right: 4px;
+        }
+
+        .section-actions {
+            display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end;
+        }
+        .save-btn {
+            background: rgba(67,209,138,0.15); border: 1px solid rgba(67,209,138,0.3);
+            color: #43d18a; padding: 6px 14px; border-radius: 8px;
+            cursor: pointer; font-size: 0.78rem; font-weight: 600;
+        }
+        .save-btn:hover { background: rgba(67,209,138,0.25); }
+        .save-btn.saving { opacity: 0.5; pointer-events: none; }
+
+        .image-slot {
+            border: 1px dashed rgba(122,162,255,0.3);
+            border-radius: 10px; padding: 12px; text-align: center;
+            background: rgba(122,162,255,0.03);
+            margin: 8px 0;
+        }
+        .image-slot img {
+            max-width: 100%; max-height: 200px; border-radius: 8px;
+        }
+        .image-slot .placeholder {
+            font-size: 0.75rem; opacity: 0.5;
+        }
+
+        .driver-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+
+        @media (max-width: 768px) {
+            .ecd-grid { grid-template-columns: 1fr; }
+            .section-row { grid-template-columns: 80px 1fr; }
+            .elements-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-left">
+            <a href="../index.html" class="nav-logo">Geo-Arts</a>
+        </div>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="day-b-lessons.html" class="active">Day B Lessons</a>
+            <a href="myth-catalog.html">Myth Catalog</a>
+            <a href="image-manager.html">Image Manager</a>
+            <a href="kanban/index.html">Kanban</a>
+            <a href="lesson-shell/index.html">Lesson Shell</a>
+            <a href="production-dashboard.html">Production</a>
+            <a href="governance.html">Governance</a>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme"></button>
+    </nav>
+
+    <main class="main-content" style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+        <div class="dayb-header">
+            <h1>Day B Lessons</h1>
+            <span style="opacity:0.6; font-size:0.85rem;">8 Elements x 3 Grades = 24 Lessons, 192 Sections</span>
+        </div>
+
+        <div class="stats-bar" id="statsBar"></div>
+
+        <div class="grade-tabs" id="gradeTabs">
+            <div class="grade-tab active" data-grade="3">Grade 3</div>
+            <div class="grade-tab" data-grade="4">Grade 4</div>
+            <div class="grade-tab" data-grade="5">Grade 5</div>
+            <div class="grade-tab" data-grade="all">All Grades</div>
+        </div>
+
+        <div class="elements-grid" id="elementsGrid"></div>
+
+        <div class="lesson-detail" id="lessonDetail"></div>
+    </main>
+
+    <script src="../scripts/main.js"></script>
+    <script>
+    const SECTION_STATUSES = ['not_started', 'drafting', 'review', 'complete'];
+    const LESSON_STATUSES = ['not_started', 'in_progress', 'review', 'complete'];
+
+    let currentGrade = 3;
+    let currentLessonId = null;
+    let allLessons = [];
+    let statsData = null;
+
+    async function fetchJSON(url) {
+        const r = await fetch(url);
+        return r.json();
+    }
+
+    async function putJSON(url, data) {
+        const r = await fetch(url, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        return r.json();
+    }
+
+    async function loadStats() {
+        statsData = await fetchJSON('/api/dayb/stats');
+        const bar = document.getElementById('statsBar');
+        const ls = statsData.lessons || {};
+        const ss = statsData.sections || {};
+        bar.innerHTML = `
+            <div class="stat-chip"><span class="val">${ls.total_lessons || 0}</span><span class="lbl">Lessons</span></div>
+            <div class="stat-chip"><span class="val">${ss.total_sections || 0}</span><span class="lbl">Sections</span></div>
+            <div class="stat-chip"><span class="val">${ss.completed_sections || 0}</span><span class="lbl">Complete</span></div>
+            <div class="stat-chip"><span class="val">${ss.total_sections > 0 ? Math.round((ss.completed_sections || 0) / ss.total_sections * 100) : 0}%</span><span class="lbl">Progress</span></div>
+        `;
+    }
+
+    async function loadLessons() {
+        const gradeParam = currentGrade === 'all' ? '' : `?grade=${currentGrade}`;
+        allLessons = await fetchJSON(`/api/dayb/lessons${gradeParam}`);
+        renderElementCards();
+    }
+
+    function renderElementCards() {
+        const grid = document.getElementById('elementsGrid');
+        const grouped = {};
+        for (const l of allLessons) {
+            const key = l.element_name;
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(l);
+        }
+
+        grid.innerHTML = '';
+        const sortedKeys = Object.keys(grouped).sort((a, b) => {
+            return (grouped[a][0].week_number || 0) - (grouped[b][0].week_number || 0);
+        });
+
+        for (const elName of sortedKeys) {
+            const lessons = grouped[elName];
+            const first = lessons[0];
+
+            const card = document.createElement('div');
+            card.className = 'element-card' + (currentLessonId && lessons.some(l => l.id === currentLessonId) ? ' active' : '');
+
+            const completedCount = 0;
+            const totalSections = lessons.length * 8;
+            const pct = totalSections > 0 ? Math.round(completedCount / totalSections * 100) : 0;
+
+            const gradeInfo = currentGrade === 'all'
+                ? lessons.map(l => `G${l.grade}`).join(', ')
+                : `Grade ${currentGrade}`;
+
+            card.innerHTML = `
+                <span class="week-badge">Week ${first.week_number}</span>
+                <div class="el-name">${esc(first.element_name)}</div>
+                <div class="el-deity">${esc(first.deity_name)} &mdash; ${esc(first.core_property_name)}</div>
+                <div class="el-prop">${esc(first.key_metaphor)} / ${esc(first.key_function)}</div>
+                <div class="el-progress"><div class="el-progress-fill" style="width:${pct}%"></div></div>
+                <div class="el-status">
+                    <span>${gradeInfo}</span>
+                    <span>${lessons.length} lesson${lessons.length > 1 ? 's' : ''}</span>
+                </div>
+            `;
+
+            if (currentGrade !== 'all' && lessons.length === 1) {
+                card.onclick = () => openLesson(lessons[0].id);
+            } else {
+                card.onclick = () => {
+                    if (lessons.length === 1) {
+                        openLesson(lessons[0].id);
+                    } else {
+                        showLessonPicker(lessons, card);
+                    }
+                };
+            }
+
+            grid.appendChild(card);
+        }
+    }
+
+    function showLessonPicker(lessons, card) {
+        document.querySelectorAll('.lesson-picker-popup').forEach(p => p.remove());
+        const popup = document.createElement('div');
+        popup.className = 'lesson-picker-popup';
+        popup.style.cssText = 'position:absolute; z-index:10; background:var(--card-bg,#1a1a2e); border:1px solid var(--accent-color,#7aa2ff); border-radius:10px; padding:8px; box-shadow:0 8px 24px rgba(0,0,0,0.5);';
+        for (const l of lessons) {
+            const btn = document.createElement('div');
+            btn.style.cssText = 'padding:8px 12px; cursor:pointer; border-radius:6px; font-size:0.85rem;';
+            btn.textContent = `Grade ${l.grade}`;
+            btn.onmouseover = () => btn.style.background = 'rgba(122,162,255,0.12)';
+            btn.onmouseout = () => btn.style.background = '';
+            btn.onclick = (e) => { e.stopPropagation(); popup.remove(); openLesson(l.id); };
+            popup.appendChild(btn);
+        }
+        card.style.position = 'relative';
+        card.appendChild(popup);
+        setTimeout(() => document.addEventListener('click', function handler() {
+            popup.remove();
+            document.removeEventListener('click', handler);
+        }), 50);
+    }
+
+    async function openLesson(lessonId) {
+        currentLessonId = lessonId;
+        const lesson = await fetchJSON(`/api/dayb/lessons/${lessonId}`);
+        renderLessonDetail(lesson);
+        renderElementCards();
+        document.getElementById('lessonDetail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function driverBadges(drivers) {
+        return drivers.split(',').map(d => {
+            const code = d.trim().replace('drv.', '');
+            const labels = { M: 'Math', G: 'Geometry', C: 'Culture', I: 'Ideology', A: 'Aesthetics' };
+            return `<span class="meta-badge driver-${code}">${labels[code] || code}</span>`;
+        }).join('');
+    }
+
+    function statusChip(status, sectionId) {
+        return `<span class="status-chip ${status}" data-section-id="${sectionId}" onclick="cycleStatus(this, ${sectionId})">${status.replace('_', ' ')}</span>`;
+    }
+
+    async function cycleStatus(el, sectionId) {
+        const currentIdx = SECTION_STATUSES.indexOf(el.textContent.replace(' ', '_'));
+        const nextIdx = (currentIdx + 1) % SECTION_STATUSES.length;
+        const newStatus = SECTION_STATUSES[nextIdx];
+        el.textContent = newStatus.replace('_', ' ');
+        el.className = `status-chip ${newStatus}`;
+        await putJSON(`/api/dayb/sections/${sectionId}`, { status: newStatus });
+    }
+
+    function renderLessonDetail(lesson) {
+        const detail = document.getElementById('lessonDetail');
+        detail.className = 'lesson-detail visible';
+
+        let sectionsHTML = '';
+        for (const s of lesson.sections) {
+            const isB5 = s.section_code === 'B5';
+
+            sectionsHTML += `
+            <div class="section-card ${isB5 ? 'b5-cumulative' : ''}" id="section-${s.id}">
+                <div class="section-header">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="code">${esc(s.section_code)}</span>
+                        <span class="name">${esc(s.section_name)}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="duration">${esc(s.duration)}</span>
+                        <div class="driver-pills">${driverBadges(s.primary_drivers)}</div>
+                        ${statusChip(s.status, s.id)}
+                    </div>
+                </div>
+
+                <div class="section-body">
+                    <div class="section-row">
+                        <span class="label">Purpose</span>
+                        <span class="value">${esc(s.purpose)}</span>
+                    </div>
+
+                    <div class="section-row">
+                        <span class="label">LO Template</span>
+                        <span class="value" style="font-size:0.75rem; opacity:0.5; font-style:italic;">${esc(s.lo_template)}</span>
+                    </div>
+
+                    <div class="section-row">
+                        <span class="label">LO Text</span>
+                        <div class="value">
+                            <textarea class="editable-field" data-field="lo_text" data-id="${s.id}" rows="2">${esc(s.lo_text)}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="section-row">
+                        <span class="label">Content</span>
+                        <div class="value">
+                            <textarea class="editable-field" data-field="content" data-id="${s.id}" rows="3">${esc(s.content)}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="section-row">
+                        <span class="label">Carrier</span>
+                        <div class="value">
+                            <input class="editable-field" data-field="carrier" data-id="${s.id}" value="${esc(s.carrier)}">
+                        </div>
+                    </div>
+
+                    <div class="section-row">
+                        <span class="label">Image</span>
+                        <div class="value">
+                            <div class="image-slot">
+                                ${s.image_url
+                                    ? `<img src="${esc(s.image_url)}" alt="${esc(s.section_name)}">`
+                                    : `<div class="placeholder">${esc(s.image_type)}</div>`}
+                                <input class="editable-field" data-field="image_url" data-id="${s.id}" value="${esc(s.image_url)}" placeholder="Image URL..." style="margin-top:6px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    ${isB5 ? `<div id="b5-chain-${lesson.id}" class="b5-chain-container"><div class="b5-chain-title">Cumulative B2-B3-B4 Chain Loading...</div></div>` : ''}
+
+                    <div class="ecd-grid">
+                        <div class="ecd-box">
+                            <div class="ecd-label">ECD Claim</div>
+                            <textarea data-field="ecd_claim" data-id="${s.id}">${esc(s.ecd_claim)}</textarea>
+                        </div>
+                        <div class="ecd-box">
+                            <div class="ecd-label">ECD Evidence</div>
+                            <textarea data-field="ecd_evidence" data-id="${s.id}">${esc(s.ecd_evidence)}</textarea>
+                        </div>
+                        <div class="ecd-box">
+                            <div class="ecd-label">ECD Task</div>
+                            <textarea data-field="ecd_task" data-id="${s.id}">${esc(s.ecd_task)}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="section-actions">
+                        <button class="save-btn" onclick="saveSection(${s.id})">Save Changes</button>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        detail.innerHTML = `
+            <div class="lesson-detail-header">
+                <div>
+                    <h2>${esc(lesson.title || (lesson.element_name + ' - Grade ' + lesson.grade))}</h2>
+                    <div class="lesson-meta">
+                        <span class="meta-badge">Grade ${lesson.grade}</span>
+                        <span class="meta-badge">Week ${lesson.week_number}</span>
+                        <span class="meta-badge">${esc(lesson.element_name)}</span>
+                        <span class="meta-badge">${esc(lesson.deity_name)}</span>
+                        <span class="meta-badge" style="background:rgba(122,162,255,0.1);">${esc(lesson.core_property_name)}</span>
+                    </div>
+                </div>
+                <button class="close-btn" onclick="closeLesson()">Close</button>
+            </div>
+            <div class="sections-list">${sectionsHTML}</div>
+        `;
+
+        if (lesson.sections.some(s => s.section_code === 'B5')) {
+            loadB5Chain(lesson.id);
+        }
+    }
+
+    async function loadB5Chain(lessonId) {
+        const data = await fetchJSON(`/api/dayb/b5-chain/${lessonId}`);
+        const container = document.getElementById(`b5-chain-${lessonId}`);
+        if (!container || !data.chain || data.chain.length === 0) {
+            if (container) {
+                container.innerHTML = '<div class="b5-chain-title">Week 1 - No prior elements yet. This is the starting point.</div>';
+            }
+            return;
+        }
+
+        const byElement = {};
+        for (const item of data.chain) {
+            const key = item.element_name;
+            if (!byElement[key]) byElement[key] = { name: key, deity: item.deity_name, week: item.week_number, sections: [] };
+            byElement[key].sections.push(item);
+        }
+
+        const sorted = Object.values(byElement).sort((a, b) => a.week - b.week);
+
+        let html = `<div class="b5-chain-title">Cumulative B2 + B3 + B4 Chain (${sorted.length} prior element${sorted.length !== 1 ? 's' : ''})</div>`;
+
+        for (const el of sorted) {
+            html += `<div class="b5-chain-element">
+                <div class="chain-el-name">
+                    <span style="color:var(--accent-color);">Week ${el.week}</span>
+                    ${esc(el.name)} / ${esc(el.deity)}
+                </div>`;
+            for (const sec of el.sections) {
+                html += `<div class="chain-step">
+                    <span class="step-code">${esc(sec.section_code)}</span>
+                    ${esc(sec.lo_text)}
+                </div>`;
+            }
+            html += `</div>`;
+        }
+
+        container.innerHTML = html;
+    }
+
+    async function saveSection(sectionId) {
+        const card = document.getElementById(`section-${sectionId}`);
+        if (!card) return;
+
+        const btn = card.querySelector('.save-btn');
+        btn.classList.add('saving');
+        btn.textContent = 'Saving...';
+
+        const fields = {};
+        card.querySelectorAll('[data-field][data-id="' + sectionId + '"]').forEach(el => {
+            fields[el.dataset.field] = el.value;
+        });
+
+        await putJSON(`/api/dayb/sections/${sectionId}`, fields);
+
+        btn.classList.remove('saving');
+        btn.textContent = 'Saved!';
+        setTimeout(() => { btn.textContent = 'Save Changes'; }, 1500);
+    }
+
+    function closeLesson() {
+        currentLessonId = null;
+        document.getElementById('lessonDetail').className = 'lesson-detail';
+        renderElementCards();
+    }
+
+    function esc(s) {
+        if (s == null) return '';
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    document.getElementById('gradeTabs').addEventListener('click', (e) => {
+        const tab = e.target.closest('.grade-tab');
+        if (!tab) return;
+        document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const g = tab.dataset.grade;
+        currentGrade = g === 'all' ? 'all' : parseInt(g);
+        currentLessonId = null;
+        document.getElementById('lessonDetail').className = 'lesson-detail';
+        loadLessons();
+    });
+
+    loadStats();
+    loadLessons();
+    </script>
+</body>
+</html>
