@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -18,95 +19,95 @@
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
         }
-        
+
         .header {
             text-align: center;
             color: white;
             margin-bottom: 40px;
         }
-        
+
         .header h1 {
             font-size: 36px;
             font-weight: 700;
             margin-bottom: 10px;
         }
-        
+
         .header p {
             font-size: 18px;
             opacity: 0.9;
         }
-        
+
         .layout-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 30px;
             margin-bottom: 40px;
         }
-        
+
         .layout-option {
             background: white;
             border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             transition: all 0.3s ease;
             cursor: pointer;
         }
-        
+
         .layout-option:hover {
             transform: translateY(-10px);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
         }
-        
+
         .layout-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px;
             text-align: center;
         }
-        
+
         .layout-title {
             font-size: 22px;
             font-weight: 700;
             margin-bottom: 5px;
         }
-        
+
         .layout-subtitle {
             opacity: 0.9;
             font-size: 14px;
         }
-        
+
         .layout-preview {
             height: 300px;
             background: #f8f9fa;
             position: relative;
             overflow: hidden;
         }
-        
+
         .layout-features {
             padding: 20px;
         }
-        
+
         .features-list {
             list-style: none;
             margin-bottom: 15px;
         }
-        
+
         .features-list li {
             padding: 5px 0;
             color: #666;
             font-size: 14px;
         }
-        
+
         .features-list li:before {
             content: "✅ ";
             color: #27ae60;
         }
-        
+
         .use-case {
             background: #e3f2fd;
             padding: 10px;
@@ -115,7 +116,7 @@
             color: #1976d2;
             font-weight: 500;
         }
-        
+
         .action-btn {
             width: 100%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -128,16 +129,16 @@
             margin-top: 15px;
             transition: all 0.3s ease;
         }
-        
+
         .action-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
         }
-        
+
         /* Layout Previews */
         .preview-classical {
             display: grid;
-            grid-template-areas: 
+            grid-template-areas:
                 "nav nav nav"
                 "sidebar content toc"
                 "footer footer footer";
@@ -146,19 +147,38 @@
             height: 100%;
             gap: 2px;
         }
-        
-        .preview-classical .nav { grid-area: nav; background: #3498db; }
-        .preview-classical .sidebar { grid-area: sidebar; background: #95a5a6; }
-        .preview-classical .content { grid-area: content; background: #ecf0f1; }
-        .preview-classical .toc { grid-area: toc; background: #bdc3c7; }
-        .preview-classical .footer { grid-area: footer; background: #34495e; }
-        
+
+        .preview-classical .nav {
+            grid-area: nav;
+            background: #3498db;
+        }
+
+        .preview-classical .sidebar {
+            grid-area: sidebar;
+            background: #95a5a6;
+        }
+
+        .preview-classical .content {
+            grid-area: content;
+            background: #ecf0f1;
+        }
+
+        .preview-classical .toc {
+            grid-area: toc;
+            background: #bdc3c7;
+        }
+
+        .preview-classical .footer {
+            grid-area: footer;
+            background: #34495e;
+        }
+
         .preview-modern {
             display: flex;
             height: 100%;
             background: #2c3e50;
         }
-        
+
         .preview-modern .left-panel {
             width: 60px;
             background: #34495e;
@@ -167,14 +187,14 @@
             align-items: center;
             padding: 10px 0;
         }
-        
+
         .preview-modern .main-content {
             flex: 1;
             background: white;
             padding: 20px;
             position: relative;
         }
-        
+
         .preview-modern .floating-nav {
             position: absolute;
             top: 20px;
@@ -184,7 +204,7 @@
             height: 120px;
             border-radius: 20px;
         }
-        
+
         .preview-immersive {
             background: linear-gradient(45deg, #667eea, #764ba2);
             position: relative;
@@ -194,35 +214,35 @@
             justify-content: center;
             color: white;
         }
-        
+
         .preview-immersive .content-card {
-            background: rgba(255,255,255,0.9);
+            background: rgba(255, 255, 255, 0.9);
             border-radius: 16px;
             padding: 20px;
             margin: 20px;
             color: #333;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
-        
+
         .preview-magazine {
             display: grid;
             grid-template-columns: 1fr 1fr;
             height: 100%;
             gap: 2px;
         }
-        
+
         .preview-magazine .left-page {
             background: #ecf0f1;
             padding: 20px;
             position: relative;
         }
-        
+
         .preview-magazine .right-page {
             background: white;
             padding: 20px;
             position: relative;
         }
-        
+
         .preview-magazine::after {
             content: "";
             position: absolute;
@@ -233,7 +253,7 @@
             background: #bdc3c7;
             transform: translateX(-50%);
         }
-        
+
         .preview-interactive {
             background: #2c3e50;
             position: relative;
@@ -245,7 +265,7 @@
             grid-template-columns: 1fr 200px;
             grid-template-rows: 50px 1fr;
         }
-        
+
         .preview-interactive .toolbar {
             grid-area: toolbar;
             background: #34495e;
@@ -253,7 +273,7 @@
             align-items: center;
             padding: 0 15px;
         }
-        
+
         .preview-interactive .canvas {
             grid-area: canvas;
             background: #ecf0f1;
@@ -265,14 +285,14 @@
             font-weight: bold;
             color: #667eea;
         }
-        
+
         .preview-interactive .sidebar {
             grid-area: sidebar;
             background: #95a5a6;
             margin: 10px 10px 10px 0;
             border-radius: 8px;
         }
-        
+
         .preview-mobile {
             background: #34495e;
             padding: 20px;
@@ -280,17 +300,17 @@
             justify-content: center;
             align-items: center;
         }
-        
+
         .preview-mobile .phone-frame {
             width: 180px;
             height: 260px;
             background: white;
             border-radius: 20px;
             padding: 15px 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             position: relative;
         }
-        
+
         .preview-mobile .phone-screen {
             background: #f8f9fa;
             border-radius: 12px;
@@ -298,13 +318,13 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .preview-mobile .mobile-nav {
             background: #667eea;
             height: 40px;
             border-radius: 12px 12px 0 0;
         }
-        
+
         .preview-mobile .mobile-content {
             padding: 15px;
             background: white;
@@ -312,13 +332,13 @@
             border-radius: 8px;
             font-size: 12px;
         }
-        
+
         /* Demo Button */
         .demo-section {
             text-align: center;
             margin-top: 40px;
         }
-        
+
         .demo-btn {
             background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
             color: white;
@@ -331,20 +351,21 @@
             box-shadow: 0 10px 30px rgba(39, 174, 96, 0.3);
             transition: all 0.3s ease;
         }
-        
+
         .demo-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 15px 40px rgba(39, 174, 96, 0.4);
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
             <h1>📚 HTML Etextbook Layout Options</h1>
             <p>Choose the perfect layout for your digital curriculum</p>
         </div>
-        
+
         <div class="layout-grid">
             <!-- Classical Academic Layout -->
             <div class="layout-option" onclick="selectLayout('classical')">
@@ -377,7 +398,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Modern Interactive Layout -->
             <div class="layout-option" onclick="selectLayout('modern')">
                 <div class="layout-header">
@@ -408,7 +429,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Immersive Storytelling Layout -->
             <div class="layout-option" onclick="selectLayout('immersive')">
                 <div class="layout-header">
@@ -439,7 +460,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Magazine-Style Layout -->
             <div class="layout-option" onclick="selectLayout('magazine')">
                 <div class="layout-header">
@@ -468,7 +489,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Interactive Canvas Layout -->
             <div class="layout-option" onclick="selectLayout('interactive')">
                 <div class="layout-header">
@@ -498,7 +519,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Mobile-First Layout -->
             <div class="layout-option" onclick="selectLayout('mobile')">
                 <div class="layout-header">
@@ -534,35 +555,35 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="demo-section">
             <button class="demo-btn" onclick="createCustomDemo()">
                 🎨 Create Custom Layout Demo
             </button>
         </div>
     </div>
-    
+
     <script>
         let selectedLayoutType = null;
-        
+
         function selectLayout(type) {
             selectedLayoutType = type;
-            
+
             // Visual feedback
             document.querySelectorAll('.layout-option').forEach(option => {
                 option.style.transform = '';
                 option.style.boxShadow = '';
             });
-            
+
             event.currentTarget.style.transform = 'translateY(-10px) scale(1.02)';
             event.currentTarget.style.boxShadow = '0 30px 60px rgba(102, 126, 234, 0.3)';
-            
+
             console.log(`Selected layout: ${type}`);
         }
-        
+
         function generateLayout(type) {
             console.log(`Generating ${type} layout...`);
-            
+
             // This would integrate with your curriculum system
             const layoutSpecs = {
                 classical: {
@@ -572,7 +593,7 @@
                     responsive: 'desktop-first'
                 },
                 modern: {
-                    template: 'app-style', 
+                    template: 'app-style',
                     navigation: 'floating',
                     features: ['multimedia', 'progress-tracking', 'dark-mode'],
                     responsive: 'mobile-first'
@@ -602,12 +623,12 @@
                     responsive: 'mobile-only'
                 }
             };
-            
-            alert(`🚀 Generating ${type} layout with these specs:\\n\\n` + 
-                  JSON.stringify(layoutSpecs[type], null, 2) + 
-                  `\\n\\nThis would create a new HTML template file optimized for your Mesopotamian curriculum!`);
+
+            alert(`🚀 Generating ${type} layout with these specs:\\n\\n` +
+                JSON.stringify(layoutSpecs[type], null, 2) +
+                `\\n\\nThis would create a new HTML template file optimized for your Mesopotamian curriculum!`);
         }
-        
+
         function createCustomDemo() {
             const demoSpecs = {
                 title: "Mesopotamian Patterns: Interactive Etextbook Demo",
@@ -615,18 +636,19 @@
                 sampleContent: "Ziggurat Architecture and Sacred Geometry",
                 integrations: ["Perplexity Import", "Animation Studio", "WikiNode Bridge"]
             };
-            
-            alert("🎨 Custom Demo Creator\\n\\n" + 
-                  "This would generate a complete demo etextbook featuring:\\n" +
-                  "• All 6 layout styles\\n" + 
-                  "• Sample Mesopotamian content\\n" +
-                  "• Integration with your existing tools\\n" +
-                  "• Interactive elements and animations\\n\\n" +
-                  "Demo would be created as: 'Etextbook_Demo_All_Layouts.html'");
+
+            alert("🎨 Custom Demo Creator\\n\\n" +
+                "This would generate a complete demo etextbook featuring:\\n" +
+                "• All 6 layout styles\\n" +
+                "• Sample Mesopotamian content\\n" +
+                "• Integration with your existing tools\\n" +
+                "• Interactive elements and animations\\n\\n" +
+                "Demo would be created as: 'Etextbook_Demo_All_Layouts.html'");
         }
-        
+
         console.log("📚 HTML Etextbook Layout Options loaded!");
         console.log("Available layouts: Classical, Modern, Immersive, Magazine, Interactive, Mobile-First");
     </script>
 </body>
+
 </html>
