@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Drive Ingester &amp; Reconciliation</title>
+<link rel="stylesheet" href="/styles/main.css" />
+<style>
+  body { padding: 0; }
+  .ing-shell { display: grid; grid-template-rows: auto auto 1fr; height: 100vh; }
+  .ing-bar { display: flex; gap: .5rem; align-items: center; padding: .75rem 1rem;
+             border-bottom: 1px solid var(--border); flex-wrap: wrap; background: rgba(0,0,0,.15); }
+  .ing-bar input[type=text] { flex: 1; min-width: 280px; padding: .45rem .6rem;
+             background: rgba(0,0,0,.3); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font-family: var(--font-mono); font-size: .8125rem; }
+  .ing-bar button { padding: .5rem .9rem; border-radius: 6px; border: 1px solid var(--accent);
+             background: rgba(125,211,252,.12); color: var(--accent); cursor: pointer; font-size: .8125rem; }
+  .ing-bar button:hover { background: rgba(125,211,252,.22); }
+  .ing-bar .muted { color: var(--text-muted); font-size: .8125rem; }
+  .ing-status { padding: .4rem 1rem; border-bottom: 1px solid var(--border); font-size: .75rem;
+                color: var(--text-muted); display: flex; gap: 1rem; flex-wrap: wrap; }
+  .ing-status .pill { padding: .125rem .5rem; border-radius: 999px; background: rgba(255,255,255,.06); }
+  .ing-status .pill.pending { color: var(--accent); }
+  .ing-status .pill.accepted { color: var(--healthy, #5dd5a7); }
+  .ing-status .pill.rejected { color: var(--orange, #fb923c); }
+
+  .ing-body { display: grid; grid-template-columns: 320px 1fr; min-height: 0; }
+  .ing-list { border-right: 1px solid var(--border); overflow-y: auto; padding: .5rem; }
+  .cand { padding: .55rem .6rem; border: 1px solid transparent; border-radius: 6px; cursor: pointer;
+          margin-bottom: .25rem; }
+  .cand:hover { background: rgba(255,255,255,.04); }
+  .cand.active { background: rgba(125,211,252,.12); border-color: var(--accent); }
+  .cand .key { font-family: var(--font-mono); font-size: .8125rem; color: var(--accent); }
+  .cand .meta { display: flex; justify-content: space-between; align-items: center;
+                font-size: .6875rem; color: var(--text-muted); margin-top: .15rem; }
+  .cand .badge { padding: .05rem .4rem; border-radius: 999px; background: rgba(255,255,255,.06); }
+  .cand .badge.pending { color: var(--accent); }
+  .cand .badge.accepted { color: var(--healthy, #5dd5a7); }
+  .cand .badge.rejected { color: var(--orange, #fb923c); }
+
+  .ing-pane { overflow-y: auto; padding: 1rem 1.5rem; }
+  .pane-header { display: flex; justify-content: space-between; align-items: flex-start;
+                 gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .pane-header h2 { margin: 0 0 .25rem; }
+  .pane-header .breadcrumb { font-size: .75rem; color: var(--text-muted); font-family: var(--font-mono); }
+  .pane-actions { display: flex; gap: .5rem; }
+  .pane-actions button { padding: .5rem 1rem; border-radius: 6px; cursor: pointer;
+                         font-size: .8125rem; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); }
+  .pane-actions .accept { border-color: var(--healthy, #5dd5a7); color: var(--healthy, #5dd5a7);
+                          background: rgba(93,213,167,.1); }
+  .pane-actions .reject { border-color: var(--orange, #fb923c); color: var(--orange, #fb923c);
+                          background: rgba(251,146,60,.1); }
+  .pane-actions .reset { border-color: var(--text-muted); color: var(--text-muted); }
+
+  .lesson-meta { display: flex; gap: 1rem; font-size: .75rem; color: var(--text-muted);
+                 padding: .5rem .75rem; background: rgba(255,255,255,.03); border-radius: 6px;
+                 margin-bottom: 1rem; flex-wrap: wrap; }
+  .lesson-meta strong { color: var(--text); margin-right: .35rem; }
+
+  .sec-card { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem;
+              background: rgba(0,0,0,.15); overflow: hidden; }
+  .sec-head { display: flex; align-items: center; gap: .75rem; padding: .65rem .85rem;
+              background: rgba(255,255,255,.03); border-bottom: 1px solid var(--border); }
+  .sec-head .code { font-family: var(--font-mono); color: var(--accent); font-weight: 600; }
+  .sec-head .name { color: var(--text-muted); font-size: .8125rem; }
+  .sec-head .flags { margin-left: auto; display: flex; gap: .35rem; font-size: .6875rem; }
+  .sec-head .flag { padding: .1rem .45rem; border-radius: 999px; background: rgba(255,255,255,.06); color: var(--text-muted); }
+  .sec-head .flag.changed { background: rgba(125,211,252,.18); color: var(--accent); }
+  .sec-head .flag.new { background: rgba(93,213,167,.18); color: var(--healthy, #5dd5a7); }
+  .sec-head .flag.missing-drive { background: rgba(251,146,60,.18); color: var(--orange, #fb923c); }
+
+  .field-row { padding: .65rem .85rem; border-top: 1px solid rgba(255,255,255,.05); }
+  .field-row:first-of-type { border-top: none; }
+  .field-row .field-head { display: flex; align-items: center; gap: .5rem; margin-bottom: .4rem; }
+  .field-row .field-name { font-family: var(--font-mono); font-size: .75rem; color: var(--text-muted); }
+  .field-row .same { color: var(--text-muted); font-size: .6875rem; margin-left: auto; }
+  .field-row .changed { color: var(--accent); font-size: .6875rem; margin-left: auto; }
+  .field-row label { display: flex; align-items: center; gap: .35rem; cursor: pointer; }
+  .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .diff-cell { padding: .55rem .65rem; border-radius: 6px; background: rgba(255,255,255,.03);
+               border: 1px solid var(--border); white-space: pre-wrap; font-size: .8125rem;
+               max-height: 260px; overflow-y: auto; line-height: 1.4; }
+  .diff-cell .label { display: block; font-size: .6875rem; text-transform: uppercase;
+                       letter-spacing: .05em; color: var(--text-muted); margin-bottom: .35rem; font-family: var(--font-mono); }
+  .diff-cell.drive.changed { border-color: var(--accent); }
+  .diff-cell.empty .label::after { content: ' (empty)'; opacity: .6; }
+  .diff-cell .body { color: var(--text); }
+  .diff-cell.empty .body { color: var(--text-muted); font-style: italic; }
+
+  .artifacts { padding: .5rem .85rem .75rem; border-top: 1px solid rgba(255,255,255,.05); font-size: .75rem; }
+  .artifacts h4 { margin: 0 0 .35rem; font-size: .75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+  .artifacts ul { margin: 0; padding-left: 1.1rem; color: var(--text-muted); }
+  .artifacts li { margin-bottom: .2rem; }
+
+  .empty-state { padding: 3rem 1rem; text-align: center; color: var(--text-muted); }
+  .toast { position: fixed; bottom: 1.25rem; right: 1.25rem; padding: .65rem 1rem; border-radius: 6px;
+           background: var(--bg-card); border: 1px solid var(--border); font-size: .8125rem; z-index: 50;
+           box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+  .toast.error { border-color: var(--orange, #fb923c); color: var(--orange, #fb923c); }
+  .toast.ok { border-color: var(--healthy, #5dd5a7); color: var(--healthy, #5dd5a7); }
+</style>
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>Drive Ingester &amp; Reconciliation</h1>
+      <p>Pull lesson sections from Google Drive and review them against the database before applying.</p>
+    </div>
+    <a href="/" style="color: var(--text-muted); text-decoration: none; font-size: .875rem;">&larr; Home</a>
+  </header>
+
+  <div class="ing-shell">
+    <div class="ing-bar">
+      <span class="muted">Drive folder ID:</span>
+      <input id="folderId" type="text" placeholder="paste a Drive folder ID (e.g. EXTRACTED/BY_LESSON folder)" />
+      <button id="scanBtn">Scan folder</button>
+      <button id="refreshBtn">Refresh list</button>
+      <span id="scanStatus" class="muted"></span>
+    </div>
+
+    <div class="ing-status" id="statusBar">
+      <span>Loading…</span>
+    </div>
+
+    <div class="ing-body">
+      <div class="ing-list" id="candList">
+        <div class="empty-state">No candidates yet. Paste a folder ID and click <em>Scan</em>.</div>
+      </div>
+      <div class="ing-pane" id="pane">
+        <div class="empty-state">Select a candidate on the left to review the diff.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" style="display:none"></div>
+
+<script>
+const $ = (s, r=document) => r.querySelector(s);
+const escapeHtml = s => (s ?? '').toString()
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+let state = { candidates: [], counts: {}, currentId: null, currentDiff: null };
+
+function toast(msg, kind='ok') {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.className = 'toast ' + kind;
+  el.style.display = 'block';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { el.style.display = 'none'; }, 3500);
+}
+
+async function api(url, opts={}) {
+  const r = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opts,
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+  return data;
+}
+
+function renderStatus() {
+  const c = state.counts || {};
+  const total = (c.pending||0) + (c.accepted||0) + (c.rejected||0);
+  $('#statusBar').innerHTML = `
+    <span>Total: <strong>${total}</strong></span>
+    <span class="pill pending">Pending: ${c.pending||0}</span>
+    <span class="pill accepted">Accepted: ${c.accepted||0}</span>
+    <span class="pill rejected">Rejected: ${c.rejected||0}</span>
+  `;
+}
+
+function renderList() {
+  const list = $('#candList');
+  if (!state.candidates.length) {
+    list.innerHTML = `<div class="empty-state">No candidates yet. Paste a folder ID and click <em>Scan</em>.</div>`;
+    return;
+  }
+  list.innerHTML = state.candidates.map(c => `
+    <div class="cand ${c.id===state.currentId?'active':''}" data-id="${c.id}">
+      <div class="key">${escapeHtml(c.lesson_key)}</div>
+      <div class="meta">
+        <span>G${c.grade} · W${c.week} · Day${c.day}</span>
+        <span class="badge ${c.status}">${c.status}</span>
+      </div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.cand').forEach(el => {
+    el.addEventListener('click', () => loadDiff(parseInt(el.dataset.id, 10)));
+  });
+}
+
+function renderPane() {
+  const pane = $('#pane');
+  if (!state.currentDiff) {
+    pane.innerHTML = `<div class="empty-state">Select a candidate on the left to review the diff.</div>`;
+    return;
+  }
+  const d = state.currentDiff;
+  const cand = d.candidate;
+  const lesson = d.db_lesson;
+  pane.innerHTML = `
+    <div class="pane-header">
+      <div>
+        <h2>${escapeHtml(cand.lesson_key)}</h2>
+        <div class="breadcrumb">${escapeHtml(cand.source_path || cand.source_file_name)}</div>
+      </div>
+      <div class="pane-actions">
+        <label style="display:flex;align-items:center;gap:.35rem;font-size:.75rem;color:var(--text-muted);">
+          <input type="checkbox" id="allowClear" /> allow clearing DB with blank Drive values
+        </label>
+        <button class="accept" id="applyBtn">Apply selected</button>
+        <button class="reject" id="rejectBtn">Reject</button>
+        <button class="reset" id="resetBtn">Reset to pending</button>
+      </div>
+    </div>
+    <div class="lesson-meta">
+      <span><strong>DB lesson:</strong> ${lesson ? escapeHtml(lesson.title || '(untitled)') + ' · ' + escapeHtml(lesson.element_name || '') : '<span style="color:var(--orange,#fb923c)">no DB match for this grade/week</span>'}</span>
+      <span><strong>Status:</strong> ${escapeHtml(cand.status)}</span>
+      <span><strong>Drive modified:</strong> ${escapeHtml(cand.modified_time || '—')}</span>
+    </div>
+    ${d.sections.map(renderSection).join('')}
+  `;
+  $('#applyBtn').addEventListener('click', applySelected);
+  $('#rejectBtn').addEventListener('click', () => decide('reject'));
+  $('#resetBtn').addEventListener('click', () => decide('reset'));
+}
+
+function renderSection(s) {
+  const flags = [];
+  if (!s.in_db) flags.push('<span class="flag new">new in DB</span>');
+  if (!s.in_drive) flags.push('<span class="flag missing-drive">missing in Drive</span>');
+  const anyChanged = Object.values(s.fields).some(f => f.changed);
+  if (anyChanged && s.in_drive && s.in_db) flags.push('<span class="flag changed">changes</span>');
+
+  const fields = Object.entries(s.fields).map(([name, f]) => {
+    const driveBlank = !f.drive || !String(f.drive).trim();
+    const checkable = s.in_drive && (f.changed || f.db_empty);
+    // Don't pre-check destructive overwrites (Drive is blank but DB has content).
+    const preCheck = f.changed && !driveBlank;
+    return `
+      <div class="field-row">
+        <div class="field-head">
+          ${checkable
+            ? `<label><input type="checkbox" data-section="${s.section_code}" data-field="${name}" ${preCheck ? 'checked' : ''}/> <span class="field-name">${name}</span></label>`
+            : `<span class="field-name">${name}</span>`}
+          ${f.changed ? '<span class="changed">differs</span>' : '<span class="same">same</span>'}
+        </div>
+        <div class="diff-grid">
+          <div class="diff-cell drive ${f.changed?'changed':''} ${(!f.drive||!String(f.drive).trim())?'empty':''}">
+            <span class="label">Drive</span>
+            <div class="body">${escapeHtml(f.drive || '')}</div>
+          </div>
+          <div class="diff-cell db ${(!f.db||!String(f.db).trim())?'empty':''}">
+            <span class="label">Database</span>
+            <div class="body">${escapeHtml(f.db || '')}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const artifacts = (s.artifacts && s.artifacts.length) ? `
+    <div class="artifacts">
+      <h4>Drive-side artifacts (informational, not auto-applied)</h4>
+      <ul>${s.artifacts.map(a => `<li>${escapeHtml(a.description || '(no description)')}${a.source_type?` <em>(${escapeHtml(a.source_type)})</em>`:''}</li>`).join('')}</ul>
+    </div>` : '';
+
+  return `
+    <div class="sec-card">
+      <div class="sec-head">
+        <span class="code">${escapeHtml(s.section_code)}</span>
+        <span class="name">${escapeHtml((s.fields.section_name && s.fields.section_name.drive) || (s.fields.section_name && s.fields.section_name.db) || '')}</span>
+        <span class="flags">${flags.join('')}</span>
+      </div>
+      ${fields}
+      ${artifacts}
+    </div>
+  `;
+}
+
+async function refreshList() {
+  try {
+    const data = await api('/api/ingest/candidates');
+    state.candidates = data.candidates;
+    state.counts = data.counts;
+    renderStatus(); renderList();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function loadDiff(id) {
+  state.currentId = id;
+  renderList();
+  $('#pane').innerHTML = `<div class="empty-state">Loading diff…</div>`;
+  try {
+    state.currentDiff = await api(`/api/ingest/candidates/${id}/diff`);
+    renderPane();
+  } catch (e) {
+    $('#pane').innerHTML = `<div class="empty-state" style="color:var(--orange,#fb923c)">Error: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function applySelected() {
+  const boxes = document.querySelectorAll('#pane input[type=checkbox]:checked');
+  const map = {};
+  boxes.forEach(b => {
+    (map[b.dataset.section] ||= []).push(b.dataset.field);
+  });
+  const selections = Object.entries(map).map(([section_code, fields]) => ({ section_code, fields }));
+  if (!selections.length) { toast('Pick at least one field to apply.', 'error'); return; }
+  try {
+    const allow_clear = !!document.getElementById('allowClear')?.checked;
+    const res = await api(`/api/ingest/candidates/${state.currentId}/apply`, {
+      method: 'POST', body: JSON.stringify({ selections, allow_clear }),
+    });
+    const skipNote = (res.skipped && res.skipped.length) ? ` (${res.skipped.length} skipped)` : '';
+    toast(`Applied ${res.applied.length} section(s)${skipNote}.`, 'ok');
+    await refreshList();
+    await loadDiff(state.currentId);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function decide(kind) {
+  const id = state.currentId;
+  if (!id) return;
+  try {
+    await api(`/api/ingest/candidates/${id}/${kind === 'reset' ? 'reset' : 'reject'}`, {
+      method: 'POST', body: JSON.stringify({}),
+    });
+    toast(kind === 'reset' ? 'Reset to pending.' : 'Rejected.', 'ok');
+    await refreshList();
+    await loadDiff(id);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+$('#scanBtn').addEventListener('click', async () => {
+  const folder_id = $('#folderId').value.trim();
+  if (!folder_id) { toast('Paste a folder ID first.', 'error'); return; }
+  $('#scanStatus').textContent = 'Scanning Drive…';
+  try {
+    const res = await api('/api/ingest/scan', {
+      method: 'POST', body: JSON.stringify({ folder_id }),
+    });
+    $('#scanStatus').textContent = `Scanned ${res.scanned} • +${res.inserted} new • ${res.updated} updated${res.failed.length?` • ${res.failed.length} failed`:''}`;
+    localStorage.setItem('ingester.lastFolder', folder_id);
+    await refreshList();
+  } catch (e) {
+    $('#scanStatus').textContent = '';
+    toast(e.message, 'error');
+  }
+});
+
+$('#refreshBtn').addEventListener('click', refreshList);
+$('#folderId').value = localStorage.getItem('ingester.lastFolder') || '';
+refreshList();
+</script>
+</body>
+</html>

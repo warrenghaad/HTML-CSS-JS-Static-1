@@ -57,4 +57,4 @@ externalPort = 80
 
 [agent]
 expertMode = true
-integrations = ["python_openai_ai_integrations:1.0.0"]
+integrations = ["python_openai_ai_integrations:1.0.0", "google-drive:1.0.0"]

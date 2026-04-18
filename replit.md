@@ -92,6 +92,7 @@ M=Math, A=Aesthetics, G=Geometry (emergent center), I=Ideology, C=Culture
 - **Myth Catalog**: Interactive Mesopotamian mythology reference with grade/shape/category filters
 - **Image Manager**: Museum API sourcing tool (Met, Yale, British Museum, Wikimedia, Smithsonian, CDLI)
 - **Lesson Shell Demo**: Sidebar navigation with hash-based routing for rendered lesson content
+- **Drive Ingester** (`pages/ingester.html`): Pulls structured lesson content from a Google Drive folder (expects subfolders named `G{grade}-W{week}-Day{A|B}` containing `sections.json`) and reconciles them against `day_b_sections`. Per-section, per-field side-by-side diff with selective apply / reject / reset. Backed by `gdrive_helper.py` + `/api/ingest/*` endpoints and the `ingest_candidates` table. Uses the Replit Google Drive integration (OAuth handled via the connectors proxy at `${REPLIT_CONNECTORS_HOSTNAME}`). Note: only Day B has DB lessons today, so Day A candidates show as "no DB match" until a Day A schema is added.
 
 ## External Dependencies
 

@@ -2473,10 +2473,335 @@ def dayb_b5_chain(lesson_id):
     })
 
 
+# =====================================================================
+# Drive Ingester + Reconciliation
+# =====================================================================
+import gdrive_helper
+
+INGESTABLE_FIELDS = ['section_name', 'purpose', 'content']
+import re as _re
+SECTION_CODE_RE = _re.compile(r'^[AB][1-8]$')
+
+def init_ingester_db():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS ingest_candidates (
+            id SERIAL PRIMARY KEY,
+            source VARCHAR(20) NOT NULL DEFAULT 'gdrive',
+            source_file_id VARCHAR(120) NOT NULL,
+            source_file_name VARCHAR(255) NOT NULL,
+            source_path TEXT DEFAULT '',
+            lesson_key VARCHAR(40) NOT NULL,
+            grade INTEGER NOT NULL,
+            week INTEGER NOT NULL,
+            day VARCHAR(2) NOT NULL,
+            payload JSONB NOT NULL,
+            modified_time VARCHAR(40) DEFAULT '',
+            status VARCHAR(20) NOT NULL DEFAULT 'pending',
+            decision_notes TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            UNIQUE (source, source_file_id)
+        )
+    ''')
+    cur.execute('CREATE INDEX IF NOT EXISTS idx_ingest_status ON ingest_candidates(status)')
+    cur.execute('CREATE INDEX IF NOT EXISTS idx_ingest_lesson_key ON ingest_candidates(lesson_key)')
+    cur.close()
+    conn.close()
+
+
+def _safe_drive_call(fn, *args, **kwargs):
+    try:
+        return fn(*args, **kwargs), None
+    except Exception as e:
+        return None, str(e)
+
+
+@app.route('/api/ingest/drive/list', methods=['GET'])
+def ingest_drive_list():
+    folder_id = request.args.get('folder_id', '').strip()
+    if not folder_id:
+        return jsonify({'error': 'folder_id required'}), 400
+    files, err = _safe_drive_call(gdrive_helper.list_folder, folder_id)
+    if err:
+        return jsonify({'error': err}), 502
+    return jsonify({'folder_id': folder_id, 'files': files})
+
+
+@app.route('/api/ingest/scan', methods=['POST'])
+def ingest_scan():
+    data = request.get_json(silent=True) or {}
+    folder_id = (data.get('folder_id') or '').strip()
+    max_depth = int(data.get('max_depth') or 3)
+    if not folder_id:
+        return jsonify({'error': 'folder_id required'}), 400
+    candidates, err = _safe_drive_call(gdrive_helper.scan_for_sections, folder_id, max_depth)
+    if err:
+        return jsonify({'error': err}), 502
+
+    conn = get_db()
+    cur = conn.cursor()
+    inserted, updated, failed = 0, 0, []
+    for c in candidates:
+        try:
+            payload = gdrive_helper.get_file_json(c['sections_file_id'])
+        except Exception as e:
+            failed.append({'lesson_key': c['lesson_key'], 'error': str(e)})
+            continue
+        cur.execute('''
+            INSERT INTO ingest_candidates
+                (source, source_file_id, source_file_name, source_path, lesson_key,
+                 grade, week, day, payload, modified_time, status, updated_at)
+            VALUES ('gdrive', %s, %s, %s, %s, %s, %s, %s, %s, %s, 'pending', NOW())
+            ON CONFLICT (source, source_file_id) DO UPDATE SET
+                payload = EXCLUDED.payload,
+                modified_time = EXCLUDED.modified_time,
+                source_path = EXCLUDED.source_path,
+                updated_at = NOW(),
+                status = CASE WHEN ingest_candidates.status IN ('accepted','rejected')
+                              THEN ingest_candidates.status ELSE 'pending' END
+            RETURNING (xmax = 0) AS inserted
+        ''', (c['sections_file_id'], c['sections_file_name'], c['folder_path'],
+              c['lesson_key'], c['grade'], c['week'], c['day'],
+              json.dumps(payload), c.get('modified_time') or ''))
+        was_inserted = cur.fetchone()[0]
+        if was_inserted:
+            inserted += 1
+        else:
+            updated += 1
+    cur.close()
+    conn.close()
+    return jsonify({
+        'scanned': len(candidates),
+        'inserted': inserted,
+        'updated': updated,
+        'failed': failed,
+    })
+
+
+@app.route('/api/ingest/candidates', methods=['GET'])
+def ingest_candidates_list():
+    status = request.args.get('status', '').strip()
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    if status:
+        cur.execute('''SELECT id, source_file_name, source_path, lesson_key, grade, week, day,
+                              status, modified_time, updated_at
+                       FROM ingest_candidates WHERE status = %s
+                       ORDER BY grade, week, day, lesson_key''', (status,))
+    else:
+        cur.execute('''SELECT id, source_file_name, source_path, lesson_key, grade, week, day,
+                              status, modified_time, updated_at
+                       FROM ingest_candidates
+                       ORDER BY status, grade, week, day, lesson_key''')
+    rows = cur.fetchall()
+    cur.execute('''SELECT status, COUNT(*) AS n FROM ingest_candidates GROUP BY status''')
+    counts = {r['status']: r['n'] for r in cur.fetchall()}
+    cur.close()
+    conn.close()
+    return jsonify({'candidates': rows, 'counts': counts})
+
+
+def _lookup_db_lesson(cur, grade, week, day):
+    # The DB only models Day B lessons today; Day A content has no DB analog.
+    if (day or '').upper() != 'B':
+        return None
+    cur.execute('''
+        SELECT l.id, l.title, l.grade, l.week_number, e.name AS element_name
+        FROM day_b_lessons l
+        JOIN day_b_elements e ON l.element_id = e.id
+        WHERE l.grade = %s AND e.week_number = %s
+        LIMIT 1
+    ''', (grade, week))
+    return cur.fetchone()
+
+
+@app.route('/api/ingest/candidates/<int:cid>/diff', methods=['GET'])
+def ingest_candidate_diff(cid):
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('SELECT * FROM ingest_candidates WHERE id = %s', (cid,))
+    cand = cur.fetchone()
+    if not cand:
+        cur.close(); conn.close()
+        return jsonify({'error': 'not found'}), 404
+
+    drive_payload = cand['payload'] or {}
+    db_lesson = _lookup_db_lesson(cur, cand['grade'], cand['week'], cand['day'])
+    db_sections = []
+    if db_lesson:
+        cur.execute('SELECT * FROM day_b_sections WHERE lesson_id = %s ORDER BY section_code', (db_lesson['id'],))
+        db_sections = cur.fetchall()
+    db_by_code = {s['section_code']: s for s in db_sections}
+
+    diff = []
+    drive_codes = [k for k in drive_payload.keys() if not k.startswith('_')]
+    all_codes = sorted(set(drive_codes + list(db_by_code.keys())))
+    for code in all_codes:
+        drive_sec = drive_payload.get(code) or {}
+        db_sec = db_by_code.get(code) or {}
+        fields = {}
+        for fld, drive_key in [
+            ('section_name', 'name'),
+            ('purpose', 'purpose'),
+            ('content', 'content'),
+        ]:
+            drive_val = drive_sec.get(drive_key, '') if isinstance(drive_sec, dict) else ''
+            db_val = (db_sec.get(fld) if isinstance(db_sec, dict) else '') or ''
+            fields[fld] = {
+                'drive': drive_val,
+                'db': db_val,
+                'changed': (drive_val or '') != (db_val or ''),
+                'db_empty': not (db_val or '').strip(),
+            }
+        artifacts = drive_sec.get('artifacts') if isinstance(drive_sec, dict) else None
+        diff.append({
+            'section_code': code,
+            'in_drive': bool(drive_sec),
+            'in_db': bool(db_sec),
+            'fields': fields,
+            'artifacts': artifacts or [],
+        })
+
+    cur.close()
+    conn.close()
+    return jsonify({
+        'candidate': {
+            'id': cand['id'],
+            'lesson_key': cand['lesson_key'],
+            'grade': cand['grade'], 'week': cand['week'], 'day': cand['day'],
+            'source_file_name': cand['source_file_name'],
+            'source_path': cand['source_path'],
+            'status': cand['status'],
+            'modified_time': cand['modified_time'],
+        },
+        'db_lesson': db_lesson,
+        'sections': diff,
+        'ingestable_fields': INGESTABLE_FIELDS,
+    })
+
+
+@app.route('/api/ingest/candidates/<int:cid>/apply', methods=['POST'])
+def ingest_candidate_apply(cid):
+    data = request.get_json(silent=True) or {}
+    selections = data.get('selections') or []
+    allow_clear = bool(data.get('allow_clear'))  # opt-in to overwrite DB with blank Drive value
+    if not selections:
+        return jsonify({'error': 'selections required: [{section_code, fields:[...]}]'}), 400
+
+    # Use a single transaction for the whole apply operation.
+    conn = psycopg2.connect(DATABASE_URL)
+    conn.autocommit = False
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute('SELECT * FROM ingest_candidates WHERE id = %s FOR UPDATE', (cid,))
+        cand = cur.fetchone()
+        if not cand:
+            return jsonify({'error': 'not found'}), 404
+
+        db_lesson = _lookup_db_lesson(cur, cand['grade'], cand['week'], cand['day'])
+        if not db_lesson:
+            return jsonify({'error': f'No matching lesson in DB for grade={cand["grade"]} week={cand["week"]} day={cand["day"]}'}), 409
+
+        payload = cand['payload'] or {}
+        cur.execute('SELECT id, section_code FROM day_b_sections WHERE lesson_id = %s', (db_lesson['id'],))
+        db_codes = {row['section_code']: row['id'] for row in cur.fetchall()}
+
+        applied, skipped = [], []
+        for sel in selections:
+            code = (sel.get('section_code') or '').strip().upper()
+            fields = [f for f in (sel.get('fields') or []) if f in INGESTABLE_FIELDS]
+            if not SECTION_CODE_RE.match(code):
+                skipped.append({'section_code': code, 'reason': 'invalid_section_code'})
+                continue
+            if not fields:
+                skipped.append({'section_code': code, 'reason': 'no_valid_fields'})
+                continue
+            drive_sec = payload.get(code)
+            if not isinstance(drive_sec, dict):
+                skipped.append({'section_code': code, 'reason': 'not_in_drive'})
+                continue
+            sec_id = db_codes.get(code)
+
+            field_to_drive_key = {'section_name': 'name', 'purpose': 'purpose', 'content': 'content'}
+            values = {}
+            for fld in fields:
+                v = drive_sec.get(field_to_drive_key[fld], '')
+                if v is None:
+                    v = ''
+                if not isinstance(v, str):
+                    v = json.dumps(v)
+                if not v.strip() and not allow_clear:
+                    # protect against accidental wipes
+                    continue
+                values[fld] = v
+
+            if not values:
+                skipped.append({'section_code': code, 'reason': 'all_drive_values_blank_no_clear_opt'})
+                continue
+
+            if sec_id:
+                set_parts = [f"{k} = %s" for k in values.keys()]
+                params = list(values.values()) + [sec_id]
+                cur.execute(
+                    f"UPDATE day_b_sections SET {', '.join(set_parts)}, updated_at = NOW() WHERE id = %s",
+                    params)
+            else:
+                cur.execute('''INSERT INTO day_b_sections
+                               (lesson_id, section_code, section_name, purpose, content)
+                               VALUES (%s, %s, %s, %s, %s)''',
+                            (db_lesson['id'], code,
+                             values.get('section_name', ''),
+                             values.get('purpose', ''),
+                             values.get('content', '')))
+            applied.append({'section_code': code, 'fields': list(values.keys())})
+
+        new_status = 'accepted' if applied else cand['status']
+        cur.execute("UPDATE ingest_candidates SET status=%s, updated_at=NOW() WHERE id=%s",
+                    (new_status, cid))
+        conn.commit()
+        return jsonify({'ok': True, 'applied': applied, 'skipped': skipped,
+                        'lesson_id': db_lesson['id']})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'apply failed: {e}'}), 500
+    finally:
+        conn.close()
+
+
+@app.route('/api/ingest/candidates/<int:cid>/reject', methods=['POST'])
+def ingest_candidate_reject(cid):
+    notes = ((request.get_json(silent=True) or {}).get('notes') or '').strip()
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE ingest_candidates SET status='rejected', decision_notes=%s, updated_at=NOW() WHERE id=%s",
+                (notes, cid))
+    found = cur.rowcount
+    cur.close(); conn.close()
+    if not found:
+        return jsonify({'error': 'not found'}), 404
+    return jsonify({'ok': True})
+
+
+@app.route('/api/ingest/candidates/<int:cid>/reset', methods=['POST'])
+def ingest_candidate_reset(cid):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE ingest_candidates SET status='pending', decision_notes='', updated_at=NOW() WHERE id=%s",
+                (cid,))
+    found = cur.rowcount
+    cur.close(); conn.close()
+    if not found:
+        return jsonify({'error': 'not found'}), 404
+    return jsonify({'ok': True})
+
+
 with app.app_context():
     init_db()
     seed_production_data()
     seed_day_b_data()
+    init_ingester_db()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
