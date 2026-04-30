@@ -26,14 +26,308 @@
     <p class="diagram-desc">Data flows from ingestion through knowledge graph, RWI processing, lesson building, and finally to student-facing deliverables</p>
 
     <div class="diagram-container">
-      <!-- existing content preserved -->
+      <!-- Row 1: Governance sits above as overarching context -->
+      <div class="diagram-row governance-row">
+        <div class="engine-card governance" data-engine="governance">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>Governance & Context</h3>
+          </div>
+          <p class="card-desc">SSOTs, Program Info, Presets & Views</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Single Sources of Truth</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>6+ Preset Views/Lenses</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Standards & Mappings</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Cognitive Domains</span>
+            </div>
+          </div>
+          <a href="pages/governance.html" class="card-link">View Details →</a>
+        </div>
+      </div>
+
+      <!-- Row 2: Main processing pipeline -->
+      <div class="diagram-row pipeline-row">
+        <!-- Knowledge Graph Engine -->
+        <div class="engine-card knowledge-graph" data-engine="knowledge-graph">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>Knowledge Graph Engine</h3>
+          </div>
+          <p class="card-desc">3D Research Graph, Ingestion, Ontology, Wiki Nodes</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>File Ingestion (30GB+ PDFs)</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Website Crawler</span>
+            </div>
+            <div class="tool" data-status="warning">
+              <span class="tool-dot"></span>
+              <span>Ontology Tagging System</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Wiki Node Generator</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>3D Graph Visualization</span>
+            </div>
+          </div>
+          <a href="pages/knowledge-graph.html" class="card-link">View Details →</a>
+          <div class="flow-arrow right blue">
+            <span class="arrow-label">Tagged Content</span>
+          </div>
+        </div>
+
+        <!-- RWI System -->
+        <div class="engine-card rwi-system" data-engine="rwi-system">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>RWI System</h3>
+          </div>
+          <p class="card-desc">Research, Writing, Image Sourcing & Design</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Research Drafting</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Wiki Content Writer</span>
+            </div>
+            <div class="tool" data-status="warning">
+              <span class="tool-dot"></span>
+              <span>Image Search API</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Gemini (Short Videos)</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>OpenAI (Long Videos/Myths)</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Art/STEM 3D Studio</span>
+            </div>
+          </div>
+          <a href="pages/rwi-system.html" class="card-link">View Details →</a>
+          <div class="flow-arrow right green">
+            <span class="arrow-label">Visual Content</span>
+          </div>
+        </div>
+
+        <!-- Lesson Builder -->
+        <div class="engine-card lesson-builder" data-engine="lesson-builder">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>Lesson Builder</h3>
+          </div>
+          <p class="card-desc">Drag-Drop Canvas, Section Assembly, eTextbook</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Wiki Canvas Workspace</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Drag-Drop Node Assembly</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Lesson Section Builder</span>
+            </div>
+            <div class="tool" data-status="warning">
+              <span class="tool-dot"></span>
+              <span>eTextbook Distillation</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Deliverable Generator</span>
+            </div>
+          </div>
+          <a href="pages/lesson-builder.html" class="card-link">View Details →</a>
+          <div class="flow-arrow right purple">
+            <span class="arrow-label">Lessons</span>
+          </div>
+        </div>
+
+        <!-- Teacher/Student Facing -->
+        <div class="engine-card teacher-student" data-engine="teacher-student">
+          <div class="card-header">
+            <span class="health-indicator healthy"></span>
+            <h3>Teacher/Student Facing</h3>
+          </div>
+          <p class="card-desc">Final Deliverables & Learning Interface</p>
+          <div class="tool-list">
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Lesson Presentations</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>eTextbook Viewer</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Student Progress Tracking</span>
+            </div>
+            <div class="tool" data-status="healthy">
+              <span class="tool-dot"></span>
+              <span>Assessment Tools</span>
+            </div>
+            <div class="tool" data-status="warning">
+              <span class="tool-dot"></span>
+              <span>Performance Analytics</span>
+            </div>
+          </div>
+          <a href="pages/teacher-student.html" class="card-link">View Details →</a>
+        </div>
+      </div>
+
+      <!-- Feedback Loop Arrow -->
+      <div class="feedback-loop">
+        <div class="feedback-arrow">
+          <span class="arrow-label">Student Performance Data Feeds Back</span>
+        </div>
+      </div>
     </div>
 
-    <a href="pages/concept-network.html" class="lessons-link" style="border-color: #7dd3fc; color: #7dd3fc; background: linear-gradient(135deg, rgba(125,211,252,0.15), rgba(15,20,32,0.15));">
-      <span>🧠</span>
-      <span>Concept Network: Visualize A1→B8 handoffs, systems, and production flow</span>
+    <!-- Learn How to Build This -->
+    <a href="pages/lessons.html" class="lessons-link">
+      <span>📚</span>
+      <span>Learn Web Development: See how this project was built step-by-step</span>
     </a>
 
+    <a href="pages/playground.html" class="lessons-link" style="border-color: var(--purple); color: var(--purple); background: linear-gradient(135deg, rgba(167,139,250,0.15), rgba(125,211,252,0.15));">
+      <span>🧪</span>
+      <span>Playground: Experiment with layouts and get AI review before publishing</span>
+    </a>
+
+    <a href="pages/day-b-lessons.html" class="lessons-link" style="border-color: #ff9800; color: #ff9800; background: linear-gradient(135deg, rgba(255,152,0,0.15), rgba(230,81,0,0.15));">
+      <span>&#x1F4D0;</span>
+      <span>Day B Lessons: 8 Elements x 3 Grades with ECD framework, MAGIC drivers & cumulative B5 chains</span>
+    </a>
+
+    <a href="pages/myth-catalog.html" class="lessons-link" style="border-color: #29969e; color: #29969e; background: linear-gradient(135deg, rgba(41,150,158,0.15), rgba(19,52,59,0.15));">
+      <span>&#x1F3DB;</span>
+      <span>Myth Catalog: Interactive Mesopotamian mythology reference for grades 3-5</span>
+    </a>
+
+    <a href="pages/image-manager.html" class="lessons-link" style="border-color: #208090; color: #208090; background: linear-gradient(135deg, rgba(32,128,144,0.15), rgba(20,85,96,0.15));">
+      <span>&#x1F5BC;</span>
+      <span>Image Manager: Source, curate & track visual assets from museum APIs</span>
+    </a>
+
+    <a href="pages/ingester.html" class="lessons-link" style="border-color: #5dd5a7; color: #5dd5a7; background: linear-gradient(135deg, rgba(93,213,167,0.15), rgba(40,120,90,0.15));">
+      <span>&#x1F4E5;</span>
+      <span>Drive Ingester: Pull lesson content from Google Drive and reconcile against the database</span>
+    </a>
+
+    <a href="pages/kanban/index.html" class="lessons-link" style="border-color: #7aa2ff; color: #7aa2ff; background: linear-gradient(135deg, rgba(122,162,255,0.15), rgba(15,26,48,0.15));">
+      <span>&#x1F5C2;</span>
+      <span>Process Kanban: Drag-and-drop workflow for Grade 3/4/5 lesson production</span>
+    </a>
+
+    <a href="pages/production-dashboard.html" class="lessons-link" style="border-color: #D4AF37; color: #D4AF37; background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(139,69,19,0.15));">
+      <span>&#x1F3DB;</span>
+      <span>Production Dashboard: Track 48 Mesopotamia lessons across 9 specialized teams</span>
+    </a>
+
+    <a href="pages/variables-spreadsheet.html" class="lessons-link" style="border-color: #81c784; color: #81c784; background: linear-gradient(135deg, rgba(129,199,132,0.15), rgba(56,142,60,0.15));">
+      <span>📊</span>
+      <span>Variables Spreadsheet: Define gods, artifacts, math concepts & activities for all 48 lessons</span>
+    </a>
+
+    <a href="pages/asset-manager.html" class="lessons-link" style="border-color: #ba68c8; color: #ba68c8; background: linear-gradient(135deg, rgba(186,104,200,0.15), rgba(123,31,162,0.15));">
+      <span>🖼️</span>
+      <span>Asset Manager: Track artifacts, downloads, AI images & overlays across all lessons</span>
+    </a>
+
+    <a href="pages/content-pipeline.html" class="lessons-link" style="border-color: #E91E63; color: #E91E63; background: linear-gradient(135deg, rgba(233,30,99,0.15), rgba(136,14,79,0.15));">
+      <span>📝</span>
+      <span>Content Pipeline: Track myths, math, visual stories & activities through drafting workflow</span>
+    </a>
+
+    <a href="pages/lesson-assembly.html" class="lessons-link" style="border-color: #009688; color: #009688; background: linear-gradient(135deg, rgba(0,150,136,0.15), rgba(0,77,64,0.15));">
+      <span>🔧</span>
+      <span>Lesson Assembly: Track component readiness for each lesson before final assembly</span>
+    </a>
+
+    <a href="pages/qa-review.html" class="lessons-link" style="border-color: #2196F3; color: #2196F3; background: linear-gradient(135deg, rgba(33,150,243,0.15), rgba(13,71,161,0.15));">
+      <span>✅</span>
+      <span>QA Review: Quality assurance checks across 5 categories for all 48 lessons</span>
+    </a>
+
+    <!-- Workflow Legend -->
+    <div class="workflow-legend">
+      <h4>Data Flow Legend</h4>
+      <div class="legend-items">
+        <div class="legend-item">
+          <span class="legend-color blue"></span>
+          <span>Tagged Content → RWI</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color green"></span>
+          <span>Visual Content → Lessons</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color purple"></span>
+          <span>Lessons → Deliverables</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color orange"></span>
+          <span>Performance → Knowledge Graph</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Presets Panel -->
+    <div class="presets-panel">
+      <h3>Knowledge Graph Presets (Views/Lenses)</h3>
+      <p class="panel-desc">Different perspectives through the graph database</p>
+      <div class="preset-grid">
+        <div class="preset-card">
+          <h4>1. Geometric Elements</h4>
+          <p>Original research on geometric fundamentals</p>
+        </div>
+        <div class="preset-card">
+          <h4>2. Lesson Structure</h4>
+          <p>Geometric research → lesson creation</p>
+        </div>
+        <div class="preset-card">
+          <h4>3. Standards & Curriculum</h4>
+          <p>Current mappings, cognitive domains</p>
+        </div>
+        <div class="preset-card">
+          <h4>4. Child Development</h4>
+          <p>Cognitive domains & development stages</p>
+        </div>
+        <div class="preset-card">
+          <h4>5. Student Performance</h4>
+          <p>Domains, standards, performance data</p>
+        </div>
+        <div class="preset-card">
+          <h4>6. Standards Creation</h4>
+          <p>Building new standards from research</p>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="footer">
