@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Concept Network</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <style>
+    .network-layout { display: grid; gap: 2rem; }
+    .spine { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 1rem; }
+    .node-card { padding: 1rem; border-radius: 12px; background: rgba(255,255,255,0.05); }
+    .node-card.A { border-left: 4px solid var(--purple); }
+    .node-card.B { border-left: 4px solid var(--orange); }
+    .systems { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 1rem; }
+    .system-card { padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; }
+    .handoffs { display: grid; gap: 1rem; }
+    .handoff { padding: 1rem; background: rgba(255,255,255,0.05); border-left: 4px solid var(--accent); border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>Concept Network</h1>
+    <button id="themeToggle" class="btn">Toggle Theme</button>
+  </header>
+
+  <main class="page-content">
+    <div id="network"></div>
+  </main>
+
+  <script src="../scripts/main.js"></script>
+  <script type="module" src="../scripts/concept-network.js"></script>
+</body>
+</html>
