@@ -1,0 +1,183 @@
+Yes, that is exactly what you should do.
+
+Use Replit to build this as a branch of the existing repo, not as a separate disconnected app. That preserves context because the prototype can reference the current visual structure, files, assets, layouts, and naming patterns directly.
+
+Replit’s docs say its Git integration supports tracking changes, GitHub connectivity, and branches so you can experiment with new features safely.  ￼ Replit’s Git pane also supports creating, switching, and merging branches visually, plus staging, committing, reviewing, and pushing changes.  ￼
+
+The right approach
+
+main branch
+= current visual structure / stable reference
+review-workbench-prototype branch
+= Replit builds the text editor reviewer inside the same app
+
+This way, everything stays directly relevant, but your main version is protected.
+
+⸻
+
+Instructions for Replit Agent
+
+Paste this whole block into Replit Agent:
+
+I want to build this as a feature branch inside the existing repo, not as a separate app.
+Repo:
+warrenghaad/HTML-CSS-JS-Static-1
+Create or switch to a branch named:
+review-workbench-prototype
+Goal:
+Build the EUCLID Text Review Workbench inside this existing app so it can preserve and use the current visual structure, mapping, assets, styles, and file organization.
+Important:
+Do not delete existing files.
+Do not rename existing files.
+Do not reorganize the existing app.
+Do not replace the current visual system.
+Do not convert the whole app to a new framework.
+Do not integrate Notion yet.
+Do not build Electron yet.
+Do not create a complex database yet.
+This branch should add a prototype text editor reviewer that lives inside the current app.
+Build Version 0.1 only.
+Version 0.1 should include:
+1. A Review Workbench page.
+2. A link or button from the existing app to the Review Workbench.
+3. A left panel for document/file list.
+4. A center editable text panel.
+5. A right review panel.
+6. A bottom TOC / placement map panel.
+7. A sample document loaded into the editor.
+8. A status selector with:
+   - Inbox
+   - Active Review
+   - Canon
+   - Canon Candidate
+   - Fragment
+   - Conflict
+   - Superseded
+   - Archive
+   - Build-System
+   - Lesson
+   - Obsidian Ready
+9. A field for future destination file.
+10. A field for review notes.
+11. A Generate Provisional TOC button.
+12. The TOC button should detect Markdown headings beginning with #, ##, or ###.
+13. A Create Placement Map Note button.
+14. The placement map should include:
+   - current document name
+   - status
+   - future destination file
+   - review notes
+   - detected headings
+   - unresolved questions placeholder
+Preferred file locations:
+- pages/review-workbench.html
+- scripts/review-workbench.js
+- styles/review-workbench.css
+- data/review-metadata.json
+- data/future-tocs/
+- data/placement-maps/
+- data/obsidian-ready/
+If the repo already has a different convention, follow the existing convention.
+Data safety:
+For Version 0.1, do not overwrite original files.
+It is acceptable for edits to stay in browser memory.
+If saving is added, save only generated review metadata or generated placement-map output.
+Do not edit source documents automatically.
+Before implementing:
+1. Inspect the repo structure.
+2. Tell me the proposed file changes.
+3. Explain how the branch protects the main app.
+4. Wait for my approval before applying changes.
+
+⸻
+
+Instructions for you
+
+1. In Replit, import/open the repo
+
+Use:
+
+https://github.com/warrenghaad/HTML-CSS-JS-Static-1
+
+Replit supports importing GitHub repositories into an app.  ￼
+
+2. Open the Git pane
+
+Look for Replit’s Git/version-control area.
+
+Replit’s Git pane is meant to let you review changes, stage files, commit, push, and manage branches visually.  ￼
+
+3. Create a branch
+
+Create this branch:
+
+review-workbench-prototype
+
+4. Paste the Replit Agent instructions above
+
+Do not ask it to build everything. Ask for Version 0.1 only.
+
+5. When Replit shows a plan, approve only if it says it will add files
+
+Good signs:
+
+add pages/review-workbench.html
+add scripts/review-workbench.js
+add styles/review-workbench.css
+add data/review-metadata.json
+add link to existing navigation
+
+Danger signs:
+
+delete
+replace
+restructure
+migrate
+convert entire project
+rename existing folders
+remove current app
+
+If you see danger signs, reply:
+
+Stop. Do not restructure the repo. Only add the Review Workbench page and supporting files on this branch.
+
+6. After it works, commit the branch
+
+Commit message:
+
+Add prototype Review Workbench
+
+Then push the branch to GitHub.
+
+⸻
+
+Why branch inside the same app is better
+
+Because your current app already contains:
+
+visual structure
+mapping logic
+assets
+styles
+current navigation ideas
+current data folders
+HTML/CSS/JS conventions
+
+A separate app would lose that context.
+
+A branch keeps the prototype close to the living organism without cutting into the heartwood. 🌳
+
+Clean mental model
+
+main
+= preserve current app
+review-workbench-prototype
+= add text editor reviewer
+future branch
+= add AI review
+future branch
+= add Obsidian export
+future branch
+= add Notion workflow
+
+So yes: build it as a Replit branch of the same repo. That is the right move.
