@@ -69,15 +69,92 @@ Radial symmetry as repeated rotation.
 5. Click **Create Placement Map Note** to produce a JSON summary.
 6. Use **Open .md** to load a file from your computer; **Save .md** to download the editor as a file.
 
-Nothing is written to disk automatically. Edits live in this browser tab until you save.
+Edits, status, destination, and notes are auto-saved to this browser's storage and survive a page refresh. Nothing is written to disk on the server — use **Save .md** to export a file to your computer.
 `,
     },
   ];
 
+  // -------- Persistence (localStorage) --------
+  const STORAGE_KEY = 'review-workbench:v1';
+  const STORAGE_VERSION = 2;
+
+  function loadPersistedState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || parsed.version !== STORAGE_VERSION) return null;
+      if (!Array.isArray(parsed.docs)) return null;
+      // Sanitize: keep only fields we expect.
+      const docs = parsed.docs
+        .filter((d) => d && typeof d.id === 'string' && typeof d.name === 'string')
+        .map((d) => ({
+          id: d.id,
+          name: d.name,
+          status: typeof d.status === 'string' ? d.status : 'Inbox',
+          destination: typeof d.destination === 'string' ? d.destination : '',
+          notes: typeof d.notes === 'string' ? d.notes : '',
+          content: typeof d.content === 'string' ? d.content : '',
+          source: d.source === 'file' ? 'file' : undefined,
+        }));
+      return {
+        docs,
+        activeId: typeof parsed.activeId === 'string' ? parsed.activeId : null,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  function savePersistedState() {
+    try {
+      const payload = {
+        version: STORAGE_VERSION,
+        savedAt: new Date().toISOString(),
+        activeId: state.activeId,
+        docs: state.docs.map((d) => ({
+          id: d.id,
+          name: d.name,
+          status: d.status || 'Inbox',
+          destination: d.destination || '',
+          notes: d.notes || '',
+          content: d.content || '',
+          source: d.source,
+        })),
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      // Quota exceeded or storage unavailable — ignore silently so the
+      // workbench keeps functioning in-memory.
+    }
+  }
+
+  let saveTimer = null;
+  function schedulePersist() {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      saveTimer = null;
+      persistActive();
+      savePersistedState();
+    }, 250);
+  }
+
+  const persisted = loadPersistedState();
   const state = {
-    docs: SAMPLE_DOCS.map((d) => ({ ...d })),
+    docs:
+      persisted && persisted.docs.length
+        ? persisted.docs
+        : SAMPLE_DOCS.map((d) => ({ ...d })),
+    // Intentionally start with no activeId. The first `loadDoc()` call below
+    // would otherwise call `persistActive()` and overwrite the persisted doc
+    // with the still-empty editor contents.
     activeId: null,
   };
+  let initialActiveId =
+    persisted && persisted.activeId &&
+    state.docs.some((d) => d.id === persisted.activeId)
+      ? persisted.activeId
+      : null;
 
   // -------- Element refs --------
   const $ = (id) => document.getElementById(id);
@@ -130,9 +207,10 @@ Nothing is written to disk automatically. Edits live in this browser tab until y
     const doc = state.docs.find((d) => d.id === id);
     if (!doc) return;
     state.activeId = id;
+    savePersistedState();
     els.editor.value = doc.content;
     els.docTitle.textContent = doc.name;
-    els.docMeta.textContent = doc.source === 'file' ? 'opened from file' : 'browser-memory';
+    els.docMeta.textContent = doc.source === 'file' ? 'opened from file · auto-saved' : 'auto-saved';
     els.status.value = doc.status || 'Inbox';
     els.destination.value = doc.destination || '';
     els.notes.value = doc.notes || '';
@@ -206,6 +284,7 @@ Nothing is written to disk automatically. Edits live in this browser tab until y
       state.docs.unshift(doc);
       renderFileList();
       loadDoc(id);
+      savePersistedState();
     };
     reader.readAsText(file);
   }
@@ -235,7 +314,9 @@ Nothing is written to disk automatically. Edits live in this browser tab until y
   // -------- Wire events --------
   document.addEventListener('DOMContentLoaded', () => {
     renderFileList();
-    if (state.docs.length) loadDoc(state.docs[0].id);
+    const firstId =
+      initialActiveId || (state.docs.length ? state.docs[0].id : null);
+    if (firstId) loadDoc(firstId);
 
     els.genTocBtn.addEventListener('click', generateTOC);
     els.genMapBtn.addEventListener('click', generatePlacementMap);
@@ -260,8 +341,22 @@ Nothing is written to disk automatically. Edits live in this browser tab until y
       }
     });
 
-    [els.editor, els.status, els.destination, els.notes].forEach((el) =>
-      el.addEventListener('change', persistActive)
-    );
+    [els.editor, els.status, els.destination, els.notes].forEach((el) => {
+      el.addEventListener('change', () => {
+        persistActive();
+        savePersistedState();
+      });
+      el.addEventListener('input', schedulePersist);
+    });
+
+    // Final flush before the tab unloads, in case a debounced save is pending.
+    window.addEventListener('beforeunload', () => {
+      if (saveTimer) {
+        clearTimeout(saveTimer);
+        saveTimer = null;
+      }
+      persistActive();
+      savePersistedState();
+    });
   });
 })();
