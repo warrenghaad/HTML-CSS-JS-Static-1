@@ -89,6 +89,7 @@ M=Math, A=Aesthetics, G=Geometry (emergent center), I=Ideology, C=Culture
 - Per-card checklists and filtering by week/day/search
 
 ### Integrated Tools
+- **Review Workbench (v0.1 prototype)** (`pages/review-workbench.html`): Four-panel editor for reviewing documents. Left: file list (sample docs in browser memory). Center: editable Markdown textarea. Right: status selector (Inbox / Active Review / Canon / Canon Candidate / Fragment / Conflict / Superseded / Archive / Build-System / Lesson / Obsidian Ready), future-destination field, review notes. Bottom: provisional TOC generator (scans `#`/`##`/`###` headings) and Placement Map JSON note generator. Supports **Open .md** (load file from user's computer) and **Save .md** (download editor contents). All state lives in the browser tab — no server endpoints, no DB writes, no source-file mutation. Output dirs `data/future-tocs/`, `data/placement-maps/`, `data/obsidian-ready/` exist as placeholders for a future "save to disk" version. Built on the `review-workbench-prototype` branch (off `warrenghaad`) so it does not touch `main`. Logic kept as plain client-side JS (`scripts/review-workbench.js`) for easy reuse in a future React-Three-Fiber / Electron canvas.
 - **Myth Catalog**: Interactive Mesopotamian mythology reference with grade/shape/category filters
 - **Image Manager**: Museum API sourcing tool (Met, Yale, British Museum, Wikimedia, Smithsonian, CDLI)
 - **Lesson Shell Demo**: Sidebar navigation with hash-based routing for rendered lesson content

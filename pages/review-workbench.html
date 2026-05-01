@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Review Workbench — Geo-Arts</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <link rel="stylesheet" href="../styles/review-workbench.css">
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>Review Workbench</h1>
+      <span class="subtitle">Read · Edit · Status · TOC · Placement Map (v0.1 prototype)</span>
+    </div>
+    <div class="header-actions">
+      <a href="../index.html" class="back-link">← Home</a>
+      <button class="btn" id="themeToggle">Toggle Theme</button>
+    </div>
+  </header>
+
+  <main class="rw-grid">
+    <!-- LEFT: file list -->
+    <aside class="rw-panel rw-files">
+      <div class="rw-panel-header">
+        <h3>Documents</h3>
+        <div class="rw-file-actions">
+          <button class="btn rw-btn-sm" id="rwOpenFile" title="Open a .md file from your computer">Open .md</button>
+          <input type="file" id="rwFileInput" accept=".md,.markdown,.txt" hidden>
+        </div>
+      </div>
+      <ul class="rw-file-list" id="rwFileList"></ul>
+      <p class="rw-hint">Sample documents live in this browser tab. Use <strong>Open .md</strong> to load a file from your computer, or <strong>Save .md</strong> on the right to export.</p>
+    </aside>
+
+    <!-- CENTER: editor -->
+    <section class="rw-panel rw-editor-panel">
+      <div class="rw-panel-header">
+        <h3 id="rwDocTitle">Untitled</h3>
+        <span class="rw-meta" id="rwDocMeta">browser-memory</span>
+      </div>
+      <textarea id="rwEditor" class="rw-editor" spellcheck="true" placeholder="# Heading
+Write or paste Markdown here..."></textarea>
+    </section>
+
+    <!-- RIGHT: review -->
+    <aside class="rw-panel rw-review">
+      <div class="rw-panel-header"><h3>Review</h3></div>
+
+      <label class="rw-label" for="rwStatus">Status</label>
+      <select id="rwStatus" class="rw-input">
+        <option>Inbox</option>
+        <option>Active Review</option>
+        <option>Canon</option>
+        <option>Canon Candidate</option>
+        <option>Fragment</option>
+        <option>Conflict</option>
+        <option>Superseded</option>
+        <option>Archive</option>
+        <option>Build-System</option>
+        <option>Lesson</option>
+        <option>Obsidian Ready</option>
+      </select>
+
+      <label class="rw-label" for="rwDestination">Future destination file</label>
+      <input id="rwDestination" class="rw-input" type="text" placeholder="e.g. data/obsidian-ready/circle-week1.md">
+
+      <label class="rw-label" for="rwNotes">Review notes</label>
+      <textarea id="rwNotes" class="rw-input rw-notes" placeholder="What is this for? What needs work? Open questions?"></textarea>
+
+      <div class="rw-actions">
+        <button class="btn full-width" id="rwGenTOC">Generate Provisional TOC</button>
+        <button class="btn full-width" id="rwGenMap">Create Placement Map Note</button>
+        <button class="btn full-width secondary" id="rwSaveFile">Save .md to computer</button>
+      </div>
+
+      <p class="rw-hint">No edits are written to source files. The Placement Map is generated as JSON below — copy it anywhere (Claude tab, Notion, Obsidian).</p>
+    </aside>
+
+    <!-- BOTTOM: TOC / Placement map -->
+    <section class="rw-panel rw-bottom">
+      <div class="rw-bottom-grid">
+        <div>
+          <div class="rw-panel-header"><h3>Provisional TOC</h3></div>
+          <ul class="rw-toc" id="rwTocList"><li class="rw-empty">Click <em>Generate Provisional TOC</em> to scan headings.</li></ul>
+        </div>
+        <div>
+          <div class="rw-panel-header">
+            <h3>Placement Map Note</h3>
+            <button class="btn rw-btn-sm" id="rwCopyMap" title="Copy JSON to clipboard">Copy</button>
+          </div>
+          <pre class="rw-map" id="rwMapOutput">// Click "Create Placement Map Note" to generate.</pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Review Workbench v0.1 · prototype on <code>review-workbench-prototype</code> branch · in-browser memory only</p>
+  </footer>
+
+  <script src="../scripts/main.js"></script>
+  <script src="../scripts/review-workbench.js"></script>
+</body>
+</html>

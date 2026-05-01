@@ -1,0 +1,27 @@
+{
+  "schema": "review-metadata/v0.1",
+  "description": "Seed metadata for the Review Workbench prototype. Lists the canonical statuses and the directories where generated outputs would live if/when the workbench begins writing to disk in a future version.",
+  "statuses": [
+    "Inbox",
+    "Active Review",
+    "Canon",
+    "Canon Candidate",
+    "Fragment",
+    "Conflict",
+    "Superseded",
+    "Archive",
+    "Build-System",
+    "Lesson",
+    "Obsidian Ready"
+  ],
+  "output_dirs": {
+    "future_tocs": "data/future-tocs/",
+    "placement_maps": "data/placement-maps/",
+    "obsidian_ready": "data/obsidian-ready/"
+  },
+  "notes": [
+    "v0.1 does NOT write to disk — edits and outputs live in the browser tab only.",
+    "Use the Save .md button to download the editor's contents to your computer.",
+    "Use the Copy button on the Placement Map to copy the generated JSON elsewhere."
+  ]
+}

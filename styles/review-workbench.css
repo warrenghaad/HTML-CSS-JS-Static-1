@@ -1,0 +1,236 @@
+/* Review Workbench v0.1 — scoped styles. Inherits theme vars from main.css. */
+
+.rw-grid {
+  display: grid;
+  grid-template-columns: 240px 1fr 320px;
+  grid-template-rows: minmax(420px, 1fr) 280px;
+  grid-template-areas:
+    "files editor review"
+    "bottom bottom bottom";
+  gap: 1rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+  min-height: calc(100vh - 140px);
+}
+
+@media (max-width: 1100px) {
+  .rw-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas: "files" "editor" "review" "bottom";
+  }
+}
+
+.rw-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.rw-files { grid-area: files; }
+.rw-editor-panel { grid-area: editor; }
+.rw-review { grid-area: review; }
+.rw-bottom { grid-area: bottom; }
+
+.rw-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+}
+
+.rw-panel-header h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.rw-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rw-btn-sm {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+}
+
+/* File list */
+.rw-file-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.rw-file-item {
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.rw-file-item:hover { background: var(--bg-card-hover); }
+
+.rw-file-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.rw-file-item.active {
+  border-color: var(--accent);
+  background: rgba(125,211,252,0.10);
+}
+
+.rw-file-name {
+  font-size: 0.82rem;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.rw-file-status {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rw-hint {
+  margin-top: 0.75rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Editor */
+.rw-editor {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  background: rgba(0,0,0,0.25);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  outline: none;
+  min-height: 360px;
+}
+
+body.light .rw-editor {
+  background: rgba(255,255,255,0.6);
+}
+
+.rw-editor:focus { border-color: var(--accent); }
+
+/* Review panel */
+.rw-label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0.85rem 0 0.35rem;
+}
+
+.rw-label:first-of-type { margin-top: 0; }
+
+.rw-input {
+  width: 100%;
+  background: rgba(0,0,0,0.2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  outline: none;
+}
+
+body.light .rw-input { background: rgba(255,255,255,0.7); }
+
+.rw-input:focus { border-color: var(--accent); }
+
+.rw-notes {
+  min-height: 110px;
+  resize: vertical;
+  font-family: var(--font-sans);
+  line-height: 1.45;
+}
+
+.rw-actions {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* Bottom */
+.rw-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .rw-bottom-grid { grid-template-columns: 1fr; }
+}
+
+.rw-toc {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text);
+  overflow-y: auto;
+  max-height: 220px;
+}
+
+.rw-toc li { padding: 0.15rem 0.35rem; }
+.rw-toc .rw-toc-h1 { color: var(--accent); font-weight: 600; }
+.rw-toc .rw-toc-h2 { padding-left: 0.75rem; color: var(--text); }
+.rw-toc .rw-toc-h3 { padding-left: 1.5rem; color: var(--text-muted); }
+.rw-toc .rw-empty { color: var(--text-muted); font-style: italic; font-family: var(--font-sans); }
+
+.rw-map {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow: auto;
+  max-height: 220px;
+  margin: 0;
+}
+
+body.light .rw-map { background: rgba(255,255,255,0.7); }
+
+/* Header back-link tweak (matches existing .back-link) */
+.header-actions .back-link {
+  font-size: 0.85rem;
+}
