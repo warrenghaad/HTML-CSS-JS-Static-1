@@ -1,0 +1,49 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID"
+      ]
+    },
+    "figma": {
+      "type": "http",
+      "url": "https://mcp.figma.com"
+    },
+    "notion": {
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "gdrive": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-gdrive"],
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "${HOME}/.config/gdrive/sa.json"
+      }
+    },
+    "adobe-express": {
+      "type": "http",
+      "url": "https://express.adobe.com/mcp"
+    },
+    "aem": {
+      "type": "http",
+      "url": "https://aem.adobe.com/mcp"
+    },
+    "perplexity": {
+      "command": "npx",
+      "args": ["-y", "perplexity-mcp-server"],
+      "env": {
+        "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}"
+      }
+    },
+    "gemini": {
+      "command": "npx",
+      "args": ["-y", "@google/gemini-mcp-server"],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      }
+    }
+  }
+}
