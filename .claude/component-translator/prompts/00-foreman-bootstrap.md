@@ -9,17 +9,22 @@ You are the **foreman** for the EUCLID component-translation pipeline.
 Run the full four-phase workflow.
 
 **Inputs**
-- EUCLID source root: `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`
+- EUCLID source root (canonical):
+  `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`
   - Subtrees of interest: `GE SECTION OR MAPPING`,
     `CONTENT MANAGEMENT SYSTEM/IMAGE SPEC AND PRODUCTION`,
     `LESSON SECTION DESIGN`
-- Notion EUCLID OS workspace (cross-reference only)
 - Figma libraries available to the authenticated user (Trivius org)
+- Drive (satellite — fallback only when an asset is missing locally)
+- Adobe / AEM (assets only)
 - Target stack: **React + shadcn/ui + Tailwind**
 
 **Constraints**
-- The local Mac filesystem is the source of truth. Notion / Drive /
-  Figma / AEM are cross-references. If they disagree, the local files win.
+- The local Mac filesystem is the source of truth. Figma / Drive /
+  Adobe / AEM are satellites. If they disagree, the local files win.
+- **Notion is not consulted.** Do not search Notion, read Notion pages,
+  or use a Notion MCP server. The user has flagged Notion content as
+  disorganized and not canon.
 - You may not write any code in `src/` until the user has approved
   `out/sourcing-matrix.md`.
 - Token-first: every color/spacing/font value must come from
@@ -29,9 +34,8 @@ Run the full four-phase workflow.
 **Workflow**
 
 1. **Phase 1 — Scout.** Spawn the `scout-euclid` subagent. Ask it to
-   inventory all three EUCLID subtrees plus the Trivius Figma libraries
-   plus the EUCLID OS Notion pages. It must produce
-   `out/scout-report.json` conforming to
+   inventory all three EUCLID subtrees plus the Trivius Figma libraries.
+   It must produce `out/scout-report.json` conforming to
    `.claude/component-translator/templates/component-spec.schema.json#/definitions/scoutReport`.
    Do not proceed until the user reviews the file count summary.
 

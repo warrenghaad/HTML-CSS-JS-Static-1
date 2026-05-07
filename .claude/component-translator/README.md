@@ -1,7 +1,7 @@
 # Component Translator
 
 A multi-agent kit that turns **EUCLID** design source material (local Mac
-files, Figma, Adobe, Drive, Notion, AEM) into a working **React + shadcn/ui +
+files, Figma, Adobe, Drive, AEM) into a working **React + shadcn/ui +
 Tailwind** component library. Claude Code is the foreman; specialized
 subagents do the legwork.
 
@@ -9,12 +9,22 @@ subagents do the legwork.
 
 | Agent | Role | Reads from | Writes |
 |---|---|---|---|
-| **scout-euclid** | Inventory the raw source material; classify every artifact | Mac filesystem (primary), Drive, Notion, Figma, AEM | `out/scout-report.json` |
+| **scout-euclid** | Inventory the raw source material; classify every artifact | Mac filesystem (canonical), Figma, Drive, AEM | `out/scout-report.json` |
 | **component-analyzer** | Infer the component set the project actually needs and the variants/states each requires | scout report | `out/component-spec.json` |
 | **component-sourcer** | Decide *where each component comes from* (shadcn registry, Figma library, Adobe asset, Gemini/Perplexity research, hand-build) | component spec + Figma libraries + web | `out/sourcing-matrix.md` + `out/sourcing-matrix.json` |
 | **foreman-translator** | Execute imports, translate Figma nodes to code, write components, wire shared tokens, gate on tests | sourcing matrix | `src/components/**`, `src/styles/tokens.css` |
 
 See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full data flow.
+
+## Source-of-truth rule
+
+The local Mac path `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/` is
+**canonical**. Every other source (Figma, Drive, Adobe, AEM) is a
+satellite — read-only context the agents may consult to fill in
+designs or assets, never to override the local files.
+
+Notion is **not** used by this kit. Even if EUCLID-named pages exist in
+Notion, they are out of scope and not consulted by any agent.
 
 ## Why this shape
 
@@ -42,7 +52,7 @@ cd html-css-js-static-1
 
 # 2. Wire MCP servers (see MCP-SETUP.md for prereqs)
 cp .claude/component-translator/.mcp.json.example .mcp.json
-# then edit the env vars: FIGMA_API_KEY, NOTION_TOKEN, etc.
+# then edit the env vars: FIGMA_API_KEY, GOOGLE_APPLICATION_CREDENTIALS, etc.
 
 # 3. Open Claude Code in this repo
 claude
@@ -82,8 +92,7 @@ claude
 
 - macOS, Claude Code installed, repo checked out locally.
 - Local read access to `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`
-  (the kit treats this path as the canonical source of truth; everything
-  else is a satellite).
+  — the canonical source of truth. Everything else is a satellite.
 - A target React+Tailwind+shadcn project. If you're keeping this repo as a
   static-HTML site, generated components should land in a sibling project;
   the foreman prompt asks you to confirm the destination on first run.

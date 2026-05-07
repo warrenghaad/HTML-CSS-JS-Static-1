@@ -19,7 +19,7 @@
                 "required": ["kind", "location"],
                 "properties": {
                   "kind": {
-                    "enum": ["filesystem", "figma", "notion", "gdrive", "aem", "adobe"]
+                    "enum": ["filesystem", "figma", "gdrive", "aem", "adobe"]
                   },
                   "location": { "type": "string" },
                   "itemsScanned": { "type": "integer" }
@@ -49,7 +49,6 @@
             "content.lesson-section",
             "content.image-asset",
             "content.copy",
-            "meta.notion-page",
             "meta.mapping",
             "unknown"
           ]
@@ -58,8 +57,7 @@
         "mtime": { "type": "string", "format": "date-time" },
         "summary": { "type": "string" },
         "figmaFileKey": { "type": "string" },
-        "figmaNodeId": { "type": "string" },
-        "notionId": { "type": "string" }
+        "figmaNodeId": { "type": "string" }
       }
     },
     "componentSpec": {

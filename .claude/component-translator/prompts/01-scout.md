@@ -12,7 +12,7 @@ kind. Read-only. No judgment about what's needed — just classify.
 
 **Sources, in priority order:**
 
-1. Mac filesystem (Filesystem MCP), starting at
+1. Mac filesystem (Filesystem MCP) — **canonical**. Start at
    `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`. Recurse into:
    - `GE SECTION OR MAPPING/`
    - `CONTENT MANAGEMENT SYSTEM/IMAGE SPEC AND PRODUCTION/`
@@ -20,9 +20,10 @@ kind. Read-only. No judgment about what's needed — just classify.
 2. Figma libraries available to the authenticated user. Use
    `get_libraries` against the most recently opened EUCLID Figma file
    (ask the user for the file URL if no obvious one exists).
-3. Notion: search the EUCLID OS / CMS Hub / SSOT LESSON SECTIONS
-   databases. Pull only titles and one-line summaries.
-4. Drive: only if the local file is missing or appears truncated.
+3. Drive — fallback only when a referenced asset is missing locally.
+
+**Do not consult Notion.** It is not canonical and the user has flagged
+it as disorganized.
 
 **Classification taxonomy** (each artifact gets exactly one):
 
@@ -33,7 +34,6 @@ kind. Read-only. No judgment about what's needed — just classify.
 - `content.lesson-section` — a lesson-section markdown / doc
 - `content.image-asset` — PNG/SVG/PSD ready for production
 - `content.copy` — microcopy or body text
-- `meta.notion-page` — a Notion page that documents structure
 - `meta.mapping` — a GE SECTION OR MAPPING file (relationship graph)
 - `unknown` — cannot classify; include the path so a human can label it
 

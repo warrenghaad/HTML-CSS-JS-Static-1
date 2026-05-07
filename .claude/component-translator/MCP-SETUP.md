@@ -4,7 +4,11 @@ The kit assumes Claude Code on your Mac with the following MCP servers
 configured. Copy `.mcp.json.example` to the repo root as `.mcp.json` and
 edit the env vars.
 
-## Required (the four core sources)
+**Note:** Notion is intentionally **not** in this kit. The user has
+flagged Notion content as disorganized and not canonical. Do not add a
+Notion MCP server to `.mcp.json` for this pipeline.
+
+## Required (the canonical source + design context)
 
 ### 1. Filesystem MCP — reads `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID`
 
@@ -28,21 +32,17 @@ claude mcp add figma --transport http -- https://mcp.figma.com
 # follow the OAuth flow; pick the Trivius org for design-system access
 ```
 
-### 3. Notion MCP — cross-reference EUCLID OS / CMS Hub / SSOT databases
+## Optional satellites
 
-```bash
-claude mcp add notion --transport http -- https://mcp.notion.com/mcp
-# OAuth into the workspace that owns the EUCLID pages
-```
-
-### 4. Google Drive MCP — supplementary EUCLID material in Drive
+### Google Drive MCP — fallback for assets / specs not yet on the Mac
 
 ```bash
 claude mcp add gdrive -- npx -y @modelcontextprotocol/server-gdrive
 # requires GOOGLE_APPLICATION_CREDENTIALS pointing at a service-account JSON
 ```
 
-## Optional but recommended
+Use only when a referenced asset is missing locally. The Mac filesystem
+stays canonical.
 
 ### Adobe Express MCP — image ops, asset search, vectorize, background removal
 
