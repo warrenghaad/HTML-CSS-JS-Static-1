@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/warrenghaad/html-css-js-static-1/component-translator/component-spec.schema.json",
+  "title": "Component Translator schemas",
+  "definitions": {
+    "scoutReport": {
+      "type": "object",
+      "required": ["meta", "artifacts"],
+      "properties": {
+        "meta": {
+          "type": "object",
+          "required": ["generatedAt", "sources"],
+          "properties": {
+            "generatedAt": { "type": "string", "format": "date-time" },
+            "sources": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["kind", "location"],
+                "properties": {
+                  "kind": {
+                    "enum": ["filesystem", "figma", "gdrive", "aem", "adobe"]
+                  },
+                  "location": { "type": "string" },
+                  "itemsScanned": { "type": "integer" }
+                }
+              }
+            },
+            "truncated": { "type": "boolean" }
+          }
+        },
+        "artifacts": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/scoutArtifact" }
+        }
+      }
+    },
+    "scoutArtifact": {
+      "type": "object",
+      "required": ["path", "kind", "summary"],
+      "properties": {
+        "path": { "type": "string" },
+        "kind": {
+          "enum": [
+            "design.figma-node",
+            "design.figma-library-component",
+            "design.image-spec",
+            "design.layout-spec",
+            "content.lesson-section",
+            "content.image-asset",
+            "content.copy",
+            "meta.mapping",
+            "unknown"
+          ]
+        },
+        "sizeBytes": { "type": "integer" },
+        "mtime": { "type": "string", "format": "date-time" },
+        "summary": { "type": "string" },
+        "figmaFileKey": { "type": "string" },
+        "figmaNodeId": { "type": "string" }
+      }
+    },
+    "componentSpec": {
+      "type": "object",
+      "required": ["name", "kind", "purpose", "evidenceRefs"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]+$" },
+        "kind": { "enum": ["atom", "molecule", "organism", "template"] },
+        "purpose": { "type": "string" },
+        "props": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type"],
+            "properties": {
+              "name": { "type": "string" },
+              "type": { "type": "string" },
+              "required": { "type": "boolean" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "variants": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "componentSpecArray": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/componentSpec" }
+    },
+    "sourcingDecision": {
+      "type": "object",
+      "required": ["componentName", "source", "rationale", "confidence"],
+      "properties": {
+        "componentName": { "type": "string" },
+        "source": {
+          "enum": [
+            "figma-library",
+            "shadcn",
+            "figma-node",
+            "adobe-asset",
+            "hand-build-from-spec",
+            "research-then-build"
+          ]
+        },
+        "details": { "type": "object", "additionalProperties": true },
+        "rationale": { "type": "string" },
+        "citations": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "confidence": { "enum": ["high", "medium", "low"] },
+        "risks": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "sourcingMatrix": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/sourcingDecision" }
+    }
+  }
+}
