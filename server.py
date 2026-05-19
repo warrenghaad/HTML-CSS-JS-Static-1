@@ -2455,8 +2455,12 @@ def dayb_element_reconciliations():
         validation_status = (data.get('validation_status') or 'unknown').strip()
         try:
             _validate_element_statuses(novelty_status, validation_status)
-        except ValueError as exc:
-            return jsonify({'error': str(exc)}), 400
+        except ValueError:
+            return jsonify({
+                'error': 'Invalid novelty_status or validation_status',
+                'allowed_novelty_statuses': ELEMENT_NOVELTY_STATUSES,
+                'allowed_validation_statuses': ELEMENT_VALIDATION_STATUSES,
+            }), 400
         canonical_element_id = data.get('canonical_element_id')
         source_type = (data.get('source_type') or 'manual').strip() or 'manual'
         source_key = (data.get('source_key') or '').strip() or f'{source_type}:{_slugify(candidate_name)}:{int(datetime.utcnow().timestamp())}'
@@ -2607,10 +2611,14 @@ def dayb_element_reconciliation_detail(rec_id):
         validation_status = (data.get('validation_status') or current['validation_status']).strip()
         try:
             _validate_element_statuses(novelty_status, validation_status)
-        except ValueError as exc:
+        except ValueError:
             cur.close()
             conn.close()
-            return jsonify({'error': str(exc)}), 400
+            return jsonify({
+                'error': 'Invalid novelty_status or validation_status',
+                'allowed_novelty_statuses': ELEMENT_NOVELTY_STATUSES,
+                'allowed_validation_statuses': ELEMENT_VALIDATION_STATUSES,
+            }), 400
         if 'novelty_status' in data:
             updates.append('novelty_status = %s')
             values.append(novelty_status)
