@@ -9,11 +9,25 @@ from openai import OpenAI
 app = Flask(__name__, static_folder='.', static_url_path='')
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
+REPO_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 ai_client = OpenAI(
     base_url=os.environ.get('AI_INTEGRATIONS_OPENAI_BASE_URL'),
     api_key=os.environ.get('AI_INTEGRATIONS_OPENAI_API_KEY'),
 )
+
+ELEMENT_NOVELTY_STATUSES = ('existing', 'new', 'unknown')
+ELEMENT_VALIDATION_STATUSES = ('valid', 'unknown', 'invalid')
+ELEMENT_CONSOLIDATED_STATUSES = ('existing_valid', 'new_valid', 'unknown', 'invalid')
+CATALOGABLE_EXTENSIONS = {
+    '.html': 'html',
+    '.js': 'javascript',
+    '.jsx': 'jsx',
+    '.ts': 'typescript',
+    '.tsx': 'tsx',
+    '.py': 'python',
+}
+STACK_LAYERS = ('backend', 'frontend', 'experimental', 'future-react')
 
 def get_db():
     conn = psycopg2.connect(DATABASE_URL)
@@ -207,6 +221,28 @@ def init_db():
     ''')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_dayb_lessons_grade ON day_b_lessons(grade)')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_dayb_lessons_element ON day_b_lessons(element_id)')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS element_reconciliations (
+            id SERIAL PRIMARY KEY,
+            canonical_element_id INTEGER REFERENCES day_b_elements(id),
+            source_type VARCHAR(30) NOT NULL DEFAULT 'manual',
+            source_key VARCHAR(255) UNIQUE NOT NULL,
+            source_label VARCHAR(255) NOT NULL DEFAULT '',
+            candidate_element_id VARCHAR(50) DEFAULT '',
+            candidate_name VARCHAR(120) NOT NULL,
+            candidate_category VARCHAR(60) DEFAULT '',
+            candidate_payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+            novelty_status VARCHAR(20) NOT NULL DEFAULT 'unknown',
+            validation_status VARCHAR(20) NOT NULL DEFAULT 'unknown',
+            consolidated_status VARCHAR(20) NOT NULL DEFAULT 'unknown',
+            reason TEXT DEFAULT '',
+            review_notes TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        )
+    ''')
+    cur.execute('CREATE INDEX IF NOT EXISTS idx_element_recon_status ON element_reconciliations(consolidated_status)')
+    cur.execute('CREATE INDEX IF NOT EXISTS idx_element_recon_source ON element_reconciliations(source_type)')
     cur.execute('''
         CREATE TABLE IF NOT EXISTS day_b_sections (
             id SERIAL PRIMARY KEY,
@@ -2210,12 +2246,165 @@ def seed_day_b_data():
     conn.close()
 
 
+def _element_consolidated_status(novelty_status, validation_status):
+    if validation_status == 'invalid':
+        return 'invalid'
+    if novelty_status == 'existing' and validation_status == 'valid':
+        return 'existing_valid'
+    if novelty_status == 'new' and validation_status == 'valid':
+        return 'new_valid'
+    return 'unknown'
+
+
+def _validate_element_statuses(novelty_status, validation_status):
+    if novelty_status not in ELEMENT_NOVELTY_STATUSES:
+        raise ValueError(f'Invalid novelty_status. Use: {ELEMENT_NOVELTY_STATUSES}')
+    if validation_status not in ELEMENT_VALIDATION_STATUSES:
+        raise ValueError(f'Invalid validation_status. Use: {ELEMENT_VALIDATION_STATUSES}')
+
+
+def _slugify(value):
+    text = ''.join(ch.lower() if ch.isalnum() else '-' for ch in (value or '').strip())
+    while '--' in text:
+        text = text.replace('--', '-')
+    return text.strip('-') or 'item'
+
+
+def _canonical_element_payload(row):
+    return {
+        'element_id': row['element_id'],
+        'name': row['name'],
+        'category': row['category'],
+        'deity_name': row['deity_name'],
+        'deity_id': row['deity_id'],
+        'core_property_name': row['core_property_name'],
+        'core_property_definition': row['core_property_definition'],
+        'core_property_proof': row['core_property_proof'],
+        'key_metaphor': row['key_metaphor'],
+        'key_function': row['key_function'],
+        'week_number': row['week_number'],
+    }
+
+
+def sync_element_reconciliations():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('SELECT * FROM day_b_elements ORDER BY week_number')
+    rows = cur.fetchall()
+    for row in rows:
+        cur.execute('''
+            INSERT INTO element_reconciliations (
+                canonical_element_id, source_type, source_key, source_label,
+                candidate_element_id, candidate_name, candidate_category, candidate_payload,
+                novelty_status, validation_status, consolidated_status, reason, updated_at
+            )
+            VALUES (%s, 'day_b_element', %s, %s, %s, %s, %s, %s, 'existing', 'valid', 'existing_valid', %s, NOW())
+            ON CONFLICT (source_key) DO UPDATE SET
+                canonical_element_id = EXCLUDED.canonical_element_id,
+                source_label = EXCLUDED.source_label,
+                candidate_element_id = EXCLUDED.candidate_element_id,
+                candidate_name = EXCLUDED.candidate_name,
+                candidate_category = EXCLUDED.candidate_category,
+                candidate_payload = EXCLUDED.candidate_payload,
+                novelty_status = EXCLUDED.novelty_status,
+                validation_status = EXCLUDED.validation_status,
+                consolidated_status = EXCLUDED.consolidated_status,
+                updated_at = NOW()
+        ''', (
+            row['id'],
+            f"day_b:{row['element_id']}",
+            f"Canonical Day B element · Week {row['week_number']}",
+            row['element_id'],
+            row['name'],
+            row['category'],
+            json.dumps(_canonical_element_payload(row)),
+            'Seeded from canonical day_b_elements baseline.',
+        ))
+    cur.close()
+    conn.close()
+
+
 def _dayb_dt(row, *fields):
     for f in fields:
         if f in row and row[f] is not None:
             row[f] = row[f].isoformat()
         elif f in row:
             row[f] = None
+
+
+def _element_recon_select(cur, where_clause='', params=None):
+    cur.execute(f'''
+        SELECT er.*,
+               e.element_id AS canonical_element_code,
+               e.name AS canonical_element_name,
+               e.week_number AS canonical_week_number
+        FROM element_reconciliations er
+        LEFT JOIN day_b_elements e ON er.canonical_element_id = e.id
+        {where_clause}
+        ORDER BY
+            CASE er.consolidated_status
+                WHEN 'existing_valid' THEN 1
+                WHEN 'new_valid' THEN 2
+                WHEN 'unknown' THEN 3
+                WHEN 'invalid' THEN 4
+                ELSE 5
+            END,
+            COALESCE(e.week_number, 9999),
+            er.candidate_name
+    ''', params or [])
+    rows = cur.fetchall()
+    for row in rows:
+        _dayb_dt(row, 'created_at', 'updated_at')
+    return rows
+
+
+def _catalog_title(rel_path):
+    stem = os.path.splitext(os.path.basename(rel_path))[0]
+    return stem.replace('-', ' ').replace('_', ' ').strip().title() or os.path.basename(rel_path)
+
+
+def _catalog_layer(rel_path, ext):
+    if rel_path.startswith('attached_assets/'):
+        return 'experimental'
+    if ext == '.py':
+        return 'backend'
+    if ext in ('.jsx', '.tsx', '.ts'):
+        return 'future-react'
+    return 'frontend'
+
+
+def _build_repo_catalog():
+    rows = []
+    for root, dirs, files in os.walk(REPO_ROOT):
+        dirs[:] = [d for d in dirs if not d.startswith('.') and d != '__pycache__']
+        for name in files:
+            if name.startswith('.'):
+                continue
+            ext = os.path.splitext(name)[1].lower()
+            if ext not in CATALOGABLE_EXTENSIONS:
+                continue
+            abs_path = os.path.join(root, name)
+            rel_path = os.path.relpath(abs_path, REPO_ROOT).replace(os.sep, '/')
+            layer = _catalog_layer(rel_path, ext)
+            rows.append({
+                'name': name,
+                'title': _catalog_title(rel_path),
+                'relative_path': rel_path,
+                'href': '/' + rel_path,
+                'extension': ext.lstrip('.'),
+                'file_type': CATALOGABLE_EXTENSIONS[ext],
+                'layer': layer,
+                'size_bytes': os.path.getsize(abs_path),
+                'python_group': (
+                    'active_backend'
+                    if ext == '.py' and not rel_path.startswith('attached_assets/')
+                    else 'attached_asset'
+                    if ext == '.py'
+                    else ''
+                ),
+            })
+    rows.sort(key=lambda row: (row['layer'], row['extension'], row['relative_path']))
+    return rows
 
 
 @app.route('/api/dayb/elements', methods=['GET'])
@@ -2229,6 +2418,231 @@ def dayb_elements():
     for r in rows:
         _dayb_dt(r, 'created_at')
     return jsonify(rows)
+
+
+@app.route('/api/dayb/element-reconciliations/summary', methods=['GET'])
+def dayb_element_reconciliations_summary():
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        SELECT consolidated_status, COUNT(*) AS n
+        FROM element_reconciliations
+        GROUP BY consolidated_status
+    ''')
+    by_status = {row['consolidated_status']: row['n'] for row in cur.fetchall()}
+    cur.execute('''
+        SELECT novelty_status, validation_status, COUNT(*) AS n
+        FROM element_reconciliations
+        GROUP BY novelty_status, validation_status
+    ''')
+    matrix = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify({
+        'counts': {status: by_status.get(status, 0) for status in ELEMENT_CONSOLIDATED_STATUSES},
+        'matrix': matrix,
+    })
+
+
+@app.route('/api/dayb/element-reconciliations', methods=['GET', 'POST'])
+def dayb_element_reconciliations():
+    if request.method == 'POST':
+        data = request.get_json(silent=True) or {}
+        candidate_name = (data.get('candidate_name') or '').strip()
+        if not candidate_name:
+            return jsonify({'error': 'candidate_name is required'}), 400
+        novelty_status = (data.get('novelty_status') or 'unknown').strip()
+        validation_status = (data.get('validation_status') or 'unknown').strip()
+        try:
+            _validate_element_statuses(novelty_status, validation_status)
+        except ValueError as exc:
+            return jsonify({'error': str(exc)}), 400
+        canonical_element_id = data.get('canonical_element_id')
+        source_type = (data.get('source_type') or 'manual').strip() or 'manual'
+        source_key = (data.get('source_key') or '').strip() or f'{source_type}:{_slugify(candidate_name)}:{int(datetime.utcnow().timestamp())}'
+        source_label = (data.get('source_label') or candidate_name).strip()
+        candidate_payload = data.get('candidate_payload') if isinstance(data.get('candidate_payload'), dict) else {}
+        consolidated_status = _element_consolidated_status(novelty_status, validation_status)
+        conn = get_db()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        if canonical_element_id:
+            cur.execute('SELECT id FROM day_b_elements WHERE id = %s', (canonical_element_id,))
+            if not cur.fetchone():
+                cur.close()
+                conn.close()
+                return jsonify({'error': 'canonical_element_id not found'}), 404
+        try:
+            cur.execute('''
+                INSERT INTO element_reconciliations (
+                    canonical_element_id, source_type, source_key, source_label,
+                    candidate_element_id, candidate_name, candidate_category, candidate_payload,
+                    novelty_status, validation_status, consolidated_status, reason, review_notes, updated_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                RETURNING id
+            ''', (
+                canonical_element_id,
+                source_type,
+                source_key,
+                source_label,
+                (data.get('candidate_element_id') or '').strip(),
+                candidate_name,
+                (data.get('candidate_category') or '').strip(),
+                json.dumps(candidate_payload),
+                novelty_status,
+                validation_status,
+                consolidated_status,
+                (data.get('reason') or '').strip(),
+                (data.get('review_notes') or '').strip(),
+            ))
+            rec_id = cur.fetchone()['id']
+        except psycopg2.Error:
+            cur.close()
+            conn.close()
+            return jsonify({'error': 'source_key must be unique'}), 409
+        cur.close()
+        conn.close()
+        return dayb_element_reconciliation_detail(rec_id)
+
+    q = request.args.get('q', '').strip().lower()
+    source = request.args.get('source', '').strip().lower()
+    consolidated_status = request.args.get('status', '').strip().lower()
+    novelty = request.args.get('novelty', '').strip().lower()
+    validation = request.args.get('validation', '').strip().lower()
+    wants_new = request.args.get('new', '').strip().lower()
+    wants_valid = request.args.get('valid', '').strip().lower()
+    wants_unknown = request.args.get('unknown', '').strip().lower()
+
+    where_parts = []
+    params = []
+    if source:
+        where_parts.append('LOWER(er.source_type) = %s')
+        params.append(source)
+    if consolidated_status:
+        where_parts.append('er.consolidated_status = %s')
+        params.append(consolidated_status)
+    if novelty:
+        where_parts.append('er.novelty_status = %s')
+        params.append(novelty)
+    if validation:
+        where_parts.append('er.validation_status = %s')
+        params.append(validation)
+    if wants_new in ('1', 'true', 'yes'):
+        where_parts.append("er.novelty_status = 'new'")
+    if wants_valid in ('1', 'true', 'yes'):
+        where_parts.append("er.validation_status = 'valid'")
+    if wants_unknown in ('1', 'true', 'yes'):
+        where_parts.append("er.consolidated_status = 'unknown'")
+    if q:
+        where_parts.append('''(
+            LOWER(er.candidate_name) LIKE %s OR
+            LOWER(er.candidate_element_id) LIKE %s OR
+            LOWER(er.source_label) LIKE %s OR
+            LOWER(COALESCE(e.element_id, '')) LIKE %s OR
+            LOWER(COALESCE(e.name, '')) LIKE %s
+        )''')
+        like = f'%{q}%'
+        params.extend([like, like, like, like, like])
+
+    where_clause = f"WHERE {' AND '.join(where_parts)}" if where_parts else ''
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    rows = _element_recon_select(cur, where_clause, params)
+    cur.close()
+    conn.close()
+    return jsonify({
+        'items': rows,
+        'count': len(rows),
+        'filters': {
+            'q': q,
+            'source': source,
+            'status': consolidated_status,
+            'novelty': novelty,
+            'validation': validation,
+            'new': wants_new,
+            'valid': wants_valid,
+            'unknown': wants_unknown,
+        },
+    })
+
+
+@app.route('/api/dayb/element-reconciliations/<int:rec_id>', methods=['GET', 'PUT'])
+def dayb_element_reconciliation_detail(rec_id):
+    if request.method == 'PUT':
+        data = request.get_json(silent=True) or {}
+        conn = get_db()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute('SELECT * FROM element_reconciliations WHERE id = %s', (rec_id,))
+        current = cur.fetchone()
+        if not current:
+            cur.close()
+            conn.close()
+            return jsonify({'error': 'Element reconciliation not found'}), 404
+
+        updates = []
+        values = []
+        if 'canonical_element_id' in data:
+            canonical_element_id = data.get('canonical_element_id')
+            if canonical_element_id:
+                cur.execute('SELECT id FROM day_b_elements WHERE id = %s', (canonical_element_id,))
+                if not cur.fetchone():
+                    cur.close()
+                    conn.close()
+                    return jsonify({'error': 'canonical_element_id not found'}), 404
+            updates.append('canonical_element_id = %s')
+            values.append(canonical_element_id)
+        for field in ('source_type', 'source_key', 'source_label', 'candidate_element_id', 'candidate_name', 'candidate_category', 'reason', 'review_notes'):
+            if field in data:
+                updates.append(f'{field} = %s')
+                values.append((data.get(field) or '').strip() if isinstance(data.get(field), str) or data.get(field) is None else data.get(field))
+        if 'candidate_payload' in data:
+            if not isinstance(data.get('candidate_payload'), dict):
+                cur.close()
+                conn.close()
+                return jsonify({'error': 'candidate_payload must be an object'}), 400
+            updates.append('candidate_payload = %s')
+            values.append(json.dumps(data.get('candidate_payload') or {}))
+
+        novelty_status = (data.get('novelty_status') or current['novelty_status']).strip()
+        validation_status = (data.get('validation_status') or current['validation_status']).strip()
+        try:
+            _validate_element_statuses(novelty_status, validation_status)
+        except ValueError as exc:
+            cur.close()
+            conn.close()
+            return jsonify({'error': str(exc)}), 400
+        if 'novelty_status' in data:
+            updates.append('novelty_status = %s')
+            values.append(novelty_status)
+        if 'validation_status' in data:
+            updates.append('validation_status = %s')
+            values.append(validation_status)
+        consolidated_status = _element_consolidated_status(novelty_status, validation_status)
+        updates.append('consolidated_status = %s')
+        values.append(consolidated_status)
+        updates.append('updated_at = NOW()')
+        values.append(rec_id)
+        try:
+            cur.execute(f'''
+                UPDATE element_reconciliations
+                SET {', '.join(updates)}
+                WHERE id = %s
+            ''', values)
+        except psycopg2.Error:
+            cur.close()
+            conn.close()
+            return jsonify({'error': 'source_key must be unique'}), 409
+        cur.close()
+        conn.close()
+
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    rows = _element_recon_select(cur, 'WHERE er.id = %s', [rec_id])
+    cur.close()
+    conn.close()
+    if not rows:
+        return jsonify({'error': 'Element reconciliation not found'}), 404
+    return jsonify(rows[0])
 
 
 @app.route('/api/dayb/lessons', methods=['GET'])
@@ -2797,10 +3211,93 @@ def ingest_candidate_reset(cid):
     return jsonify({'ok': True})
 
 
+@app.route('/api/catalog/files/summary', methods=['GET'])
+def catalog_files_summary():
+    rows = _build_repo_catalog()
+    by_extension = {}
+    by_type = {}
+    by_layer = {layer: 0 for layer in STACK_LAYERS}
+    python_links = []
+    for row in rows:
+        by_extension[row['extension']] = by_extension.get(row['extension'], 0) + 1
+        by_type[row['file_type']] = by_type.get(row['file_type'], 0) + 1
+        by_layer[row['layer']] = by_layer.get(row['layer'], 0) + 1
+        if row['extension'] == 'py':
+            python_links.append({
+                'name': row['name'],
+                'relative_path': row['relative_path'],
+                'href': row['href'],
+                'python_group': row['python_group'],
+            })
+    return jsonify({
+        'total_files': len(rows),
+        'by_extension': by_extension,
+        'by_type': by_type,
+        'by_layer': by_layer,
+        'python_links': python_links,
+    })
+
+
+@app.route('/api/catalog/files', methods=['GET'])
+def catalog_files():
+    rows = _build_repo_catalog()
+    extension = request.args.get('extension', '').strip().lower().lstrip('.')
+    file_type = request.args.get('type', '').strip().lower()
+    layer = request.args.get('layer', '').strip().lower()
+    q = request.args.get('q', '').strip().lower()
+    python_only = request.args.get('python_only', '').strip().lower()
+    if extension:
+        rows = [row for row in rows if row['extension'] == extension]
+    if file_type:
+        rows = [row for row in rows if row['file_type'] == file_type]
+    if layer:
+        rows = [row for row in rows if row['layer'] == layer]
+    if python_only in ('1', 'true', 'yes'):
+        rows = [row for row in rows if row['extension'] == 'py']
+    if q:
+        rows = [
+            row for row in rows
+            if q in row['name'].lower()
+            or q in row['title'].lower()
+            or q in row['relative_path'].lower()
+            or q in row['layer'].lower()
+            or q in row['file_type'].lower()
+        ]
+    return jsonify({
+        'files': rows,
+        'count': len(rows),
+        'filters': {
+            'extension': extension,
+            'type': file_type,
+            'layer': layer,
+            'q': q,
+            'python_only': python_only,
+        },
+    })
+
+
+@app.route('/api/catalog/stack', methods=['GET'])
+def catalog_stack():
+    rows = _build_repo_catalog()
+    layers = {layer: [] for layer in STACK_LAYERS}
+    for row in rows:
+        layers.setdefault(row['layer'], []).append(row)
+    return jsonify({
+        'layers': layers,
+        'development_plan': [
+            'Use backend scripts and APIs as the canonical integration layer.',
+            'Use frontend HTML and shared scripts for current multi-page tooling.',
+            'Treat attached_assets as experimental/imported references until promoted.',
+            'Reserve JSX/TS/TSX slots for a future React workspace once a runtime/build path is added.',
+        ],
+    })
+
+
 with app.app_context():
     init_db()
     seed_production_data()
     seed_day_b_data()
+    sync_element_reconciliations()
     init_ingester_db()
 
 if __name__ == '__main__':

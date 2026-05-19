@@ -77,6 +77,11 @@ M=Math, A=Aesthetics, G=Geometry (emergent center), I=Ideology, C=Culture
 ### Day B API Endpoints
 - `GET /api/dayb/stats` - Aggregated statistics
 - `GET /api/dayb/elements` - All 8 elements
+- `GET /api/dayb/element-reconciliations/summary` - Counts by existing/new/unknown/invalid reconciliation status
+- `GET /api/dayb/element-reconciliations` - Filterable consolidated element registry
+- `POST /api/dayb/element-reconciliations` - Add a new or unknown candidate element for review
+- `GET /api/dayb/element-reconciliations/<id>` - Detail for one reconciled element record
+- `PUT /api/dayb/element-reconciliations/<id>` - Update novelty/validation/reason for a reconciled element
 - `GET /api/dayb/lessons` - Lessons with optional grade filter
 - `GET /api/dayb/lessons/<id>/sections` - B1-B8 sections for a lesson
 - `PUT /api/dayb/sections/<id>` - Update section content/status
@@ -89,7 +94,7 @@ M=Math, A=Aesthetics, G=Geometry (emergent center), I=Ideology, C=Culture
 - Per-card checklists and filtering by week/day/search
 
 ### Integrated Tools
-- **Review Workbench (v0.1 prototype)** (`pages/review-workbench.html`): Four-panel editor for reviewing documents. Left: file list (sample docs plus any user-opened files). Center: editable Markdown textarea. Right: status selector (Inbox / Active Review / Canon / Canon Candidate / Fragment / Conflict / Superseded / Archive / Build-System / Lesson / Obsidian Ready), future-destination field, review notes. Bottom: provisional TOC generator (scans `#`/`##`/`###` headings) and Placement Map JSON note generator. Supports **Open .md** (load file from user's computer) and **Save .md** (download editor contents). State (docs array, active doc id, content, status, destination, notes) is auto-saved to `localStorage` under key `review-workbench:v1` (versioned payload, currently version `2`) on every edit (debounced ~250ms) plus on doc switch / file open / tab unload, so edits survive a page refresh. Saves are best-effort: a quota or storage failure is swallowed and the workbench keeps working in-memory. No server endpoints, no DB writes, no source-file mutation. Output dirs `data/future-tocs/`, `data/placement-maps/`, `data/obsidian-ready/` exist as placeholders for a future "save to disk on the server" version (Phase 2, not yet implemented). Built on the `review-workbench-prototype` branch (off `warrenghaad`) so it does not touch `main`. Logic kept as plain client-side JS (`scripts/review-workbench.js`) for easy reuse in a future React-Three-Fiber / Electron canvas.
+- **Review Workbench (v0.2 prototype)** (`pages/review-workbench.html`): Four-panel editor for reviewing documents and source files. Left: file list (sample docs plus any user-opened files). Center: editable text area plus a preview panel. Right: status selector (Inbox / Active Review / Canon / Canon Candidate / Fragment / Conflict / Superseded / Archive / Build-System / Lesson / Obsidian Ready), future-destination field, review notes. Bottom: provisional TOC generator (scans `#`/`##`/`###` headings for Markdown/text files) and Placement Map JSON note generator. Supports **Open file** for `.md`, `.markdown`, `.txt`, `.html`, `.js`, `.jsx`, `.ts`, `.tsx`, and `.py`, and **Save file** preserves the current filename/extension when downloading. HTML files render in a sandboxed preview; JS/TS/JSX/TSX/Python stay in code view until a runtime/build transform is added. State (docs array, active doc id, file type, content, status, destination, notes) is auto-saved to `localStorage` under key `review-workbench:v1` (versioned payload, currently version `3`) on every edit (debounced ~250ms) plus on doc switch / file open / tab unload, so edits survive a page refresh. Saves are best-effort: a quota or storage failure is swallowed and the workbench keeps working in-memory. No server endpoints, no DB writes, no source-file mutation. Output dirs `data/future-tocs/`, `data/placement-maps/`, `data/obsidian-ready/` exist as placeholders for a future "save to disk on the server" version (Phase 2, not yet implemented). Logic remains plain client-side JS (`scripts/review-workbench.js`) for reuse in a future React-oriented surface.
 - **Myth Catalog**: Interactive Mesopotamian mythology reference with grade/shape/category filters
 - **Image Manager**: Museum API sourcing tool (Met, Yale, British Museum, Wikimedia, Smithsonian, CDLI)
 - **Lesson Shell Demo**: Sidebar navigation with hash-based routing for rendered lesson content
@@ -100,3 +105,9 @@ M=Math, A=Aesthetics, G=Geometry (emergent center), I=Ideology, C=Culture
 - **Gemini API**: Used for generating short videos and diagrams.
 - **OpenAI API**: Integrated for generating longer videos, complex content, and AI review in the Playground.
 - **Flask**: Python microframework used for the backend server (`server.py`) to handle API requests and serve HTML content.
+
+## Repo File Catalog
+
+- `GET /api/catalog/files/summary` - Summary counts by extension/type/layer plus collected Python script links
+- `GET /api/catalog/files` - Search/filter catalog for `.html`, `.js`, `.jsx`, `.ts`, `.tsx`, and `.py`
+- `GET /api/catalog/stack` - Layered stack view for backend, frontend, experimental assets, and future React surface

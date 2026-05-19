@@ -11,7 +11,7 @@
   <header class="header">
     <div>
       <h1>Review Workbench</h1>
-      <span class="subtitle">Read · Edit · Status · TOC · Placement Map (v0.1 prototype)</span>
+      <span class="subtitle">Read · Edit · Status · TOC · Placement Map · HTML Preview (v0.2)</span>
     </div>
     <div class="header-actions">
       <a href="../index.html" class="back-link">← Home</a>
@@ -26,22 +26,33 @@
       <div class="rw-panel-header">
         <h3>Documents</h3>
         <div class="rw-file-actions">
-          <button class="btn rw-btn-sm" id="rwOpenFile" title="Open a .md file from your computer">Open .md</button>
-          <input type="file" id="rwFileInput" accept=".md,.markdown,.txt" hidden>
+          <button class="btn rw-btn-sm" id="rwOpenFile" title="Open a local text-based file">Open file</button>
+          <input type="file" id="rwFileInput" accept=".md,.markdown,.txt,.html,.js,.jsx,.ts,.tsx,.py" hidden>
         </div>
       </div>
       <ul class="rw-file-list" id="rwFileList"></ul>
-      <p class="rw-hint">Documents, status, destination, and notes are auto-saved to this browser's storage and survive a refresh. Use <strong>Open .md</strong> to load a file from your computer, or <strong>Save .md</strong> on the right to export.</p>
+      <p class="rw-hint">Documents, status, destination, and notes are auto-saved to this browser's storage and survive a refresh. Use <strong>Open file</strong> for Markdown, HTML, JS, JSX, TS, TSX, or Python, or <strong>Save file</strong> on the right to export.</p>
     </aside>
 
     <!-- CENTER: editor -->
     <section class="rw-panel rw-editor-panel">
       <div class="rw-panel-header">
         <h3 id="rwDocTitle">Untitled</h3>
-        <span class="rw-meta" id="rwDocMeta">auto-saved</span>
+        <div class="rw-editor-meta">
+          <span class="rw-meta" id="rwFileKind">markdown</span>
+          <span class="rw-meta" id="rwDocMeta">auto-saved</span>
+        </div>
       </div>
       <textarea id="rwEditor" class="rw-editor" spellcheck="true" placeholder="# Heading
-Write or paste Markdown here..."></textarea>
+Write or paste Markdown, HTML, JS, JSX, TS, TSX, or Python here..."></textarea>
+      <section class="rw-preview-panel">
+        <div class="rw-panel-header">
+          <h3>Preview</h3>
+          <span class="rw-meta" id="rwPreviewMeta">markdown/text mode</span>
+        </div>
+        <div class="rw-preview-empty" id="rwPreviewEmpty">HTML files render here. JS/TS/JSX/TSX/Python stay in code view until a runtime or transform path is added.</div>
+        <iframe id="rwPreviewFrame" class="rw-preview-frame" sandbox hidden></iframe>
+      </section>
     </section>
 
     <!-- RIGHT: review -->
@@ -72,10 +83,10 @@ Write or paste Markdown here..."></textarea>
       <div class="rw-actions">
         <button class="btn full-width" id="rwGenTOC">Generate Provisional TOC</button>
         <button class="btn full-width" id="rwGenMap">Create Placement Map Note</button>
-        <button class="btn full-width secondary" id="rwSaveFile">Save .md to computer</button>
+        <button class="btn full-width secondary" id="rwSaveFile">Save file to computer</button>
       </div>
 
-      <p class="rw-hint">No edits are written to source files. The Placement Map is generated as JSON below — copy it anywhere (Claude tab, Notion, Obsidian).</p>
+      <p class="rw-hint">No edits are written to source files. HTML files can render in the preview pane; JS/TS/JSX/TSX/Python stay in code view. The Placement Map is generated as JSON below — copy it anywhere.</p>
     </aside>
 
     <!-- BOTTOM: TOC / Placement map -->
@@ -97,7 +108,7 @@ Write or paste Markdown here..."></textarea>
   </main>
 
   <footer class="footer">
-    <p>Review Workbench v0.1 · prototype on <code>review-workbench-prototype</code> branch · auto-saved to browser storage</p>
+    <p>Review Workbench v0.2 · multi-format local editor · auto-saved to browser storage</p>
   </footer>
 
   <script src="../scripts/main.js"></script>
