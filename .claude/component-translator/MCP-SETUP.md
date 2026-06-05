@@ -4,9 +4,9 @@ The kit assumes Claude Code on your Mac with the following MCP servers
 configured. Copy `.mcp.json.example` to the repo root as `.mcp.json` and
 edit the env vars.
 
-**Note:** Notion is intentionally **not** in this kit. The user has
-flagged Notion content as disorganized and not canonical. Do not add a
-Notion MCP server to `.mcp.json` for this pipeline.
+**Note:** Notion is **in development** and **not yet canonical** in this
+kit. If connected, treat Notion only as draft context and never as source
+of truth over the local Mac files.
 
 ## Required (the canonical source + design context)
 

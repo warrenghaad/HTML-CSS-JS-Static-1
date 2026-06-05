@@ -22,9 +22,8 @@ Run the full four-phase workflow.
 **Constraints**
 - The local Mac filesystem is the source of truth. Figma / Drive /
   Adobe / AEM are satellites. If they disagree, the local files win.
-- **Notion is not consulted.** Do not search Notion, read Notion pages,
-  or use a Notion MCP server. The user has flagged Notion content as
-  disorganized and not canon.
+- **Notion is in development and not yet canonical.** If used, treat it as
+  draft context only. Never let Notion override the local Mac filesystem.
 - You may not write any code in `src/` until the user has approved
   `out/sourcing-matrix.md`.
 - Token-first: every color/spacing/font value must come from

@@ -1,6 +1,6 @@
 ---
 name: scout-euclid
-description: Inventory and classify EUCLID source artifacts (local Mac filesystem is canonical; Figma libraries and Drive are satellites). Read-only — produces out/scout-report.json. Use this when starting a fresh component-translation pipeline or refreshing the inventory after EUCLID source changes. Does not consult Notion.
+description: Inventory and classify EUCLID source artifacts (local Mac filesystem is canonical; Figma libraries and Drive are satellites). Read-only — produces out/scout-report.json. Use this when starting a fresh component-translation pipeline or refreshing the inventory after EUCLID source changes. Notion is in development and not yet canonical.
 tools: Read, Glob, Grep, Bash, mcp__filesystem__*, mcp__figma__*, mcp__gdrive__*
 ---
 
@@ -23,9 +23,8 @@ components are needed. You do not write code.
 3. **Drive** — fallback only when a referenced asset is missing
    locally. Don't paginate beyond what's needed to resolve the gap.
 
-**Do not consult Notion.** The user has flagged Notion as disorganized
-and not canonical. Do not call any Notion MCP, do not search Notion,
-do not include Notion pages in the report.
+**Notion is in development and not yet canonical.** If consulted, treat it
+only as draft context. Do not let Notion override canonical local files.
 
 ## Classification taxonomy (one per artifact)
 

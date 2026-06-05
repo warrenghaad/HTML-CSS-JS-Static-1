@@ -22,8 +22,8 @@ kind. Read-only. No judgment about what's needed — just classify.
    (ask the user for the file URL if no obvious one exists).
 3. Drive — fallback only when a referenced asset is missing locally.
 
-**Do not consult Notion.** It is not canonical and the user has flagged
-it as disorganized.
+**Notion is in development and not yet canonical.** It may be used for
+draft context only and must not override local canonical files.
 
 **Classification taxonomy** (each artifact gets exactly one):
 
