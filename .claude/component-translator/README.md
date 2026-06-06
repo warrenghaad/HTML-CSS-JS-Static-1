@@ -23,8 +23,8 @@ The local Mac path `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/` is
 satellite — read-only context the agents may consult to fill in
 designs or assets, never to override the local files.
 
-Notion is **not** used by this kit. Even if EUCLID-named pages exist in
-Notion, they are out of scope and not consulted by any agent.
+Notion is **in development** and **not yet canonical** for this kit. It can
+be used as draft context, but it must never override local Mac files.
 
 ## Why this shape
 

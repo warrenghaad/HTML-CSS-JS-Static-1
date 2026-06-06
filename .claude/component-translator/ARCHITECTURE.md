@@ -71,8 +71,8 @@ and foreman will still work.
 - **shadcn registry** — component installs via `npx shadcn@latest add`.
 - **Perplexity / Gemini** — last-resort research path for the sourcer.
 
-Notion is **not** consulted. The user has flagged Notion content as
-disorganized and not canonical.
+Notion is **in development** and **not yet canonical**. It may be consulted
+as draft context only and must never override the canonical local source.
 
 ## Source-priority rules
 

@@ -15,10 +15,9 @@ about the component-translator pipeline:
    Figma / Drive / Adobe / AEM are satellites. If they conflict with
    the local files, the local files win.
 
-4. **Notion is not used.** The user has flagged Notion content as
-   disorganized and not canon. Do not consult, search, or read from
-   Notion in any phase. Do not add a Notion MCP server. If a user
-   asks the agents to use Notion, decline and refer to this rule.
+4. **Notion is in development and not yet canonical.** It may be used as
+   draft context, but never as source of truth. The canonical source
+   remains the local Mac files.
 
 5. **The four agents are subagents, not slash commands.** Invoke them
    with the Agent tool by name (`scout-euclid`, `component-analyzer`,
