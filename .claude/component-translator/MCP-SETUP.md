@@ -4,23 +4,39 @@ The kit assumes Claude Code on your Mac with the following MCP servers
 configured. Copy `.mcp.json.example` to the repo root as `.mcp.json` and
 edit the env vars.
 
+**Working directory:**
+`/Users/samimajeed-air/Projects/Trivius - Euclid/HTML-CSS-JS-Static-1`
+
+**Canonical EUCLID path:**
+`/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`
+
 **Note:** Notion is intentionally **not** in this kit. The user has
 flagged Notion content as disorganized and not canonical. Do not add a
 Notion MCP server to `.mcp.json` for this pipeline.
 
+## Pre-flight: confirm the volume is mounted
+
+```bash
+ls "/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID"
+```
+
+If this errors, mount the `Macintosh HD-1` volume in Finder before
+proceeding. The Filesystem MCP fails fast if the path doesn't exist.
+
 ## Required (the canonical source + design context)
 
-### 1. Filesystem MCP — reads `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID`
+### 1. Filesystem MCP — reads the EUCLID volume
 
 ```bash
 claude mcp add filesystem -- npx -y @modelcontextprotocol/server-filesystem \
-  "/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID"
+  "/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID"
 ```
 
 The trailing path is the **only** directory the server is allowed to
 read — a sandbox boundary. Add more paths as additional positional args
 if scout needs them (e.g. the GE SECTION OR MAPPING and IMAGE SPEC AND
-PRODUCTION subdirectories).
+PRODUCTION subdirectories — those already live under EUCLID so the
+single path covers them).
 
 ### 2. Figma MCP (official) — design context, libraries, Code Connect
 
@@ -93,8 +109,8 @@ Inside Claude Code:
 ```
 
 should list every server above as `connected`. If `filesystem` shows
-`connection refused`, check the path quoting — the EUCLID path has
-spaces and a hyphen.
+`connection refused`, the volume isn't mounted — re-mount and restart
+Claude Code.
 
 ## Permissions to allowlist
 
@@ -106,7 +122,7 @@ limited write on `src/`):
 {
   "permissions": {
     "allow": [
-      "Read(/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/**)",
+      "Read(/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/**)",
       "Bash(npx shadcn@latest add:*)",
       "Bash(npx shadcn@latest init)",
       "Write(src/components/**)",

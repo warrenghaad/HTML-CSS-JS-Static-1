@@ -11,9 +11,12 @@ about the component-translator pipeline:
    skip phases unless the user explicitly says to. Each agent's input
    is the previous agent's `out/*.json`.
 
-3. **`/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID` is canonical.**
-   Figma / Drive / Adobe / AEM are satellites. If they conflict with
-   the local files, the local files win.
+3. **The canonical EUCLID path is**
+   `/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`.
+   It lives on a mounted secondary volume. Figma / Drive / Adobe / AEM
+   are satellites. If they conflict with the local files, the local
+   files win. If the volume isn't mounted, stop and ask the user to
+   mount it — don't fall back to a different source.
 
 4. **Notion is not used.** The user has flagged Notion content as
    disorganized and not canon. Do not consult, search, or read from
@@ -34,5 +37,6 @@ about the component-translator pipeline:
    `src/styles/tokens.css`. Components reference tokens, never literals.
 
 8. **Stop conditions.** If the scout finds < 5 artifacts, ask the user
-   to verify the path. If the analyzer infers > 80 components in one
-   pass, ask the user to scope down before sourcing.
+   to verify the path and the volume mount. If the analyzer infers
+   > 80 components in one pass, ask the user to scope down before
+   sourcing.

@@ -10,10 +10,15 @@ Use the `scout-euclid` subagent.
 source that could plausibly inform a component library, classified by
 kind. Read-only. No judgment about what's needed — just classify.
 
+**Pre-flight:** confirm
+`/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID`
+resolves. If not, stop and ask the user to mount `Macintosh HD-1`.
+
 **Sources, in priority order:**
 
 1. Mac filesystem (Filesystem MCP) — **canonical**. Start at
-   `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`. Recurse into:
+   `/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`.
+   Recurse into:
    - `GE SECTION OR MAPPING/`
    - `CONTENT MANAGEMENT SYSTEM/IMAGE SPEC AND PRODUCTION/`
    - `LESSON SECTION DESIGN/`
@@ -43,9 +48,10 @@ each entry record at minimum: `path`, `kind`, `sizeBytes`, `mtime`,
 and a 1-line `summary`.
 
 **Stop conditions:**
-- If you find fewer than 5 artifacts under the EUCLID root, stop and
-  ask the user to verify the path — the directory may not be mounted.
-- If a single subtree exceeds 5,000 entries, sample (every Nth file)
-  and flag the truncation in the report's `meta.truncated` field.
+- Volume not mounted → stop, ask user to mount `Macintosh HD-1`.
+- Fewer than 5 artifacts under the EUCLID root → stop and ask the
+  user to verify the path.
+- A single subtree exceeds 5,000 entries → sample (every Nth file)
+  and flag truncation in the report's `meta.truncated` field.
 
 Report back with the file count by kind and the top 10 largest files.

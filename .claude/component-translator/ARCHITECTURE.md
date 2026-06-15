@@ -3,10 +3,11 @@
 ## Data flow
 
 ```
-  Mac filesystem        Figma libraries     Drive (assets)    AEM / Adobe
-  /Users/.../EUCLID     (Pro + Trivius)     (satellite)       (assets)
-  CANONICAL                 │                    │                  │
-        │                   │                    │                  │
+  Mac filesystem (canonical)              Figma libraries     Drive (assets)    AEM / Adobe
+  /Volumes/Macintosh HD-1/Users/          (Pro + Trivius)     (satellite)       (assets)
+  warrenghaad/PANTTEARRA - DOCUMENTS/         │                    │                  │
+  EUCLID/                                     │                    │                  │
+        │                                     │                    │                  │
         └───────────────┬───────────────────┴──────────────────┘
                           ▼
                ┌───────────────────────┐
@@ -60,7 +61,7 @@ and foreman will still work.
 
 ## Sources used by the kit
 
-- **Mac filesystem at `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`**
+- **Mac filesystem at `/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`**
   — canonical. The scout always reads from here first.
 - **Figma (Pro + Trivius org)** — design components, variables,
   Code Connect mappings.

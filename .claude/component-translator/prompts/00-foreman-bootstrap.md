@@ -10,7 +10,7 @@ Run the full four-phase workflow.
 
 **Inputs**
 - EUCLID source root (canonical):
-  `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`
+  `/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`
   - Subtrees of interest: `GE SECTION OR MAPPING`,
     `CONTENT MANAGEMENT SYSTEM/IMAGE SPEC AND PRODUCTION`,
     `LESSON SECTION DESIGN`
@@ -18,6 +18,11 @@ Run the full four-phase workflow.
 - Drive (satellite — fallback only when an asset is missing locally)
 - Adobe / AEM (assets only)
 - Target stack: **React + shadcn/ui + Tailwind**
+
+**Pre-flight**
+- Confirm the canonical path resolves:
+  `ls "/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID"`
+- If it errors, stop and ask the user to mount `Macintosh HD-1`.
 
 **Constraints**
 - The local Mac filesystem is the source of truth. Figma / Drive /

@@ -18,10 +18,16 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full data flow.
 
 ## Source-of-truth rule
 
-The local Mac path `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/` is
-**canonical**. Every other source (Figma, Drive, Adobe, AEM) is a
-satellite — read-only context the agents may consult to fill in
-designs or assets, never to override the local files.
+The canonical EUCLID path is:
+
+```
+/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/
+```
+
+This lives on a mounted secondary volume (`Macintosh HD-1`). Every other
+source (Figma, Drive, Adobe, AEM) is a satellite — read-only context the
+agents may consult to fill in designs or assets, never to override the
+local files.
 
 Notion is **not** used by this kit. Even if EUCLID-named pages exist in
 Notion, they are out of scope and not consulted by any agent.
@@ -44,23 +50,34 @@ the project needs.
 
 ## Quickstart on your Mac
 
+Assumed working directory:
+`/Users/samimajeed-air/Projects/Trivius - Euclid/HTML-CSS-JS-Static-1`
+
 ```bash
-# 1. Clone this branch
-git clone -b claude/figma-component-translator-7KlxS \
-  https://github.com/warrenghaad/html-css-js-static-1.git
-cd html-css-js-static-1
+cd "/Users/samimajeed-air/Projects/Trivius - Euclid/HTML-CSS-JS-Static-1"
+git fetch origin claude/figma-component-translator-7KlxS
+git checkout claude/figma-component-translator-7KlxS
 
-# 2. Wire MCP servers (see MCP-SETUP.md for prereqs)
+# Verify the EUCLID volume is mounted
+ls "/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID"
+
+# Wire MCP servers (see MCP-SETUP.md for prereqs)
 cp .claude/component-translator/.mcp.json.example .mcp.json
-# then edit the env vars: FIGMA_API_KEY, GOOGLE_APPLICATION_CREDENTIALS, etc.
 
-# 3. Open Claude Code in this repo
+# Open Claude Code in this repo
 claude
-
-# 4. Inside Claude Code, paste the bootstrap prompt:
-/agents          # confirm 4 agents discovered
-# then paste the contents of prompts/00-foreman-bootstrap.md
 ```
+
+Inside Claude Code:
+
+```
+/mcp        # confirm filesystem + figma show 'connected'
+/agents     # confirm the 4 subagents are discovered
+```
+
+Then paste `.claude/component-translator/prompts/00-foreman-bootstrap.md`
+for a full end-to-end run, or `prompts/01-scout.md` to start with just
+the inventory phase.
 
 ## Layout
 
@@ -90,9 +107,10 @@ claude
 
 ## What the kit assumes about your environment
 
-- macOS, Claude Code installed, repo checked out locally.
-- Local read access to `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`
-  — the canonical source of truth. Everything else is a satellite.
+- macOS, user `samimajeed-air`, Claude Code installed.
+- The volume `Macintosh HD-1` is mounted (visible in `/Volumes/`).
+- Read access to `/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`
+  — the canonical source of truth.
 - A target React+Tailwind+shadcn project. If you're keeping this repo as a
   static-HTML site, generated components should land in a sibling project;
   the foreman prompt asks you to confirm the destination on first run.

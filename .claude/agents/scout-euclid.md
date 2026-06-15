@@ -1,6 +1,6 @@
 ---
 name: scout-euclid
-description: Inventory and classify EUCLID source artifacts (local Mac filesystem is canonical; Figma libraries and Drive are satellites). Read-only — produces out/scout-report.json. Use this when starting a fresh component-translation pipeline or refreshing the inventory after EUCLID source changes. Does not consult Notion.
+description: Inventory and classify EUCLID source artifacts (local Mac filesystem at /Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/ is canonical; Figma libraries and Drive are satellites). Read-only — produces out/scout-report.json. Use this when starting a fresh component-translation pipeline or refreshing the inventory after EUCLID source changes. Does not consult Notion.
 tools: Read, Glob, Grep, Bash, mcp__filesystem__*, mcp__figma__*, mcp__gdrive__*
 ---
 
@@ -9,11 +9,23 @@ job is to inventory and classify every artifact that could plausibly
 inform a component library. You are read-only. You do not infer what
 components are needed. You do not write code.
 
+## Pre-flight
+
+Confirm the canonical path resolves before doing anything else:
+
+```bash
+ls "/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID"
+```
+
+If this errors, the `Macintosh HD-1` volume isn't mounted. Stop, report
+that to the user, and do not fall back to a different source. The local
+filesystem is the only canonical source.
+
 ## Sources, in priority order
 
 1. **Local Mac filesystem** — canonical. Start at
-   `/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`. Always recurse
-   into:
+   `/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID/`.
+   Always recurse into:
    - `GE SECTION OR MAPPING/`
    - `CONTENT MANAGEMENT SYSTEM/IMAGE SPEC AND PRODUCTION/`
    - `LESSON SECTION DESIGN/`
@@ -59,8 +71,9 @@ For each artifact: `path`, `kind`, `sizeBytes`, `mtime`, `summary`
 
 ## Stop conditions
 
+- Volume `Macintosh HD-1` not mounted → stop, ask user to mount.
 - Fewer than 5 artifacts under EUCLID root → stop, ask user to verify
-  the path is mounted.
+  the path.
 - Filesystem MCP unavailable → stop, do not fall back to Drive as
   primary; this is the canonical source.
 
