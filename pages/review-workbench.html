@@ -53,6 +53,7 @@ Write or paste Markdown here..."></textarea>
         <option>Inbox</option>
         <option>Active Review</option>
         <option>Canon</option>
+        <option>Provisional Canon</option>
         <option>Canon Candidate</option>
         <option>Fragment</option>
         <option>Conflict</option>
@@ -68,6 +69,14 @@ Write or paste Markdown here..."></textarea>
 
       <label class="rw-label" for="rwNotes">Review notes</label>
       <textarea id="rwNotes" class="rw-input rw-notes" placeholder="What is this for? What needs work? Open questions?"></textarea>
+
+      <div class="rw-panel-header rw-subheader">
+        <h3>Validation Issues</h3>
+        <button class="btn rw-btn-sm" id="rwAddIssue" type="button">Add issue</button>
+      </div>
+      <div class="rw-issues-list" id="rwIssueList"></div>
+      <p class="rw-hint">Each issue gets one clearance question. Answering it auto-resolves the issue. Blocking issues gate canon; deferred issues can allow provisional canon if likelihood is high.</p>
+      <p class="rw-hint" id="rwValidationSummary">No validation issues.</p>
 
       <div class="rw-actions">
         <button class="btn full-width" id="rwGenTOC">Generate Provisional TOC</button>
@@ -91,6 +100,10 @@ Write or paste Markdown here..."></textarea>
             <button class="btn rw-btn-sm" id="rwCopyMap" title="Copy JSON to clipboard">Copy</button>
           </div>
           <pre class="rw-map" id="rwMapOutput">// Click "Create Placement Map Note" to generate.</pre>
+        </div>
+        <div>
+          <div class="rw-panel-header"><h3>Validation Queue</h3></div>
+          <ul class="rw-toc" id="rwValidationQueue"><li class="rw-empty">No unresolved issues.</li></ul>
         </div>
       </div>
     </section>

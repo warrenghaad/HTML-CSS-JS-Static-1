@@ -1,6 +1,9 @@
 (function () {
   'use strict';
 
+  const PROVISIONAL_THRESHOLD = 0.7;
+  const PROVISIONAL_REVIEW_DAYS = 14;
+
   const SAMPLE_DOCS = [
     {
       id: 'sample-circle',
@@ -8,6 +11,19 @@
       status: 'Active Review',
       destination: 'data/obsidian-ready/circle-week1.md',
       notes: '',
+      validationIssues: [
+        {
+          id: 'issue-circle-evidence',
+          claim: 'Wheel-origin artifact linkage needs one primary source citation.',
+          likelihood: 0.84,
+          validationMode: 'Deferred',
+          clearanceQuestion: 'Which single source citation confirms the wheel-origin claim in this lesson?',
+          clearanceAnswer: '',
+          critical: false,
+          reviewDue: '',
+          resolved: false,
+        },
+      ],
       content: `# Circle — Week 1 (Shamash)
 
 ## B1 Bridge Review
@@ -44,6 +60,19 @@ What did we learn about equidistance?
       status: 'Fragment',
       destination: '',
       notes: 'Need to clarify 8-fold vs 4-fold symmetry framing for Grade 3.',
+      validationIssues: [
+        {
+          id: 'issue-star-g3',
+          claim: 'Grade 3 language may still be too abstract for 8-fold symmetry.',
+          likelihood: 0.62,
+          validationMode: 'Blocking',
+          clearanceQuestion: 'What exact sentence will explain 8-fold symmetry to Grade 3 without abstraction?',
+          clearanceAnswer: '',
+          critical: true,
+          reviewDue: '',
+          resolved: false,
+        },
+      ],
       content: `# 8-Pointed Star — Week 2 (Ishtar)
 
 ## Open Questions
@@ -60,6 +89,7 @@ Radial symmetry as repeated rotation.
       status: 'Inbox',
       destination: '',
       notes: '',
+      validationIssues: [],
       content: `# Review Workbench — How to use this v0.1
 
 1. Click a document on the left to load it.
@@ -76,7 +106,43 @@ Edits, status, destination, and notes are auto-saved to this browser's storage a
 
   // -------- Persistence (localStorage) --------
   const STORAGE_KEY = 'review-workbench:v1';
-  const STORAGE_VERSION = 2;
+  const STORAGE_VERSION = 3;
+
+  function createIssueId() {
+    return 'issue-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  }
+
+  function autoClearanceQuestion(claim) {
+    const trimmed = String(claim || '').trim();
+    if (!trimmed) return 'What single answer would resolve this uncertainty?';
+    return `What single answer would resolve this uncertainty: "${trimmed}"?`;
+  }
+
+  function toNumber(value, fallback) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return fallback;
+    return Math.min(1, Math.max(0, n));
+  }
+
+  function normalizeIssue(raw) {
+    const claim = typeof raw.claim === 'string' ? raw.claim : '';
+    const clearanceQuestion =
+      typeof raw.clearanceQuestion === 'string' && raw.clearanceQuestion.trim()
+        ? raw.clearanceQuestion
+        : autoClearanceQuestion(claim);
+    const clearanceAnswer = typeof raw.clearanceAnswer === 'string' ? raw.clearanceAnswer : '';
+    return {
+      id: typeof raw.id === 'string' ? raw.id : createIssueId(),
+      claim,
+      likelihood: toNumber(raw.likelihood, 0.5),
+      validationMode: raw.validationMode === 'Blocking' ? 'Blocking' : 'Deferred',
+      clearanceQuestion,
+      clearanceAnswer,
+      critical: Boolean(raw.critical),
+      reviewDue: typeof raw.reviewDue === 'string' ? raw.reviewDue : '',
+      resolved: clearanceAnswer.trim().length > 0 || Boolean(raw.resolved),
+    };
+  }
 
   function loadPersistedState() {
     try {
@@ -85,7 +151,6 @@ Edits, status, destination, and notes are auto-saved to this browser's storage a
       const parsed = JSON.parse(raw);
       if (!parsed || parsed.version !== STORAGE_VERSION) return null;
       if (!Array.isArray(parsed.docs)) return null;
-      // Sanitize: keep only fields we expect.
       const docs = parsed.docs
         .filter((d) => d && typeof d.id === 'string' && typeof d.name === 'string')
         .map((d) => ({
@@ -96,6 +161,7 @@ Edits, status, destination, and notes are auto-saved to this browser's storage a
           notes: typeof d.notes === 'string' ? d.notes : '',
           content: typeof d.content === 'string' ? d.content : '',
           source: d.source === 'file' ? 'file' : undefined,
+          validationIssues: Array.isArray(d.validationIssues) ? d.validationIssues.map(normalizeIssue) : [],
         }));
       return {
         docs,
@@ -120,6 +186,9 @@ Edits, status, destination, and notes are auto-saved to this browser's storage a
           notes: d.notes || '',
           content: d.content || '',
           source: d.source,
+          validationIssues: Array.isArray(d.validationIssues)
+            ? d.validationIssues.map((issue) => normalizeIssue(issue))
+            : [],
         })),
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -136,23 +205,37 @@ Edits, status, destination, and notes are auto-saved to this browser's storage a
       saveTimer = null;
       persistActive();
       savePersistedState();
+      refreshValidationQueue();
     }, 250);
+  }
+
+  function createDefaultIssue() {
+    return {
+      id: createIssueId(),
+      claim: '',
+      likelihood: 0.7,
+      validationMode: 'Deferred',
+      clearanceQuestion: 'What single answer would resolve this uncertainty?',
+      clearanceAnswer: '',
+      critical: false,
+      reviewDue: '',
+      resolved: false,
+    };
   }
 
   const persisted = loadPersistedState();
   const state = {
     docs:
       persisted && persisted.docs.length
-        ? persisted.docs
-        : SAMPLE_DOCS.map((d) => ({ ...d })),
-    // Intentionally start with no activeId. The first `loadDoc()` call below
-    // would otherwise call `persistActive()` and overwrite the persisted doc
-    // with the still-empty editor contents.
+        ? persisted.docs.map((d) => ({ ...d, validationIssues: Array.isArray(d.validationIssues) ? d.validationIssues : [] }))
+        : SAMPLE_DOCS.map((d) => ({
+            ...d,
+            validationIssues: Array.isArray(d.validationIssues) ? d.validationIssues.map(normalizeIssue) : [],
+          })),
     activeId: null,
   };
   let initialActiveId =
-    persisted && persisted.activeId &&
-    state.docs.some((d) => d.id === persisted.activeId)
+    persisted && persisted.activeId && state.docs.some((d) => d.id === persisted.activeId)
       ? persisted.activeId
       : null;
 
@@ -174,7 +257,67 @@ Edits, status, destination, and notes are auto-saved to this browser's storage a
     genTocBtn: $('rwGenTOC'),
     genMapBtn: $('rwGenMap'),
     copyMapBtn: $('rwCopyMap'),
+    issueList: $('rwIssueList'),
+    addIssueBtn: $('rwAddIssue'),
+    validationSummary: $('rwValidationSummary'),
+    validationQueue: $('rwValidationQueue'),
   };
+
+  function getActiveDoc() {
+    return state.docs.find((d) => d.id === state.activeId) || null;
+  }
+
+  function summarizeDocValidation(doc) {
+    const issues = Array.isArray(doc.validationIssues) ? doc.validationIssues.map(normalizeIssue) : [];
+    const unresolved = issues.filter((i) => !i.resolved);
+    const unresolvedBlocking = unresolved.filter((i) => i.validationMode === 'Blocking');
+    const unresolvedCritical = unresolvedBlocking.filter((i) => i.critical);
+    const unresolvedDeferred = unresolved.filter((i) => i.validationMode === 'Deferred');
+    const provisionalEligible =
+      unresolved.length > 0 &&
+      unresolvedBlocking.length === 0 &&
+      unresolvedDeferred.every((i) => i.likelihood >= PROVISIONAL_THRESHOLD);
+    return {
+      total: issues.length,
+      resolvedCount: issues.length - unresolved.length,
+      unresolved,
+      unresolvedBlocking,
+      unresolvedCritical,
+      provisionalEligible,
+      allResolved: issues.length > 0 && unresolved.length === 0,
+    };
+  }
+
+  function applyValidationPolicy(doc) {
+    if (!doc) return;
+    doc.validationIssues = (Array.isArray(doc.validationIssues) ? doc.validationIssues : []).map(normalizeIssue);
+    const summary = summarizeDocValidation(doc);
+
+    if (summary.provisionalEligible) {
+      if (doc.status === 'Canon' || doc.status === 'Canon Candidate') {
+        doc.status = 'Provisional Canon';
+      }
+      summary.unresolved.forEach((issue) => {
+        if (!issue.reviewDue) {
+          const due = new Date();
+          due.setDate(due.getDate() + PROVISIONAL_REVIEW_DAYS);
+          issue.reviewDue = due.toISOString().slice(0, 10);
+        }
+      });
+    }
+
+    if (summary.allResolved) {
+      if (doc.status === 'Provisional Canon' || doc.status === 'Canon Candidate') {
+        doc.status = 'Canon';
+      } else if (doc.status !== 'Canon') {
+        doc.status = 'Canon Candidate';
+      }
+    }
+
+    if (summary.unresolvedCritical.length > 0 && (doc.status === 'Canon' || doc.status === 'Provisional Canon')) {
+      doc.status = 'Active Review';
+    }
+  }
 
   // -------- File list --------
   function renderFileList() {
@@ -202,11 +345,136 @@ Edits, status, destination, and notes are auto-saved to this browser's storage a
     });
   }
 
+  function renderValidationSummary(doc) {
+    const summary = summarizeDocValidation(doc);
+    if (!summary.total) {
+      els.validationSummary.innerHTML = '<span class="rw-tag">No issues</span>';
+      return;
+    }
+    const gate = summary.unresolvedCritical.length > 0
+      ? '<span class="rw-tag rw-tag-warning">Blocked</span>'
+      : summary.provisionalEligible
+      ? '<span class="rw-tag rw-tag-warning">Provisional Allowed</span>'
+      : '<span class="rw-tag rw-tag-success">Ready</span>';
+    const counts = `${summary.resolvedCount}/${summary.total} resolved`;
+    els.validationSummary.innerHTML = `${gate} ${escapeHtml(counts)}`;
+  }
+
+  function renderIssues() {
+    const doc = getActiveDoc();
+    if (!doc) return;
+    doc.validationIssues = (Array.isArray(doc.validationIssues) ? doc.validationIssues : []).map(normalizeIssue);
+
+    if (doc.validationIssues.length === 0) {
+      els.issueList.innerHTML = '<p class="rw-hint">No issues yet. Add one when a validation question appears.</p>';
+      renderValidationSummary(doc);
+      return;
+    }
+
+    els.issueList.innerHTML = '';
+    doc.validationIssues.forEach((issue, index) => {
+      const card = document.createElement('div');
+      card.className = 'rw-issue-card';
+      card.innerHTML = `
+        <div class="rw-issue-row">
+          <div>
+            <label class="rw-label">Claim / uncertainty</label>
+            <input class="rw-input" data-field="claim" data-idx="${index}" type="text" value="${escapeHtml(issue.claim)}" placeholder="What needs validation?">
+          </div>
+          <div>
+            <label class="rw-label">Likelihood (0-1)</label>
+            <input class="rw-input" data-field="likelihood" data-idx="${index}" type="number" min="0" max="1" step="0.01" value="${issue.likelihood}">
+          </div>
+        </div>
+        <div class="rw-issue-row">
+          <div>
+            <label class="rw-label">Validation mode</label>
+            <select class="rw-input" data-field="validationMode" data-idx="${index}">
+              <option ${issue.validationMode === 'Blocking' ? 'selected' : ''}>Blocking</option>
+              <option ${issue.validationMode === 'Deferred' ? 'selected' : ''}>Deferred</option>
+            </select>
+          </div>
+          <div class="rw-issue-inline">
+            <label class="rw-label" for="critical-${issue.id}">Critical</label>
+            <input class="rw-input" id="critical-${issue.id}" data-field="critical" data-idx="${index}" type="checkbox" ${issue.critical ? 'checked' : ''}>
+            <span class="rw-tag ${issue.resolved ? 'rw-tag-success' : 'rw-tag-warning'}">${issue.resolved ? 'Resolved' : 'Open'}</span>
+          </div>
+        </div>
+        <div class="rw-issue-row">
+          <div>
+            <label class="rw-label">Clearance question</label>
+            <input class="rw-input" data-field="clearanceQuestion" data-idx="${index}" type="text" value="${escapeHtml(issue.clearanceQuestion)}">
+          </div>
+          <div>
+            <label class="rw-label">Clearance answer</label>
+            <input class="rw-input" data-field="clearanceAnswer" data-idx="${index}" type="text" value="${escapeHtml(issue.clearanceAnswer)}" placeholder="Answer resolves issue">
+          </div>
+        </div>
+        <div class="rw-issue-row">
+          <div>
+            <label class="rw-label">Review due</label>
+            <input class="rw-input" data-field="reviewDue" data-idx="${index}" type="date" value="${escapeHtml(issue.reviewDue || '')}">
+          </div>
+          <div class="rw-issue-actions">
+            <button class="btn rw-btn-sm secondary" type="button" data-remove-idx="${index}">Remove</button>
+          </div>
+        </div>
+      `;
+      els.issueList.appendChild(card);
+    });
+
+    els.issueList.querySelectorAll('[data-field]').forEach((input) => {
+      const eventName = input.type === 'checkbox' ? 'change' : 'input';
+      input.addEventListener(eventName, (e) => {
+        const idx = Number(e.target.dataset.idx);
+        const field = e.target.dataset.field;
+        const targetIssue = doc.validationIssues[idx];
+        if (!targetIssue) return;
+
+        if (field === 'critical') {
+          targetIssue.critical = e.target.checked;
+        } else if (field === 'likelihood') {
+          targetIssue.likelihood = toNumber(e.target.value, targetIssue.likelihood);
+        } else {
+          targetIssue[field] = e.target.value;
+        }
+
+        if (field === 'claim' && !targetIssue.clearanceQuestion.trim()) {
+          targetIssue.clearanceQuestion = autoClearanceQuestion(targetIssue.claim);
+        }
+
+        targetIssue.resolved = String(targetIssue.clearanceAnswer || '').trim().length > 0;
+        applyValidationPolicy(doc);
+        els.status.value = doc.status || 'Inbox';
+        renderIssues();
+        renderFileList();
+        savePersistedState();
+        refreshValidationQueue();
+      });
+    });
+
+    els.issueList.querySelectorAll('[data-remove-idx]').forEach((button) => {
+      button.addEventListener('click', (e) => {
+        const idx = Number(e.currentTarget.dataset.removeIdx);
+        doc.validationIssues.splice(idx, 1);
+        applyValidationPolicy(doc);
+        els.status.value = doc.status || 'Inbox';
+        renderIssues();
+        renderFileList();
+        savePersistedState();
+        refreshValidationQueue();
+      });
+    });
+
+    renderValidationSummary(doc);
+  }
+
   function loadDoc(id) {
     persistActive();
     const doc = state.docs.find((d) => d.id === id);
     if (!doc) return;
     state.activeId = id;
+    applyValidationPolicy(doc);
     savePersistedState();
     els.editor.value = doc.content;
     els.docTitle.textContent = doc.name;
@@ -216,7 +484,9 @@ Edits, status, destination, and notes are auto-saved to this browser's storage a
     els.notes.value = doc.notes || '';
     els.tocList.innerHTML = '<li class="rw-empty">Click <em>Generate Provisional TOC</em> to scan headings.</li>';
     els.mapOutput.textContent = '// Click "Create Placement Map Note" to generate.';
+    renderIssues();
     renderFileList();
+    refreshValidationQueue();
   }
 
   function persistActive() {
@@ -227,6 +497,51 @@ Edits, status, destination, and notes are auto-saved to this browser's storage a
     doc.status = els.status.value;
     doc.destination = els.destination.value;
     doc.notes = els.notes.value;
+    applyValidationPolicy(doc);
+  }
+
+  function buildValidationQueue() {
+    const rows = [];
+    state.docs.forEach((doc) => {
+      const issues = Array.isArray(doc.validationIssues) ? doc.validationIssues.map(normalizeIssue) : [];
+      issues.forEach((issue) => {
+        if (issue.resolved) return;
+        rows.push({
+          docId: doc.id,
+          docName: doc.name,
+          mode: issue.validationMode,
+          critical: issue.critical,
+          likelihood: issue.likelihood,
+          question: issue.clearanceQuestion,
+          due: issue.reviewDue || '',
+        });
+      });
+    });
+    rows.sort((a, b) => {
+      const aScore = (a.mode === 'Blocking' ? 2 : 0) + (a.critical ? 1 : 0);
+      const bScore = (b.mode === 'Blocking' ? 2 : 0) + (b.critical ? 1 : 0);
+      if (aScore !== bScore) return bScore - aScore;
+      if (a.due && b.due) return a.due.localeCompare(b.due);
+      if (a.due) return -1;
+      if (b.due) return 1;
+      return b.likelihood - a.likelihood;
+    });
+    return rows;
+  }
+
+  function refreshValidationQueue() {
+    const queue = buildValidationQueue();
+    if (!queue.length) {
+      els.validationQueue.innerHTML = '<li class="rw-empty">No unresolved issues.</li>';
+      return;
+    }
+    els.validationQueue.innerHTML = queue
+      .map((item) => {
+        const dueText = item.due ? ` · due ${item.due}` : '';
+        const modeText = item.critical ? `${item.mode}/Critical` : item.mode;
+        return `<li><strong>${escapeHtml(item.docName)}</strong> · ${escapeHtml(modeText)} · p=${item.likelihood.toFixed(2)}${escapeHtml(dueText)}<br>${escapeHtml(item.question || 'No clearance question yet.')}</li>`;
+      })
+      .join('');
   }
 
   // -------- TOC generation --------
@@ -253,15 +568,34 @@ Edits, status, destination, and notes are auto-saved to this browser's storage a
     persistActive();
     const doc = state.docs.find((d) => d.id === state.activeId);
     const headings = generateTOC();
+    const summary = doc ? summarizeDocValidation(doc) : null;
+    const unresolved = summary ? summary.unresolved : [];
+    const queue = buildValidationQueue();
     const map = {
-      schema: 'placement-map/v0.1',
+      schema: 'placement-map/v0.2',
       generated_at: new Date().toISOString(),
       document: doc ? doc.name : 'Untitled',
       status: els.status.value,
       future_destination: els.destination.value || null,
       review_notes: els.notes.value || null,
       detected_headings: headings,
-      unresolved_questions: [],
+      validation_policy: {
+        provisional_threshold: PROVISIONAL_THRESHOLD,
+        rule: 'High confidence + non-critical deferred unknowns = Provisional Canon; critical/blocking unknowns stay in Active Review.',
+        provisional_review_days: PROVISIONAL_REVIEW_DAYS,
+      },
+      validation_summary: summary
+        ? {
+            total_issues: summary.total,
+            resolved_issues: summary.resolvedCount,
+            unresolved_blocking: summary.unresolvedBlocking.length,
+            unresolved_critical: summary.unresolvedCritical.length,
+            provisional_eligible: summary.provisionalEligible,
+          }
+        : null,
+      unresolved_questions: unresolved.map((i) => i.clearanceQuestion || autoClearanceQuestion(i.claim)),
+      issues: doc ? (doc.validationIssues || []).map((i) => normalizeIssue(i)) : [],
+      validation_queue: queue,
     };
     els.mapOutput.textContent = JSON.stringify(map, null, 2);
     return map;
@@ -280,11 +614,13 @@ Edits, status, destination, and notes are auto-saved to this browser's storage a
         notes: '',
         content: String(reader.result || ''),
         source: 'file',
+        validationIssues: [],
       };
       state.docs.unshift(doc);
       renderFileList();
       loadDoc(id);
       savePersistedState();
+      refreshValidationQueue();
     };
     reader.readAsText(file);
   }
@@ -314,12 +650,23 @@ Edits, status, destination, and notes are auto-saved to this browser's storage a
   // -------- Wire events --------
   document.addEventListener('DOMContentLoaded', () => {
     renderFileList();
-    const firstId =
-      initialActiveId || (state.docs.length ? state.docs[0].id : null);
+    const firstId = initialActiveId || (state.docs.length ? state.docs[0].id : null);
     if (firstId) loadDoc(firstId);
 
     els.genTocBtn.addEventListener('click', generateTOC);
     els.genMapBtn.addEventListener('click', generatePlacementMap);
+
+    els.addIssueBtn.addEventListener('click', () => {
+      const doc = getActiveDoc();
+      if (!doc) return;
+      doc.validationIssues = Array.isArray(doc.validationIssues) ? doc.validationIssues : [];
+      doc.validationIssues.push(createDefaultIssue());
+      applyValidationPolicy(doc);
+      renderIssues();
+      renderFileList();
+      savePersistedState();
+      refreshValidationQueue();
+    });
 
     els.openBtn.addEventListener('click', () => els.fileInput.click());
     els.fileInput.addEventListener('change', (e) => {
@@ -345,6 +692,9 @@ Edits, status, destination, and notes are auto-saved to this browser's storage a
       el.addEventListener('change', () => {
         persistActive();
         savePersistedState();
+        renderIssues();
+        renderFileList();
+        refreshValidationQueue();
       });
       el.addEventListener('input', schedulePersist);
     });

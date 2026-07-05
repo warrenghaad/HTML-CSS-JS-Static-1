@@ -51,6 +51,10 @@
   font-weight: 600;
 }
 
+.rw-subheader {
+  margin-top: 0.85rem;
+}
+
 .rw-meta {
   font-size: 0.7rem;
   color: var(--text-muted);
@@ -184,17 +188,101 @@ body.light .rw-input { background: rgba(255,255,255,0.7); }
   gap: 0.4rem;
 }
 
+.rw-issues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.rw-issue-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+body.light .rw-issue-card {
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.rw-issue-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  margin-bottom: 0.45rem;
+}
+
+.rw-issue-row:last-child {
+  margin-bottom: 0;
+}
+
+.rw-issue-row .rw-input {
+  font-size: 0.78rem;
+  padding: 0.42rem 0.55rem;
+}
+
+.rw-issue-row .rw-label {
+  margin: 0 0 0.2rem;
+  font-size: 0.62rem;
+}
+
+.rw-issue-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.rw-issue-inline .rw-label {
+  margin: 0;
+}
+
+.rw-issue-inline .rw-input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+}
+
+.rw-issue-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rw-tag {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.63rem;
+  padding: 0.12rem 0.42rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rw-tag-success {
+  border-color: rgba(34, 197, 94, 0.5);
+  color: #4ade80;
+}
+
+.rw-tag-warning {
+  border-color: rgba(250, 204, 21, 0.5);
+  color: #facc15;
+}
+
 /* Bottom */
 .rw-bottom-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 1rem;
   flex: 1;
   min-height: 0;
 }
 
+@media (max-width: 1200px) {
+  .rw-bottom-grid { grid-template-columns: 1fr 1fr; }
+}
+
 @media (max-width: 900px) {
   .rw-bottom-grid { grid-template-columns: 1fr; }
+  .rw-issue-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .rw-toc {

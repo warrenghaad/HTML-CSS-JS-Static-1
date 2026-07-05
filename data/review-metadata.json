@@ -1,10 +1,11 @@
 {
-  "schema": "review-metadata/v0.1",
+  "schema": "review-metadata/v0.2",
   "description": "Seed metadata for the Review Workbench prototype. Lists the canonical statuses and the directories where generated outputs would live if/when the workbench begins writing to disk in a future version.",
   "statuses": [
     "Inbox",
     "Active Review",
     "Canon",
+    "Provisional Canon",
     "Canon Candidate",
     "Fragment",
     "Conflict",
@@ -22,6 +23,7 @@
   "notes": [
     "v0.1 does NOT write to disk — edits and outputs live in the browser tab only.",
     "Use the Save .md button to download the editor's contents to your computer.",
-    "Use the Copy button on the Placement Map to copy the generated JSON elsewhere."
+    "Use the Copy button on the Placement Map to copy the generated JSON elsewhere.",
+    "Validation issues support likelihood score, blocking/deferred mode, one clearance question, and review-due tracking for provisional canon."
   ]
 }
