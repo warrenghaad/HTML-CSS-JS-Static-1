@@ -2481,6 +2481,7 @@ import gdrive_helper
 INGESTABLE_FIELDS = ['section_name', 'purpose', 'content']
 import re as _re
 SECTION_CODE_RE = _re.compile(r'^[AB][1-8]$')
+LESSON_KEY_RE = _re.compile(r'^G(\d+)-W(\d+)-Day([AB])$', _re.IGNORECASE)
 
 def init_ingester_db():
     conn = get_db()
@@ -2507,6 +2508,19 @@ def init_ingester_db():
     ''')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_ingest_status ON ingest_candidates(status)')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_ingest_lesson_key ON ingest_candidates(lesson_key)')
+    for col_def in [
+        "producer_metadata JSONB NOT NULL DEFAULT '{}'::jsonb",
+        "source_refs JSONB NOT NULL DEFAULT '[]'::jsonb",
+        "confidence DOUBLE PRECISION",
+        "applied_fields JSONB NOT NULL DEFAULT '[]'::jsonb",
+    ]:
+        col_name = col_def.split()[0]
+        cur.execute("""
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name='ingest_candidates' AND column_name=%s
+        """, (col_name,))
+        if not cur.fetchone():
+            cur.execute(f"ALTER TABLE ingest_candidates ADD COLUMN {col_def}")
     cur.close()
     conn.close()
 
@@ -2516,6 +2530,84 @@ def _safe_drive_call(fn, *args, **kwargs):
         return fn(*args, **kwargs), None
     except Exception as e:
         return None, str(e)
+
+
+def _coerce_text(v):
+    if v is None:
+        return ''
+    if isinstance(v, str):
+        return v
+    return json.dumps(v)
+
+
+def _parse_lesson_key(lesson_key):
+    if not lesson_key:
+        return None
+    m = LESSON_KEY_RE.match(str(lesson_key).strip())
+    if not m:
+        return None
+    return int(m.group(1)), int(m.group(2)), m.group(3).upper()
+
+
+def _normalize_ibuild_payload(data):
+    sections = data.get('sections')
+    payload = data.get('payload')
+
+    if isinstance(payload, dict):
+        normalized = {}
+        for code, sec in payload.items():
+            sec_code = str(code or '').strip().upper()
+            if not SECTION_CODE_RE.match(sec_code):
+                continue
+            sec = sec if isinstance(sec, dict) else {}
+            normalized[sec_code] = {
+                'name': _coerce_text(sec.get('name') or sec.get('section_name')),
+                'purpose': _coerce_text(sec.get('purpose')),
+                'content': _coerce_text(sec.get('content')),
+                'artifacts': sec.get('artifacts') if isinstance(sec.get('artifacts'), list) else [],
+            }
+        return normalized
+
+    if not isinstance(sections, list):
+        return {}
+
+    normalized = {}
+    for entry in sections:
+        if not isinstance(entry, dict):
+            continue
+        sec_code = str(entry.get('section_code') or '').strip().upper()
+        if not SECTION_CODE_RE.match(sec_code):
+            continue
+
+        fields = entry.get('fields') or {}
+        if not isinstance(fields, dict):
+            fields = {}
+
+        sec_obj = {
+            'name': _coerce_text(fields.get('section_name', entry.get('section_name', ''))),
+            'purpose': _coerce_text(fields.get('purpose', entry.get('purpose', ''))),
+            'content': _coerce_text(fields.get('content', entry.get('content', ''))),
+        }
+
+        artifacts = []
+        provenance = entry.get('provenance')
+        if provenance is not None:
+            artifacts.append({'description': _coerce_text(provenance), 'source_type': 'ibuild-provenance'})
+        source_ref = entry.get('source_ref')
+        if source_ref:
+            artifacts.append({'description': _coerce_text(source_ref), 'source_type': 'ibuild-source-ref'})
+        stamp = entry.get('timestamp')
+        if stamp:
+            artifacts.append({'description': _coerce_text(stamp), 'source_type': 'ibuild-timestamp'})
+        conf = entry.get('confidence')
+        if conf is not None:
+            artifacts.append({'description': _coerce_text(conf), 'source_type': 'ibuild-confidence'})
+        if artifacts:
+            sec_obj['artifacts'] = artifacts
+
+        normalized[sec_code] = sec_obj
+
+    return normalized
 
 
 @app.route('/api/ingest/drive/list', methods=['GET'])
@@ -2580,19 +2672,95 @@ def ingest_scan():
     })
 
 
+@app.route('/api/ingest/ibuild', methods=['POST'])
+def ingest_ibuild():
+    data = request.get_json(silent=True) or {}
+    lesson_key = (data.get('canonical_lesson_key') or data.get('lesson_key') or '').strip()
+    parsed = _parse_lesson_key(lesson_key)
+    if not parsed:
+        return jsonify({'error': 'canonical_lesson_key required in format G#-W#-DayA|DayB'}), 400
+    grade, week, day = parsed
+
+    payload = _normalize_ibuild_payload(data)
+    if not payload:
+        return jsonify({'error': 'payload or sections must include at least one valid section_code with fields'}), 400
+
+    ext_id = (
+        (data.get('external_id') or data.get('candidate_id') or data.get('producer_record_id') or '').strip()
+        or f"{lesson_key}:{day}"
+    )
+    source_file_name = (data.get('source_file_name') or f"ibuild:{lesson_key}").strip()
+    source_path = (data.get('source_path') or data.get('source_ref') or '').strip()
+    modified_time = str(data.get('timestamp') or data.get('produced_at') or datetime.utcnow().isoformat())
+
+    producer_metadata = data.get('metadata')
+    if not isinstance(producer_metadata, dict):
+        producer_metadata = {}
+    source_refs = data.get('source_refs')
+    if not isinstance(source_refs, list):
+        source_refs = []
+
+    confidence = data.get('confidence')
+    if confidence is not None:
+        try:
+            confidence = float(confidence)
+        except Exception:
+            confidence = None
+
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        INSERT INTO ingest_candidates
+            (source, source_file_id, source_file_name, source_path, lesson_key,
+             grade, week, day, payload, modified_time, status, producer_metadata,
+             source_refs, confidence, applied_fields, updated_at)
+        VALUES ('ibuild', %s, %s, %s, %s, %s, %s, %s, %s, %s, 'pending', %s, %s, %s, '[]'::jsonb, NOW())
+        ON CONFLICT (source, source_file_id) DO UPDATE SET
+            payload = EXCLUDED.payload,
+            source_file_name = EXCLUDED.source_file_name,
+            source_path = EXCLUDED.source_path,
+            lesson_key = EXCLUDED.lesson_key,
+            grade = EXCLUDED.grade,
+            week = EXCLUDED.week,
+            day = EXCLUDED.day,
+            modified_time = EXCLUDED.modified_time,
+            producer_metadata = EXCLUDED.producer_metadata,
+            source_refs = EXCLUDED.source_refs,
+            confidence = EXCLUDED.confidence,
+            updated_at = NOW(),
+            status = CASE WHEN ingest_candidates.status IN ('accepted','rejected')
+                          THEN ingest_candidates.status ELSE 'pending' END
+        RETURNING id, status, lesson_key, updated_at
+    ''', (
+        ext_id, source_file_name, source_path, lesson_key,
+        grade, week, day, json.dumps(payload), modified_time,
+        json.dumps(producer_metadata), json.dumps(source_refs), confidence,
+    ))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return jsonify({
+        'ok': True,
+        'candidate_id': row['id'],
+        'lesson_key': row['lesson_key'],
+        'status': row['status'],
+        'updated_at': row['updated_at'],
+    })
+
+
 @app.route('/api/ingest/candidates', methods=['GET'])
 def ingest_candidates_list():
     status = request.args.get('status', '').strip()
     conn = get_db()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     if status:
-        cur.execute('''SELECT id, source_file_name, source_path, lesson_key, grade, week, day,
-                              status, modified_time, updated_at
+        cur.execute('''SELECT id, source, source_file_name, source_path, lesson_key, grade, week, day,
+                              status, modified_time, confidence, updated_at
                        FROM ingest_candidates WHERE status = %s
                        ORDER BY grade, week, day, lesson_key''', (status,))
     else:
-        cur.execute('''SELECT id, source_file_name, source_path, lesson_key, grade, week, day,
-                              status, modified_time, updated_at
+        cur.execute('''SELECT id, source, source_file_name, source_path, lesson_key, grade, week, day,
+                              status, modified_time, confidence, updated_at
                        FROM ingest_candidates
                        ORDER BY status, grade, week, day, lesson_key''')
     rows = cur.fetchall()
@@ -2669,12 +2837,18 @@ def ingest_candidate_diff(cid):
     return jsonify({
         'candidate': {
             'id': cand['id'],
+            'source': cand['source'],
             'lesson_key': cand['lesson_key'],
             'grade': cand['grade'], 'week': cand['week'], 'day': cand['day'],
             'source_file_name': cand['source_file_name'],
             'source_path': cand['source_path'],
             'status': cand['status'],
             'modified_time': cand['modified_time'],
+            'confidence': cand.get('confidence'),
+            'decision_notes': cand.get('decision_notes') or '',
+            'applied_fields': cand.get('applied_fields') or [],
+            'source_refs': cand.get('source_refs') or [],
+            'producer_metadata': cand.get('producer_metadata') or {},
         },
         'db_lesson': db_lesson,
         'sections': diff,
@@ -2687,6 +2861,7 @@ def ingest_candidate_apply(cid):
     data = request.get_json(silent=True) or {}
     selections = data.get('selections') or []
     allow_clear = bool(data.get('allow_clear'))  # opt-in to overwrite DB with blank Drive value
+    decision_notes = (data.get('notes') or '').strip()
     if not selections:
         return jsonify({'error': 'selections required: [{section_code, fields:[...]}]'}), 400
 
@@ -2758,8 +2933,12 @@ def ingest_candidate_apply(cid):
             applied.append({'section_code': code, 'fields': list(values.keys())})
 
         new_status = 'accepted' if applied else cand['status']
-        cur.execute("UPDATE ingest_candidates SET status=%s, updated_at=NOW() WHERE id=%s",
-                    (new_status, cid))
+        notes_to_store = decision_notes if decision_notes else (cand.get('decision_notes') or '')
+        cur.execute("""
+            UPDATE ingest_candidates
+            SET status=%s, decision_notes=%s, applied_fields=%s, updated_at=NOW()
+            WHERE id=%s
+        """, (new_status, notes_to_store, json.dumps(applied), cid))
         conn.commit()
         return jsonify({'ok': True, 'applied': applied, 'skipped': skipped,
                         'lesson_id': db_lesson['id']})
@@ -2775,8 +2954,11 @@ def ingest_candidate_reject(cid):
     notes = ((request.get_json(silent=True) or {}).get('notes') or '').strip()
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("UPDATE ingest_candidates SET status='rejected', decision_notes=%s, updated_at=NOW() WHERE id=%s",
-                (notes, cid))
+    cur.execute("""
+        UPDATE ingest_candidates
+        SET status='rejected', decision_notes=%s, applied_fields='[]'::jsonb, updated_at=NOW()
+        WHERE id=%s
+    """, (notes, cid))
     found = cur.rowcount
     cur.close(); conn.close()
     if not found:
@@ -2788,13 +2970,83 @@ def ingest_candidate_reject(cid):
 def ingest_candidate_reset(cid):
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("UPDATE ingest_candidates SET status='pending', decision_notes='', updated_at=NOW() WHERE id=%s",
-                (cid,))
+    cur.execute("""
+        UPDATE ingest_candidates
+        SET status='pending', decision_notes='', applied_fields='[]'::jsonb, updated_at=NOW()
+        WHERE id=%s
+    """, (cid,))
     found = cur.rowcount
     cur.close(); conn.close()
     if not found:
         return jsonify({'error': 'not found'}), 404
     return jsonify({'ok': True})
+
+
+@app.route('/api/ingest/ibuild/status/<string:external_id>', methods=['GET'])
+def ingest_ibuild_status(external_id):
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        SELECT id, lesson_key, status, decision_notes, applied_fields, confidence,
+               source_refs, source_path, modified_time, updated_at
+        FROM ingest_candidates
+        WHERE source = 'ibuild' AND source_file_id = %s
+        LIMIT 1
+    ''', (external_id,))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not row:
+        return jsonify({'error': 'not found'}), 404
+    return jsonify({
+        'ok': True,
+        'candidate_id': row['id'],
+        'lesson_key': row['lesson_key'],
+        'status': row['status'],
+        'decision_notes': row.get('decision_notes') or '',
+        'applied_fields': row.get('applied_fields') or [],
+        'confidence': row.get('confidence'),
+        'source_refs': row.get('source_refs') or [],
+        'source_path': row.get('source_path') or '',
+        'modified_time': row.get('modified_time') or '',
+        'updated_at': row.get('updated_at'),
+    })
+
+
+@app.route('/api/ingest/ibuild/status', methods=['GET'])
+def ingest_ibuild_status_by_key():
+    lesson_key = (request.args.get('canonical_lesson_key') or request.args.get('lesson_key') or '').strip()
+    if not lesson_key:
+        return jsonify({'error': 'canonical_lesson_key or lesson_key query param required'}), 400
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('''
+        SELECT id, source_file_id, lesson_key, status, decision_notes, applied_fields, confidence,
+               source_refs, source_path, modified_time, updated_at
+        FROM ingest_candidates
+        WHERE source = 'ibuild' AND lesson_key = %s
+        ORDER BY updated_at DESC, id DESC
+        LIMIT 1
+    ''', (lesson_key,))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not row:
+        return jsonify({'error': 'not found'}), 404
+    return jsonify({
+        'ok': True,
+        'candidate_id': row['id'],
+        'external_id': row['source_file_id'],
+        'lesson_key': row['lesson_key'],
+        'status': row['status'],
+        'decision_notes': row.get('decision_notes') or '',
+        'applied_fields': row.get('applied_fields') or [],
+        'confidence': row.get('confidence'),
+        'source_refs': row.get('source_refs') or [],
+        'source_path': row.get('source_path') or '',
+        'modified_time': row.get('modified_time') or '',
+        'updated_at': row.get('updated_at'),
+    })
 
 
 with app.app_context():
