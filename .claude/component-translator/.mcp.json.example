@@ -5,12 +5,20 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID"
+        "/Volumes/Macintosh HD-1/Users/warrenghaad/PANTTEARRA - DOCUMENTS/EUCLID"
       ]
     },
     "figma": {
       "type": "http",
       "url": "https://mcp.figma.com"
+    },
+    "figma-local": {
+      "type": "http",
+      "url": "http://127.0.0.1:3845/mcp"
+    },
+    "notion": {
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
     },
     "gdrive": {
       "command": "npx",
