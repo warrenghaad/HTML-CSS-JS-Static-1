@@ -1,10 +1,12 @@
 # Geometry, Primitives, and Method Notes
 
-**Status:** INBOX / NONCANONICAL
+**Status:** CANON-READY
 
 **Captured:** 2026-08-11
 
-This file preserves unusually precise formulations from a live exploratory discussion. It does not mark the theory as established. The purpose is to retain the reasoning, metaphors, deductions, and objections in a form that can later be tested, revised, rejected, or promoted.
+This file recovers elemental formulations of the theory and methodology that were often left undescribed because they were foundational to the author's own thinking. These formulations should be treated as canon-ready descriptions of intended structure unless a passage is explicitly marked as hypothesis, unresolved formalization, metaphor, or empirical question.
+
+**Important distinction:** canon-ready means faithful to the intended theory. It does not mean empirically proven.
 
 ## Quotations worth preserving
 
@@ -76,6 +78,8 @@ The primitives were therefore chosen as a possible Rosetta Stone, not because th
 
 ## Magic note
 
+**METAPHOR / DISCOVERY LANGUAGE unless operationalized.**
+
 “Magic” began as a metaphor for categorizing recurring observations. The methodological problem is that an agent instructed to find magic will reliably return evidence that resembles magic. Therefore any future use of the term must separate:
 
 - metaphor / discovery vocabulary
@@ -107,9 +111,11 @@ A2 should therefore distinguish at minimum:
 
 The recurring discomfort with A2 should be treated as methodological signal, not friction to be edited away.
 
-## Open questions
+## Open questions / unresolved formalization
 
-- Are Math / Art / Power / Ideology variables, observation surfaces, boundary conditions, or something else?
+These questions do not make the surrounding framework noncanonical. They identify where the canonical framework is deliberately unfinished.
+
+- Are Math / Art / Power / Ideology best formalized as variables, observation surfaces, boundary conditions, or another structure?
 - What properties must remain invariant when one pole changes?
 - What distinguishes a coherent dome from a merely visually balanced configuration?
 - Can primitives be defined without encoding the phenomenon they are later asked to discover?
@@ -118,6 +124,6 @@ The recurring discomfort with A2 should be treated as methodological signal, not
 - Does the same proposed collapse geometry occur in civilizations or institutions that remain resilient?
 - What would falsify the interpretation currently embedded in A2?
 
-## Inbox rule for this note
+## Canon rule for this note
 
-Do not polish uncertainty out of this file. Any later canonization should preserve the lineage from metaphor → deduction → operationalization → test, including abandoned branches and failed predictions.
+Preserve the lineage from metaphor → deduction → operationalization → test. Do not mistake an unresolved mathematical expression for uncertainty about the underlying intended concept, and do not mistake canon status for empirical confirmation.
