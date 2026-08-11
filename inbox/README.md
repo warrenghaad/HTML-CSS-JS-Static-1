@@ -1,18 +1,24 @@
 # Inbox
 
-A low-friction holding area for ideas, formulations, doubts, observations, and research questions captured before they are reconciled with project canon.
+A low-friction holding area for captured formulations, deductions, clarifications, doubts, observations, and research questions.
 
-## Rule
+## Default status
 
-Nothing in this folder is canonical merely because it is concise, elegant, persuasive, or useful.
+Material captured here is **CANON-READY unless explicitly marked otherwise**.
 
-Items may contain:
-- user hypotheses
-- assistant formulations
-- unresolved deductions
-- methodological objections
-- possible vocabulary
-- contradictions
-- questions that should remain open
+Canon-ready means: the formulation accurately expresses the user's intended theory, method, design constraint, or conceptual structure and may be promoted into canonical documentation without re-litigating whether it was merely conversational speculation.
 
-The purpose of the inbox is to preserve thought without prematurely converting it into truth.
+Canon-ready does **not** mean empirically proven. A canonical theory can contain hypotheses, open problems, methodological cautions, and unresolved formalizations, provided those epistemic statuses remain attached.
+
+## Mark exceptions explicitly
+
+Use labels such as:
+- `OPEN HYPOTHESIS`
+- `UNRESOLVED FORMALIZATION`
+- `METAPHOR / DISCOVERY LANGUAGE`
+- `NEEDS EMPIRICAL TEST`
+- `REJECTED / SUPERSEDED`
+
+Do not downgrade a core formulation to noncanonical merely because it has not yet been mathematically formalized or empirically validated.
+
+The purpose of this inbox is to recover elemental structure that may have gone undescribed precisely because it felt obvious to the author, while preserving uncertainty only where uncertainty actually belongs.
